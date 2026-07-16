@@ -1,0 +1,1 @@
+export { useTimetableData } from './useTimetableData';

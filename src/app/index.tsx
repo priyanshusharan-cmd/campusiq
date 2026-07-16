@@ -1,98 +1,71 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// Campora — Entry Point Redirect
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useSettingsStore, useProfileStore, useSubjectStore } from '@/stores';
+import { View, ActivityIndicator } from 'react-native';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+export default function Index() {
+  const onboarded = useSettingsStore((s) => s.onboardingCompleted);
+  const [isReady, setIsReady] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    let settingsHydrated = useSettingsStore.persist.hasHydrated();
+    let profileHydrated = useProfileStore.persist.hasHydrated();
+    let subjectHydrated = useSubjectStore.persist.hasHydrated();
+
+    const checkHydration = () => {
+      if (settingsHydrated && profileHydrated && subjectHydrated && isMounted) {
+        setIsReady(true);
+      }
+    };
+
+    const unsubSettings = useSettingsStore.persist.onFinishHydration(() => {
+      settingsHydrated = true;
+      checkHydration();
+    });
+    
+    const unsubProfile = useProfileStore.persist.onFinishHydration(() => {
+      profileHydrated = true;
+      checkHydration();
+    });
+    
+    const unsubSubject = useSubjectStore.persist.onFinishHydration(() => {
+      subjectHydrated = true;
+      checkHydration();
+    });
+
+    checkHydration();
+
+    return () => {
+      isMounted = false;
+      if (unsubSettings) unsubSettings();
+      if (unsubProfile) unsubProfile();
+      if (unsubSubject) unsubSubject();
+    };
+  }, []);
+
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isReady) {
+        // Fetch the latest state directly from the store to avoid hydration race conditions
+        const currentOnboarded = useSettingsStore.getState().onboardingCompleted;
+        if (currentOnboarded) {
+          router.replace('/(tabs)');
+        } else {
+          router.replace('/(onboarding)/welcome');
+        }
+      }
+    }, [isReady])
+  );
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" color="#7C5CFC" />
+    </View>
   );
 }
-
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});
