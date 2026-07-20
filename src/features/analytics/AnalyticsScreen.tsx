@@ -60,9 +60,14 @@ export default function AnalyticsScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.xl, paddingTop: spacing['3xl'], paddingBottom: spacing.lg }}>
-        <Ionicons name="arrow-back" size={24} color={colors.textPrimary} onPress={() => router.back()} style={{ marginRight: spacing.md }} />
-        <Text style={[textStyles.h2, { color: colors.textPrimary }]}>Analytics</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.xl, paddingTop: spacing['xl'], paddingBottom: spacing.lg }}>
+        <Pressable onPress={() => router.back()} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F3F4F6', alignItems: 'center', justifyContent: 'center', marginRight: spacing.md }}>
+          <Ionicons name="arrow-back" size={20} color={colors.textPrimary} />
+        </Pressable>
+        <View>
+          <Text style={[textStyles.h2, { color: colors.textPrimary }]}>Analytics</Text>
+          <Text style={[textStyles.small, { color: colors.textSecondary }]}>Performance & Insights</Text>
+        </View>
       </View>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
         {!hasSubjects ? (
@@ -78,73 +83,90 @@ export default function AnalyticsScreen() {
         ) : (
           <>
             {/* Insights */}
-            <Animated.View entering={FadeInDown.delay(20).duration(100)} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.xl }}>
+            <Animated.View entering={FadeInDown.delay(20).duration(300).springify()} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.xl }}>
               <View style={{ flexDirection: 'row', gap: 12 }}>
-                <Card variant="elevated" padding={16} style={{ flex: 1, backgroundColor: colors.primaryLight }}>
-                  <Ionicons name="stats-chart" size={24} color={colors.primary} style={{ marginBottom: 8 }} />
-                  <Text style={[textStyles.h2, { color: colors.primary }]}>{cgpa > 0 ? cgpa.toFixed(2) : '--'}</Text>
-                  <Text style={[textStyles.small, { color: colors.textSecondary }]}>Current CGPA</Text>
-                </Card>
-                <Card variant="elevated" padding={16} style={{ flex: 1, backgroundColor: colors.successLight }}>
-                  <Ionicons name="shield-checkmark" size={24} color={colors.success} style={{ marginBottom: 8 }} />
-                  <Text style={[textStyles.h2, { color: colors.success }]}>{avgAttendance}%</Text>
-                  <Text style={[textStyles.small, { color: colors.textSecondary }]}>Avg Attendance</Text>
-                </Card>
+                <View style={{ flex: 1, backgroundColor: isDark ? 'rgba(99, 102, 241, 0.15)' : '#EEF2FF', padding: 20, borderRadius: 24, borderWidth: 1, borderColor: isDark ? 'rgba(99, 102, 241, 0.3)' : '#E0E7FF' }}>
+                  <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: isDark ? 'rgba(99, 102, 241, 0.3)' : '#C7D2FE', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                    <Ionicons name="sparkles" size={20} color="#6366F1" />
+                  </View>
+                  <Text style={[textStyles.display, { color: '#6366F1', fontSize: 32 }]}>{cgpa > 0 ? cgpa.toFixed(2) : '--'}</Text>
+                  <Text style={[textStyles.smallMedium, { color: isDark ? '#A5B4FC' : '#4F46E5', marginTop: 4 }]}>Overall CGPA</Text>
+                </View>
+
+                <View style={{ flex: 1, backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#ECFDF5', padding: 20, borderRadius: 24, borderWidth: 1, borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#D1FAE5' }}>
+                  <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#A7F3D0', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                    <Ionicons name="shield-checkmark" size={20} color="#10B981" />
+                  </View>
+                  <Text style={[textStyles.display, { color: '#10B981', fontSize: 32 }]}>{avgAttendance}%</Text>
+                  <Text style={[textStyles.smallMedium, { color: isDark ? '#6EE7B7' : '#059669', marginTop: 4 }]}>Avg Attendance</Text>
+                </View>
               </View>
             </Animated.View>
 
         {/* CGPA Trend Chart */}
-        <Animated.View entering={FadeInDown.delay(40).duration(100)} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.xl }}>
-          <SectionHeader title="Academic Performance" />
-          <Card variant="flat" padding={16} style={{ alignItems: 'center' }}>
+        <Animated.View entering={FadeInDown.delay(40).duration(300).springify()} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.xl }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <Text style={[textStyles.h3, { color: colors.textPrimary }]}>Academic Trend</Text>
+          </View>
+          <View style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#FFFFFF', padding: 20, borderRadius: 24, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}>
             <LineChart
               data={cgpaTrendData as any}
-              width={width - spacing.xl * 2 - 48}
-              height={180}
-              spacing={(width - spacing.xl * 2 - 64) / Math.max(4, cgpaTrendData.length)}
-              initialSpacing={10}
-              color={colors.primary}
-              thickness={2}
-              dataPointsColor={colors.primary}
-              dataPointsRadius={4}
+              width={width - spacing.xl * 2 - 40}
+              height={160}
+              spacing={(width - spacing.xl * 2 - 80) / Math.max(4, cgpaTrendData.length)}
+              initialSpacing={20}
+              color="#8B5CF6"
+              thickness={3}
+              dataPointsColor="#8B5CF6"
+              dataPointsRadius={5}
               yAxisColor="transparent"
               xAxisColor="transparent"
-              yAxisTextStyle={{ color: colors.textSecondary, fontSize: 10 }}
-              xAxisLabelTextStyle={{ color: colors.textSecondary, fontSize: 10 }}
-              rulesColor={colors.borderLight}
+              yAxisTextStyle={{ color: colors.textSecondary, fontSize: 11, fontWeight: '600' }}
+              xAxisLabelTextStyle={{ color: colors.textSecondary, fontSize: 11, fontWeight: '600' }}
+              rulesColor={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}
               rulesType="solid"
               yAxisLabelTexts={['0.0', '2.0', '4.0', '6.0', '8.0', '10.0']}
               stepValue={2}
               maxValue={10}
               noOfSections={5}
+              areaChart
+              startFillColor="rgba(139, 92, 246, 0.2)"
+              endFillColor="rgba(139, 92, 246, 0.0)"
+              startOpacity={0.8}
+              endOpacity={0.1}
+              curved
             />
-          </Card>
+          </View>
         </Animated.View>
 
         {/* Subject-wise Attendance */}
-        <Animated.View entering={FadeInDown.delay(60).duration(100)} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.xl }}>
-          <SectionHeader title="Subject-wise Attendance" />
-          <Card variant="flat" padding={16} style={{ alignItems: 'center' }}>
+        <Animated.View entering={FadeInDown.delay(60).duration(300).springify()} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.xl }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <Text style={[textStyles.h3, { color: colors.textPrimary }]}>Subject Attendance</Text>
+          </View>
+          <View style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#FFFFFF', padding: 20, borderRadius: 24, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}>
             <BarChart
               data={attendanceBarsData}
-              width={width - spacing.xl * 2 - 64}
-              height={180}
-              barWidth={20}
+              width={width - spacing.xl * 2 - 40}
+              height={160}
+              barWidth={24}
+              barBorderRadius={6}
               spacing={(width - spacing.xl * 2 - 80) / Math.max(4, attendanceBarsData.length)}
-              initialSpacing={10}
+              initialSpacing={20}
               noOfSections={4}
               maxValue={100}
               yAxisColor="transparent"
               xAxisColor="transparent"
-              rulesColor={colors.borderLight}
+              rulesColor={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}
               rulesType="solid"
-              yAxisTextStyle={{ color: colors.textSecondary, fontSize: 10 }}
-              xAxisLabelTextStyle={{ color: colors.textSecondary, fontSize: 10 }}
+              yAxisTextStyle={{ color: colors.textSecondary, fontSize: 11, fontWeight: '600' }}
+              xAxisLabelTextStyle={{ color: colors.textSecondary, fontSize: 11, fontWeight: '600' }}
               showReferenceLine1
               referenceLine1Position={75}
-              referenceLine1Config={{ color: colors.warning, thickness: 1, type: 'dashed' }}
+              referenceLine1Config={{ color: colors.warning, thickness: 1.5, type: 'dashed' }}
+              isAnimated
             />
-          </Card>
+          </View>
         </Animated.View>
         </>
         )}

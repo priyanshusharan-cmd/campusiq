@@ -1,16 +1,17 @@
 // Campora — More Screen (Hub Tab)
 
 import React from 'react';
-import { View, Text, Image, Pressable } from 'react-native';
+import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/theme';
 import { ListRow, Card } from '@/components/ui';
 import { useProfileStore, useAcademicStore } from '@/stores';
-import { getGPALabel, getGPAEmoji } from '@/lib';
+import { getGPALabel } from '@/lib';
 import { Alert } from 'react-native';
 
 function SectionTitle({ title }: { title: string }) {
@@ -51,31 +52,51 @@ export default function MoreScreen() {
 
         {/* Profile Card */}
       <Animated.View entering={FadeInDown.delay(20).duration(100)} style={{ paddingHorizontal: spacing.xl, marginTop: spacing.md }}>
-        <Card variant="flat" onPress={() => router.push('/profile' as any)} padding={16}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ width: 64, height: 64, borderRadius: 32, marginRight: spacing.md, backgroundColor: colors.primaryLight, justifyContent: 'center', alignItems: 'center' }}>
-              <Ionicons name="person" size={32} color={colors.primary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[textStyles.h3, { color: colors.textPrimary, fontSize: 18, marginBottom: 4 }]}>{name}</Text>
-              <Text style={[textStyles.small, { color: colors.textSecondary, marginBottom: 12 }]}>{subtitle}</Text>
-              
-              <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 12, backgroundColor: colors.primaryLight, borderRadius: radius.sm }}>
-                  <Ionicons name="person-outline" size={14} color={colors.primary} style={{ marginRight: 6 }} />
-                  <Text style={[textStyles.smallMedium, { color: colors.primary }]}>View Profile</Text>
+        <Pressable onPress={() => router.push('/profile' as any)} style={{ borderRadius: 24, overflow: 'hidden', elevation: 8, shadowColor: colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 16 }}>
+          <LinearGradient
+            colors={['#0F172A', '#1E1B4B', '#4C1D95']}
+            style={{ padding: 20 }}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            {/* Optional background abstract shapes for beauty */}
+            <View style={{ position: 'absolute', top: -30, right: -20, width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(255,255,255,0.06)' }} />
+            <View style={{ position: 'absolute', bottom: -40, left: -20, width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(255,255,255,0.04)' }} />
+
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              {/* Avatar */}
+              <View style={{ width: 68, height: 68, borderRadius: 34, marginRight: spacing.md, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)' }}>
+                {profile?.avatarUri ? (
+                  <Image source={{ uri: profile.avatarUri }} style={{ width: 68, height: 68 }} />
+                ) : (
+                  <Ionicons name="person" size={32} color="#FFFFFF" />
+                )}
+              </View>
+
+              {/* Info */}
+              <View style={{ flex: 1 }}>
+                <Text style={[textStyles.h3, { color: '#FFFFFF', fontSize: 20, marginBottom: 4 }]} numberOfLines={1}>{name}</Text>
+                <Text style={[textStyles.small, { color: 'rgba(255,255,255,0.75)', marginBottom: 12 }]} numberOfLines={2}>{subtitle}</Text>
+                
+                <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 12, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }}>
+                    <Ionicons name="person-outline" size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
+                    <Text style={[textStyles.smallMedium, { color: '#FFFFFF', fontSize: 11 }]}>View Profile</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* CGPA Card Mini */}
+              <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: 14, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', marginLeft: 12 }}>
+                <Text style={[textStyles.small, { color: 'rgba(255,255,255,0.7)', fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 }]}>CGPA</Text>
+                <Text style={[textStyles.h2, { color: '#FFFFFF', fontSize: 28, marginVertical: 4 }]}>{cgpa > 0 ? cgpa.toFixed(2) : '--'}</Text>
+                <View style={{ backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>
+                  <Text style={[textStyles.small, { color: '#FFFFFF', fontSize: 10, fontWeight: '600' }]}>{cgpa > 0 ? getGPALabel(cgpa) : 'No grades'}</Text>
                 </View>
               </View>
             </View>
-
-            {/* SGPA Card */}
-            <View style={{ backgroundColor: colors.primaryLight, padding: 12, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={[textStyles.small, { color: colors.textSecondary, fontSize: 10, fontWeight: '500' }]}>SGPA (Current)</Text>
-              <Text style={[textStyles.h2, { color: colors.primary, fontSize: 24, marginVertical: 4 }]}>{sgpaValue}</Text>
-              <Text style={[textStyles.small, { color: colors.textPrimary, fontSize: 10, fontWeight: '500' }]}>{currentSGPA > 0 ? `\${getGPALabel(currentSGPA)} \${getGPAEmoji(currentSGPA)}` : 'No grades'}</Text>
-            </View>
-          </View>
-        </Card>
+          </LinearGradient>
+        </Pressable>
       </Animated.View>
 
       {/* Academics Section */}
@@ -95,6 +116,20 @@ export default function MoreScreen() {
               title="GPA Goals" 
               subtitle="Set and track your academic goals"
               onPress={() => router.push('/(modals)/goal' as any)} 
+            />
+            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
+            <ListRow 
+              icon="flag-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight}
+              title="Attendance Goals" 
+              subtitle="Set default and subject-specific targets"
+              onPress={() => router.push('/academics/attendance-goals' as any)} 
+            />
+            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
+            <ListRow 
+              icon="settings-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight}
+              title="Academic Settings" 
+              subtitle="Configure passing marks and criteria"
+              onPress={() => router.push('/academics/settings' as any)} 
             />
             <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
             <ListRow 
@@ -142,10 +177,10 @@ export default function MoreScreen() {
             <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
             <ListRow 
               icon="information-circle-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight}
-              title="About CampusIQ" 
+              title="About Campora" 
               subtitle="Learn more about the app"
               rightText="v1.0.0" 
-              onPress={() => Alert.alert('CampusIQ', 'The operating system for college students.')} 
+              onPress={() => Alert.alert('Campora', 'The operating system for college students.')} 
               showChevron={false}
             />
           </Card>

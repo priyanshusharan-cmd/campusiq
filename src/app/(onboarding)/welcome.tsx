@@ -210,16 +210,14 @@ export default function WelcomeScreen() {
                 mode="date"
                 display={Platform.OS === 'ios' ? 'inline' : 'default'}
                 themeVariant="light"
-                onChange={(event: any, date?: Date) => {
-                  if (date) {
-                    setTempDate(date);
-                    if (Platform.OS === 'android') {
-                      const fmt = formatLocalDate(date);
-                      if (showDatePicker === 'dob') setDob(fmt);
-                      else if (showDatePicker === 'semesterStart') setSemesterStart(fmt);
-                      else if (showDatePicker === 'semesterEnd') setSemesterEnd(fmt);
-                      setShowDatePicker(null);
-                    }
+                onValueChange={(event: any, date: Date) => {
+                  setTempDate(date);
+                  if (Platform.OS === 'android') {
+                    const fmt = formatLocalDate(date);
+                    if (showDatePicker === 'dob') setDob(fmt);
+                    else if (showDatePicker === 'semesterStart') setSemesterStart(fmt);
+                    else if (showDatePicker === 'semesterEnd') setSemesterEnd(fmt);
+                    setShowDatePicker(null);
                   }
                 }}
                 onDismiss={() => setShowDatePicker(null)}

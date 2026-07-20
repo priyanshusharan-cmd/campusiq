@@ -21,6 +21,8 @@ export interface Semester {
   endDate?: string;
   sgpa?: number;
   totalCredits?: number;
+  backlogCount?: number;
+  backlogCredits?: number;
   isCurrent: boolean;
 }
 

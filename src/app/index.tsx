@@ -11,49 +11,15 @@ export default function Index() {
   const router = useRouter();
 
   useEffect(() => {
-    let isMounted = true;
-    
-    let settingsHydrated = useSettingsStore.persist.hasHydrated();
-    let profileHydrated = useProfileStore.persist.hasHydrated();
-    let subjectHydrated = useSubjectStore.persist.hasHydrated();
-
-    const checkHydration = () => {
-      if (settingsHydrated && profileHydrated && subjectHydrated && isMounted) {
-        setIsReady(true);
-      }
-    };
-
-    const unsubSettings = useSettingsStore.persist.onFinishHydration(() => {
-      settingsHydrated = true;
-      checkHydration();
-    });
-    
-    const unsubProfile = useProfileStore.persist.onFinishHydration(() => {
-      profileHydrated = true;
-      checkHydration();
-    });
-    
-    const unsubSubject = useSubjectStore.persist.onFinishHydration(() => {
-      subjectHydrated = true;
-      checkHydration();
-    });
-
-    checkHydration();
-
-    return () => {
-      isMounted = false;
-      if (unsubSettings) unsubSettings();
-      if (unsubProfile) unsubProfile();
-      if (unsubSubject) unsubSubject();
-    };
+    setIsReady(true);
   }, []);
-
 
   useFocusEffect(
     useCallback(() => {
       if (isReady) {
         // Fetch the latest state directly from the store to avoid hydration race conditions
         const currentOnboarded = useSettingsStore.getState().onboardingCompleted;
+
         if (currentOnboarded) {
           router.replace('/(tabs)');
         } else {

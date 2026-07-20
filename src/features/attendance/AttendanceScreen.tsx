@@ -32,7 +32,7 @@ export default function AttendanceScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
       
       {/* Top App Bar */}
-      <TopNavBar firstName={firstName} />
+      <TopNavBar firstName={profile?.name?.split(' ')[0] || 'Student'} avatarUri={profile?.avatarUri} />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -47,14 +47,6 @@ export default function AttendanceScreen() {
               Track your attendance and stay above the target!
             </Text>
           </View>
-          <Pressable 
-            style={[styles.dropdown, { borderColor: colors.primaryLight, backgroundColor: colors.surface }]}
-            onPress={() => Alert.alert('Filter', 'Semester filtering is active based on profile dates.')}
-          >
-            <Ionicons name="calendar-outline" size={14} color={colors.primary} style={{ marginRight: 6 }} />
-            <Text style={[textStyles.smallMedium, { color: colors.primary }]}>This Semester</Text>
-            <Ionicons name="chevron-down" size={14} color={colors.primary} style={{ marginLeft: 4 }} />
-          </Pressable>
         </View>
 
         {/* Overview stat cards */}

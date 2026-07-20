@@ -1,6 +1,7 @@
 // Campora — Subject Types
 
 import type { ID, SubjectType } from './common';
+import type { AssessmentComponent } from './grading';
 
 export interface Subject {
   id: ID;
@@ -10,9 +11,17 @@ export interface Subject {
   faculty: string;
   room: string;
   color: string;        // Hex color
+  icon?: any;           // Selected Ionicon Name
   type: SubjectType;
   credits: number;
   semesterId: ID;
+  attendanceTarget?: number;
+  components?: AssessmentComponent[]; // New dynamic components
+  internalMarks?: number; // Legacy, keep for backward compatibility
+  cieMarks?: number[]; // Array of scores for each CIE
+  aatMarks?: number;
+  labMarks?: number; // Legacy, keep for backward compatibility
+  labInternalMarks?: number[]; // Array of scores for each Lab Assessment
   createdAt: Date;
 }
 

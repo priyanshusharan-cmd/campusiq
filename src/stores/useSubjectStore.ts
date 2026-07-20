@@ -7,9 +7,11 @@ import { generateId, generateShortName } from '@/types';
 import { colorFromString } from '@/theme';
 import { zustandStorage } from './storage';
 
+import type { AssessmentComponent } from '@/types/grading';
+
 interface SubjectState {
   subjects: Subject[];
-  addSubject: (data: { name: string; code?: string; faculty?: string; room?: string; type?: SubjectType; credits?: number; semesterId?: string }) => Subject;
+  addSubject: (data: { name: string; code?: string; faculty?: string; room?: string; type?: SubjectType; credits?: number; semesterId?: string; components?: AssessmentComponent[] }) => Subject;
   updateSubject: (id: ID, updates: Partial<Subject>) => void;
   removeSubject: (id: ID) => void;
   getSubject: (id: ID) => Subject | undefined;
@@ -34,6 +36,7 @@ export const useSubjectStore = create<SubjectState>()(
       type: data.type || 'theory',
       credits: data.credits || 3,
       semesterId: data.semesterId || '',
+      components: data.components,
       createdAt: new Date(),
     };
     set((state) => ({ subjects: [...state.subjects, subject] }));
@@ -54,11 +57,13 @@ export const useSubjectStore = create<SubjectState>()(
     const { useAttendanceStore } = require('./useAttendanceStore');
     const { useAssignmentStore } = require('./useAssignmentStore');
     const { useExamStore } = require('./useExamStore');
+    const { useAcademicStore } = require('./useAcademicStore');
     
     useTimetableStore.getState().removeEntriesBySubject(id);
     useAttendanceStore.getState().removeRecordsBySubject(id);
     useAssignmentStore.getState().removeAssignmentsBySubject(id);
     useExamStore.getState().removeExamsBySubject(id);
+    useAcademicStore.getState().removeEntriesBySubject(id);
   },
 
   getSubject: (id) => get().subjects.find((s) => s.id === id),

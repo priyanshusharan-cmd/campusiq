@@ -12,6 +12,7 @@ export function MonthCalendarView() {
   const attendanceRecords = useAttendanceStore((s) => s.records);
   const markBulkAttendance = useAttendanceStore((s) => s.markBulkAttendance);
   const markDayAsHoliday = useAttendanceStore((s) => s.markDayAsHoliday);
+  const markDayAsExam = useAttendanceStore((s) => s.markDayAsExam);
   const removeRecordsByDate = useAttendanceStore((s) => s.removeRecordsByDate);
 
   const handleDayPress = (day: DateData) => {
@@ -49,7 +50,7 @@ export function MonthCalendarView() {
 
     buttons.push({
       text: '📝 Mark as Exam Day',
-      onPress: () => setEvent(dateString, 'exam'),
+      onPress: () => markDayAsExam(dateString),
     });
 
     if (dateRecords.length > 0 || currentEvent) {
@@ -102,11 +103,11 @@ export function MonthCalendarView() {
         marks[dateString] = {
           customStyles: {
             container: {
-              backgroundColor: '#CCFBF1',
+              backgroundColor: '#DBEAFE',
               borderRadius: 8,
             },
             text: {
-              color: '#0D9488',
+              color: '#2563EB',
               fontFamily: fontFamily.medium,
             },
           },
@@ -115,11 +116,11 @@ export function MonthCalendarView() {
         marks[dateString] = {
           customStyles: {
             container: {
-              backgroundColor: '#FEE2E2',
+              backgroundColor: '#F3E8FF',
               borderRadius: 8,
             },
             text: {
-              color: '#DC2626',
+              color: '#8B5CF6',
               fontFamily: fontFamily.medium,
             },
           },
@@ -153,8 +154,8 @@ export function MonthCalendarView() {
         bgColor = '#FEE2E2';
         textColor = '#EF4444';
       } else if (hasCancelled) {
-        bgColor = '#FEF3C7';
-        textColor = '#D97706';
+        bgColor = '#FEF08A';
+        textColor = '#CA8A04';
       }
 
       marks[dateString] = {
@@ -209,27 +210,18 @@ export function MonthCalendarView() {
         }}
       />
 
-      {/* Legend */}
       <View style={styles.legendRow}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
-          <Text style={[styles.legendText, { color: colors.textSecondary }]}>All Present</Text>
-        </View>
-        <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
-          <Text style={[styles.legendText, { color: colors.textSecondary }]}>All Absent</Text>
+          <Text style={[styles.legendText, { color: colors.textSecondary }]}>Absent</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#0D9488' }]} />
+          <View style={[styles.legendDot, { backgroundColor: '#2563EB' }]} />
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>Holiday</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#DC2626' }]} />
+          <View style={[styles.legendDot, { backgroundColor: '#8B5CF6' }]} />
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>Exam</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#D97706' }]} />
-          <Text style={[styles.legendText, { color: colors.textSecondary }]}>Cancelled</Text>
         </View>
       </View>
     </View>
@@ -243,24 +235,24 @@ const styles = StyleSheet.create({
   },
   legendRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 12,
-    marginTop: 16,
-    paddingHorizontal: 8,
+    flexWrap: 'nowrap',
+    justifyContent: 'space-between',
+    marginTop: 20,
+    paddingHorizontal: 12,
+    marginBottom: 8,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   legendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 5,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 6,
   },
   legendText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
   },
 });

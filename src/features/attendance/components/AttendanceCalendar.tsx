@@ -36,11 +36,11 @@ export function AttendanceCalendar({ subjectId, onDayPress }: AttendanceCalendar
   const markedDates = useMemo(() => {
     const marks: Record<string, any> = {};
 
-    const pastScheduled = getPastScheduledClasses(subjectId, timetableEntries, events, profile?.semesterStartDate);
+    const pastScheduled = getPastScheduledClasses(subjectId, timetableEntries, events, profile?.semesterStartDate, profile?.semesterEndDate);
     pastScheduled.forEach(scheduled => {
       marks[scheduled.dateStr] = {
         customStyles: {
-          container: { backgroundColor: '#D1FAE5', borderRadius: 14 },
+          container: { backgroundColor: '#D1FAE5', borderRadius: 8 },
           text: { color: '#10B981', fontWeight: '500' }
         }
       };
@@ -65,28 +65,28 @@ export function AttendanceCalendar({ subjectId, onDayPress }: AttendanceCalendar
       if (hasAbsent) {
         marks[dateStr] = {
           customStyles: {
-            container: { backgroundColor: '#FEE2E2', borderRadius: 14 },
+            container: { backgroundColor: '#FEE2E2', borderRadius: 8 },
             text: { color: '#EF4444', fontWeight: '500' }
           }
         };
       } else if (hasCancelled) {
         marks[dateStr] = {
           customStyles: {
-            container: { backgroundColor: '#FEF3C7', borderRadius: 14 },
-            text: { color: '#D97706', fontWeight: '500' }
+            container: { backgroundColor: '#FEF08A', borderRadius: 8 },
+            text: { color: '#CA8A04', fontWeight: '500' }
           }
         };
       } else if (hasHoliday) {
         marks[dateStr] = {
           customStyles: {
-            container: { backgroundColor: '#CCFBF1', borderRadius: 14 },
-            text: { color: '#0D9488', fontWeight: '500' }
+            container: { backgroundColor: '#DBEAFE', borderRadius: 8 },
+            text: { color: '#2563EB', fontWeight: '500' }
           }
         };
       } else {
         marks[dateStr] = {
           customStyles: {
-            container: { backgroundColor: '#D1FAE5', borderRadius: 14 },
+            container: { backgroundColor: '#D1FAE5', borderRadius: 8 },
             text: { color: '#10B981', fontWeight: '500' }
           }
         };
@@ -97,7 +97,7 @@ export function AttendanceCalendar({ subjectId, onDayPress }: AttendanceCalendar
     if (!marks[todayStr]) {
       marks[todayStr] = {
         customStyles: {
-          container: { backgroundColor: '#EEF2FF', borderRadius: 14 },
+          container: { backgroundColor: '#EEF2FF', borderRadius: 8 },
           text: { color: '#4F46E5', fontWeight: '500' }
         }
       };
@@ -137,29 +137,33 @@ export function AttendanceCalendar({ subjectId, onDayPress }: AttendanceCalendar
             </View>
           )}
         />
-
-        {/* Legend */}
-        <View style={styles.calLegend}>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
-            <Text style={styles.legendText}>Present</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'nowrap', justifyContent: 'center', gap: 6, marginTop: 16, paddingHorizontal: 0 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ width: 12, height: 12, borderRadius: 6, marginRight: 4, backgroundColor: '#10B981' }} />
+            <Text style={{ fontSize: 12, fontWeight: '500', color: colors.textSecondary }}>Present</Text>
           </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
-            <Text style={styles.legendText}>Absent</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ width: 12, height: 12, borderRadius: 6, marginRight: 4, backgroundColor: '#EF4444' }} />
+            <Text style={{ fontSize: 12, fontWeight: '500', color: colors.textSecondary }}>Absent</Text>
           </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#D97706' }]} />
-            <Text style={styles.legendText}>Cancelled</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ width: 12, height: 12, borderRadius: 6, marginRight: 4, backgroundColor: '#2563EB' }} />
+            <Text style={{ fontSize: 12, fontWeight: '500', color: colors.textSecondary }}>Holiday</Text>
           </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#0D9488' }]} />
-            <Text style={styles.legendText}>Holiday</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ width: 12, height: 12, borderRadius: 6, marginRight: 4, backgroundColor: '#EA580C' }} />
+            <Text style={{ fontSize: 12, fontWeight: '500', color: colors.textSecondary }}>Exam</Text>
           </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#4F46E5' }]} />
-            <Text style={styles.legendText}>Today</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ width: 12, height: 12, borderRadius: 6, marginRight: 4, backgroundColor: '#CA8A04' }} />
+            <Text style={{ fontSize: 12, fontWeight: '500', color: colors.textSecondary }}>Cancel</Text>
           </View>
+        </View>
+        <View style={{ marginTop: 16, flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: spacing.md, paddingTop: spacing.sm }}>
+          <Text style={[textStyles.small, { color: colors.textSecondary, marginRight: 4 }]}>*</Text>
+          <Text style={[textStyles.small, { color: colors.textSecondary, flex: 1 }]}>
+            Note: Scheduled classes are considered present by default.
+          </Text>
         </View>
       </Card>
     </View>

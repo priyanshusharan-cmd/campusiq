@@ -36,6 +36,7 @@ export default function CreateClassScreen() {
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [startTimeInput, setStartTimeInput] = useState('');
   const [endTimeInput, setEndTimeInput] = useState('');
+  const [classType, setClassType] = useState<'lecture' | 'lab'>('lecture');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSubjectModal, setShowSubjectModal] = useState(false);
 
@@ -60,6 +61,7 @@ export default function CreateClassScreen() {
         const [eH, eM] = entry.endTime.split(':');
         eD.setHours(parseInt(eH), parseInt(eM), 0, 0);
         setEndTime(eD);
+        setClassType(entry.type as 'lecture' | 'lab');
         
         const subj = subjects.find(s => s.id === entry.subjectId);
         if (subj) {
@@ -121,7 +123,7 @@ export default function CreateClassScreen() {
 
     if (isCollision) { Alert.alert('Schedule Conflict', 'This class time overlaps with an existing class in your timetable.'); setIsSubmitting(false); return; }
 
-    const entryData = { subjectId: selectedSubjectId, dayOfWeek: dayIndex, startTime: startStr, endTime: endStr, room, type: 'lecture' as const, color };
+    const entryData = { subjectId: selectedSubjectId, dayOfWeek: dayIndex, startTime: startStr, endTime: endStr, room, type: classType, color };
 
     if (editId) { updateEntry(editId as string, entryData); } else { addEntry(entryData); }
     router.back();
@@ -169,6 +171,26 @@ export default function CreateClassScreen() {
           <View style={styles.row}>
             <View style={{ flex: 1 }}><TextInput label="Room Number" placeholder="Enter Room Number" value={room} onChangeText={setRoom} focusColor="#7C5CFC" /></View>
             <View style={{ flex: 1 }}><Select label="Day" required placeholder="Select day" value={selectedDay || ''} onPress={() => setShowDayModal(true)} isFocused={showDayModal} /></View>
+          </View>
+
+          <View style={{ marginBottom: 20 }}>
+            <Text style={[textStyles.smallMedium, { color: colors.textPrimary, marginBottom: 8 }]}>Class Type <Text style={{ color: '#EF4444' }}>*</Text></Text>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <Pressable 
+                style={[styles.typeOption, classType === 'lecture' && { backgroundColor: '#F3F0FF', borderColor: '#7C5CFC' }]}
+                onPress={() => setClassType('lecture')}
+              >
+                <Ionicons name="book-outline" size={20} color={classType === 'lecture' ? '#7C5CFC' : colors.textSecondary} />
+                <Text style={{ marginLeft: 8, color: classType === 'lecture' ? '#7C5CFC' : colors.textSecondary, fontWeight: '500' }}>Lecture</Text>
+              </Pressable>
+              <Pressable 
+                style={[styles.typeOption, classType === 'lab' && { backgroundColor: '#F3F0FF', borderColor: '#7C5CFC' }]}
+                onPress={() => setClassType('lab')}
+              >
+                <Ionicons name="flask-outline" size={20} color={classType === 'lab' ? '#7C5CFC' : colors.textSecondary} />
+                <Text style={{ marginLeft: 8, color: classType === 'lab' ? '#7C5CFC' : colors.textSecondary, fontWeight: '500' }}>Lab</Text>
+              </Pressable>
+            </View>
           </View>
 
           <View style={styles.row}>
@@ -288,4 +310,5 @@ const styles = StyleSheet.create({
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   subjectItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1 },
   subjectColor: { width: 16, height: 16, borderRadius: 8, marginRight: 12 },
+  typeOption: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12 }
 });

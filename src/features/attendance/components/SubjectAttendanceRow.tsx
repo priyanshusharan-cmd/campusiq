@@ -5,6 +5,8 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
+import { useSettingsStore, useSubjectStore } from '@/stores';
+import { getSubjectTheme } from '@/utils/subjectTheme';
 
 import { useRouter } from 'expo-router';
 
@@ -19,13 +21,18 @@ interface SubjectAttendanceRowProps {
     totalClasses: number;
     percentage: number;
     canMiss: number;
+    target?: number;
   };
   isLast?: boolean;
 }
 
 export function SubjectAttendanceRow({ data, isLast = false }: SubjectAttendanceRowProps) {
-  const { colors, textStyles } = useTheme();
+  const { colors, textStyles, isDark } = useTheme();
+  const getSubject = useSubjectStore(s => s.getSubject);
   const router = useRouter();
+
+  const fullSubject = getSubject(data.subjectId);
+  const subjectCode = fullSubject?.code || '';
 
   // Extract initials for the square icon
   const initials = data.shortName || data.subjectName
@@ -36,24 +43,31 @@ export function SubjectAttendanceRow({ data, isLast = false }: SubjectAttendance
     .substring(0, 2)
     .toUpperCase();
 
+  const globalTarget = useSettingsStore(s => s.attendanceTarget);
+  const target = data.target ?? globalTarget;
+
   const getStatus = (percentage: number) => {
-    if (percentage >= 90) return { label: 'Excellent', color: colors.success };
-    if (percentage >= 85) return { label: 'Good', color: colors.success };
-    if (percentage > 80) return { label: 'Above Target', color: colors.success };
-    if (percentage >= 75) return { label: 'At Risk', color: colors.warning };
+    if (percentage >= target + 10) return { label: 'Excellent', color: colors.success };
+    if (percentage >= target + 5) return { label: 'Good', color: colors.success };
+    if (percentage > target) return { label: 'Above Target', color: colors.success };
+    if (percentage === target) return { label: 'On Track', color: colors.success };
+    if (percentage >= target - 5) return { label: 'At Risk', color: colors.warning };
     return { label: 'Critical', color: colors.danger };
   };
 
   const status = getStatus(data.percentage);
   const progressWidth = `${Math.min(data.percentage, 100)}%`;
   const isPerfect = data.totalClasses > 0 && data.percentage === 100;
+  
+  const theme = getSubjectTheme(data.subjectName, subjectCode, isDark);
+  const icon = fullSubject?.icon || theme.icon;
 
   return (
     <Pressable onPress={() => router.push(`/attendance/${data.subjectId}?tab=attendance`)} style={styles.container}>
       <View style={styles.row}>
         {/* Left Icon */}
-        <View style={[styles.iconSquare, { backgroundColor: data.subjectColor + '15' }]}>
-          <Text style={[textStyles.smallMedium, { color: data.subjectColor, fontSize: 13 }]}>{initials}</Text>
+        <View style={[styles.iconSquare, { backgroundColor: theme.bgColor }]}>
+          <Ionicons name={icon} size={20} color={theme.color} />
         </View>
 
         {/* Content Column */}

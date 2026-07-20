@@ -10,32 +10,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { Card, SectionHeader, ListRow } from '@/components/ui';
 import { useSettingsStore, useAcademicStore, useAttendanceStore, useAssignmentStore, useExamStore, useSubjectStore, useTimetableStore, useProfileStore } from '@/stores';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SettingsScreen() {
   const { colors, spacing, textStyles } = useTheme();
   const router = useRouter();
   const settings = useSettingsStore();
 
-  const handleResetData = () => {
-    Alert.alert('Reset App Data', 'Are you sure you want to delete all your data? This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' }, 
-      { text: 'Reset', style: 'destructive', onPress: () => { 
-          useAcademicStore.getState().clearAll(); 
-          useAttendanceStore.getState().clearRecords(); 
-          useTimetableStore.getState().clearEntries(); 
-          useAssignmentStore.getState().clearAssignments(); 
-          useExamStore.getState().clearExams(); 
-          useSubjectStore.getState().clearSubjects();
-          alert('Data cleared!'); 
-        } 
-      }
-    ]);
-  };
 
   const handleDeleteAccount = () => {
     Alert.alert('Delete Account', 'Are you sure you want to delete your account? All data and profile information will be permanently erased.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => {
+      { text: 'Delete', style: 'destructive', onPress: async () => {
           useAcademicStore.getState().clearAll(); 
           useAttendanceStore.getState().clearRecords(); 
           useTimetableStore.getState().clearEntries(); 
@@ -44,7 +30,10 @@ export default function SettingsScreen() {
           useSubjectStore.getState().clearSubjects();
           useProfileStore.getState().clearProfile();
           useSettingsStore.getState().resetSettings();
-          router.replace('/');
+          
+          await AsyncStorage.clear();
+          
+          router.replace('/(onboarding)/welcome');
         }
       }
     ]);
@@ -60,17 +49,6 @@ export default function SettingsScreen() {
     if (settings.theme === 'light') return 'Light Mode';
     return 'Dark Mode';
   };
-
-  const handleEditTarget = () => {
-    Alert.prompt('Attendance Target', 'Enter your new attendance target (%)', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Save', onPress: (val?: string) => {
-        const num = parseInt(val || '75', 10);
-        if (!isNaN(num)) settings.setAttendanceTarget(num);
-      }}
-    ], 'plain-text', settings.attendanceTarget.toString(), 'decimal-pad');
-  };
-
 
 
   return (
@@ -94,18 +72,7 @@ export default function SettingsScreen() {
           </Card>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(20).duration(80)}>
-          <SectionHeader title="Academics" />
-          <Card variant="flat" padding={0}>
-            <ListRow 
-              icon="flag-outline" iconColor={colors.success} iconBackgroundColor={colors.successLight} 
-              title="Attendance Target" 
-              rightText={`\${settings.attendanceTarget}%`}
-              showChevron={true} 
-              onPress={handleEditTarget}
-            />
-          </Card>
-        </Animated.View>
+
 
         <Animated.View entering={FadeInDown.delay(20).duration(80)}>
           <SectionHeader title="Preferences" />
@@ -139,15 +106,8 @@ export default function SettingsScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(20).duration(80)}>
-          <SectionHeader title="Developer & Data" />
+          <SectionHeader title="Account" />
           <Card variant="flat" padding={0}>
-
-            <ListRow 
-              icon="trash-outline" iconColor={colors.danger} 
-              title="Clear All Data" 
-              onPress={handleResetData} 
-            />
-            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
             <ListRow 
               icon="person-remove-outline" iconColor={colors.danger} 
               title="Delete Account" 

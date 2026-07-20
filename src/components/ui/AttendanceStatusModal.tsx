@@ -24,8 +24,8 @@ const STATUS_OPTIONS: Array<{
 }> = [
   { status: 'present', icon: 'checkmark-circle', label: 'Present', bgColor: '#D1FAE5', iconColor: '#10B981', textColor: '#059669' },
   { status: 'absent', icon: 'close-circle', label: 'Absent', bgColor: '#FEE2E2', iconColor: '#EF4444', textColor: '#DC2626' },
-  { status: 'cancelled', icon: 'alert-circle', label: 'Cancelled', bgColor: '#FEF3C7', iconColor: '#D97706', textColor: '#B45309' },
-  { status: 'holiday', icon: 'sunny', label: 'Holiday', bgColor: '#CCFBF1', iconColor: '#0D9488', textColor: '#0F766E' },
+  { status: 'cancelled', icon: 'alert-circle', label: 'Cancelled', bgColor: '#FEF08A', iconColor: '#CA8A04', textColor: '#A16207' },
+  { status: 'holiday', icon: 'sunny', label: 'Holiday', bgColor: '#DBEAFE', iconColor: '#2563EB', textColor: '#1D4ED8' },
 ];
 
 export function AttendanceStatusModal({ visible, onClose, onSelectStatus }: AttendanceStatusModalProps) {

@@ -23,6 +23,7 @@ interface AttendanceState {
   hasRecordForEntry: (date: string, timetableEntryId: ID) => boolean;
   markBulkAttendance: (date: string, status: AttendanceStatus) => void;
   markDayAsHoliday: (date: string) => void;
+  markDayAsExam: (date: string) => void;
   loadRecords: (records: AttendanceRecord[]) => void;
   clearRecords: () => void;
 }
@@ -137,6 +138,28 @@ export const useAttendanceStore = create<AttendanceState>()(
     });
   },
 
+  // Mark a day as exam for all subjects + set timetable event
+  markDayAsExam: (date) => {
+    const { useTimetableStore } = require('./useTimetableStore');
+    const entries = useTimetableStore.getState().entries;
+
+    // Set the timetable event
+    useTimetableStore.getState().setEvent(date, 'exam');
+
+    // Determine day of week from the date string
+    const d = new Date(date + 'T12:00:00');
+    const jsDay = d.getDay();
+    const dayOfWeek = jsDay === 0 ? 6 : jsDay - 1;
+
+    // Find all timetable entries for this day of week
+    const dayEntries = entries.filter((e: any) => e.dayOfWeek === dayOfWeek);
+
+    // Mark cancelled for each entry's subject
+    dayEntries.forEach((entry: any) => {
+      get().markAttendance(entry.subjectId, date, 'cancelled', entry.id);
+    });
+  },
+
   loadRecords: (records) => set({ records }),
 
   clearRecords: () => set({ records: [] }),
@@ -176,8 +199,12 @@ export function useSubjectAttendance(): SubjectAttendance[] {
     const present = explicitPresent + assumedPresent;
     const totalClasses = present + absent; // Only count present + absent for percentage
     const percentage = calcAttendancePercentage(present, totalClasses);
-    const canMiss = calcCanMiss(present, totalClasses, target);
-    const needToAttend = calcNeedToAttend(present, totalClasses, target);
+    
+    // Subject specific target falls back to global target
+    const effectiveTarget = subject.attendanceTarget ?? target;
+    
+    const canMiss = calcCanMiss(present, totalClasses, effectiveTarget);
+    const needToAttend = calcNeedToAttend(present, totalClasses, effectiveTarget);
 
     return {
       subjectId: subject.id,
@@ -192,7 +219,8 @@ export function useSubjectAttendance(): SubjectAttendance[] {
       percentage,
       canMiss,
       needToAttend,
-      status: getAttendanceStatus(percentage, target),
+      target: effectiveTarget,
+      status: getAttendanceStatus(percentage, effectiveTarget),
     };
   });
 }

@@ -8,6 +8,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/theme';
 import { useAcademicStore } from '@/stores';
+import { useSettingsStore } from '@/stores/useSettingsStore';
 import { getGPALabel } from '@/lib';
 
 const { width } = Dimensions.get('window');
@@ -73,6 +74,8 @@ export default function SemesterSGPAScreen() {
   const semesters = useAcademicStore(s => s.semesters);
   const updateSemester = useAcademicStore(s => s.updateSemester);
   const addSemester = useAcademicStore(s => s.addSemester);
+  
+  const passingMarks = useSettingsStore(s => s.passingMarks);
 
   const semesterNum = parseInt(semNumber || '1', 10);
   const existingSem = semesters.find(s => s.number === semesterNum);
@@ -109,25 +112,35 @@ export default function SemesterSGPAScreen() {
     }));
   };
 
-  const { sgpa, totalCredits } = useMemo(() => {
+  const { sgpa, totalCredits, backlogCount, backlogCredits } = useMemo(() => {
     let pts = 0;
     let creds = 0;
+    let bCount = 0;
+    let bCreds = 0;
 
     subjects.forEach(sub => {
       const c = parseFloat(sub.credits) || 0;
       const gp = parseFloat(sub.gradePoint) || 0;
+      const marks = parseFloat(sub.totalMarks) || 0;
       
       if (c > 0 && gp > 0) {
         creds += c;
         pts += (gp * c);
+        
+        if (marks > 0 && marks < passingMarks) {
+          bCount++;
+          bCreds += c;
+        }
       }
     });
 
     return {
       sgpa: creds > 0 ? Math.round((pts / creds) * 100) / 100 : 0.0,
       totalCredits: creds,
+      backlogCount: bCount,
+      backlogCredits: bCreds
     };
-  }, [subjects]);
+  }, [subjects, passingMarks]);
 
   const handleSave = () => {
     if (totalCredits === 0) {
@@ -136,9 +149,9 @@ export default function SemesterSGPAScreen() {
     }
 
     if (existingSem) {
-      updateSemester(existingSem.id, { sgpa, totalCredits });
+      updateSemester(existingSem.id, { sgpa, totalCredits, backlogCount, backlogCredits });
     } else {
-      addSemester({ name: `Semester ${semesterNum}`, number: semesterNum, isCurrent: false, sgpa, totalCredits });
+      addSemester({ name: `Semester ${semesterNum}`, number: semesterNum, isCurrent: false, sgpa, totalCredits, backlogCount, backlogCredits });
     }
 
     Alert.alert('Success 🎉', 'Semester SGPA has been saved successfully.', [
@@ -182,11 +195,26 @@ export default function SemesterSGPAScreen() {
                   </View>
                   <Text style={[textStyles.h3, { color: colors.textPrimary }]}>Subject {index + 1}</Text>
                 </View>
-                {subjects.length > 1 && (
-                  <Pressable onPress={() => removeSubject(sub.id)} hitSlop={15} style={styles.trashBtn}>
-                    <Ionicons name="trash-outline" size={18} color="#EF4444" />
-                  </Pressable>
-                )}
+                
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  {(() => {
+                     const marks = parseFloat(sub.totalMarks) || 0;
+                     if (marks > 0) {
+                       const isBacklog = marks < passingMarks;
+                       return (
+                         <View style={{ backgroundColor: isBacklog ? '#FEF2F2' : '#ECFDF5', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: isBacklog ? '#FCA5A5' : '#6EE7B7' }}>
+                           <Text style={[textStyles.smallMedium, { color: isBacklog ? '#DC2626' : '#059669', fontSize: 11 }]}>{isBacklog ? 'BACKLOG' : 'PASSED'}</Text>
+                         </View>
+                       );
+                     }
+                     return null;
+                  })()}
+                  {subjects.length > 1 && (
+                    <Pressable onPress={() => removeSubject(sub.id)} hitSlop={15} style={styles.trashBtn}>
+                      <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                    </Pressable>
+                  )}
+                </View>
               </View>
 
               <View style={styles.row}>

@@ -32,8 +32,8 @@ export function TimePickerModal({ visible, value, title, onClose, onChange }: Ti
               value={value}
               mode="time"
               display="spinner"
-              onChange={(event: any, selectedTime?: Date) => {
-                if (selectedTime) onChange(selectedTime);
+              onValueChange={(event: any, selectedTime: Date) => {
+                onChange(selectedTime);
               }}
               onDismiss={onClose}
               style={{ alignSelf: 'center', marginVertical: 10 }}
@@ -52,9 +52,9 @@ export function TimePickerModal({ visible, value, title, onClose, onChange }: Ti
       value={value}
       mode="time"
       display="default"
-      onChange={(event: any, selectedTime?: Date) => {
+      onValueChange={(event: any, selectedTime: Date) => {
         onClose();
-        if (selectedTime) onChange(selectedTime);
+        onChange(selectedTime);
       }}
       onDismiss={onClose}
     />

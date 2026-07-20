@@ -6,7 +6,7 @@ export const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'
 export const DAY_SHORT_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 
 export type Priority = 'low' | 'medium' | 'high';
-export type ClassType = 'lecture' | 'lab' | 'tutorial';
+export type ClassType = 'lecture' | 'lab';
 export type SubjectType = 'theory' | 'lab' | 'elective';
 
 export interface TimeSlot {

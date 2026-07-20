@@ -1,4 +1,4 @@
-// Campora — GPA Calculation Utilities
+// CampusIQ — GPA Calculation Utilities
 
 import type { GradeEntry, GradeLetter } from '@/types';
 
@@ -52,6 +52,93 @@ export function getGPALabel(gpa: number): string {
   return 'Needs Improvement';
 }
 
+import type { Subject } from '@/types';
+
+// ─── Grading Settings Interface ─────────────────────────────────────────────────
+// This is the shape of settings that the calculation functions expect.
+
+export interface GradingSettings {
+  // Theory config
+  cieCount: number;
+  cieBestOf: number;
+  cieMaxMarks: number;
+  aatEnabled: boolean;
+  aatMaxMarks: number;
+  maxInternalMarks: number;
+  maxExternalMarks: number;
+
+  // Practical config
+  labCieCount: number;
+  labCieBestOf: number;
+  labCieMaxMarks: number;
+  labAatEnabled: boolean;
+  labAatMaxMarks: number;
+  labComponentMarks: number;
+  labMaxInternalMarks: number;
+  labMaxExternalMarks: number;
+}
+
+// ─── Calculate Aggregated Internal Marks ────────────────────────────────────────
+// Handles both Theory and Practical subjects with proper clamping to max marks.
+
+export function calculateAggregatedInternal(
+  sub: Subject,
+  settings: GradingSettings
+): number {
+  let total = 0;
+
+  // If the user just entered a direct internal total (no detailed marks), use it.
+  const hasNoDetailedMarks =
+    (!sub.cieMarks || sub.cieMarks.length === 0) &&
+    (!sub.labInternalMarks || sub.labInternalMarks.length === 0) &&
+    sub.aatMarks === undefined;
+  if (sub.internalMarks !== undefined && hasNoDetailedMarks) {
+    return sub.internalMarks;
+  }
+
+  const isLab = sub.type === 'lab';
+
+  // ── CIE Component ──
+  const cieCount = isLab ? settings.labCieCount : settings.cieCount;
+  const cieBestOf = isLab ? settings.labCieBestOf : settings.cieBestOf;
+  const cieMax = isLab ? settings.labCieMaxMarks : settings.cieMaxMarks;
+
+  if (cieCount > 0 && sub.cieMarks && sub.cieMarks.length > 0) {
+    const validScores = sub.cieMarks
+      .filter(s => s !== undefined && !isNaN(s))
+      .map(s => Math.min(cieMax, Math.max(0, s))); // Clamp to bounds
+
+    // Sort descending, take best N
+    validScores.sort((a, b) => b - a);
+    const topScores = validScores.slice(0, Math.min(cieBestOf, validScores.length));
+
+    if (topScores.length > 0) {
+      total += topScores.reduce((a, b) => a + b, 0);
+    }
+  }
+
+  // ── AAT Component ──
+  const aatEnabled = isLab ? settings.labAatEnabled : settings.aatEnabled;
+  const aatMax = isLab ? settings.labAatMaxMarks : settings.aatMaxMarks;
+  if (aatEnabled && sub.aatMarks !== undefined && !isNaN(sub.aatMarks)) {
+    total += Math.min(aatMax, Math.max(0, sub.aatMarks));
+  }
+
+  // ── Lab Component (Practical subjects only) ──
+  if (isLab) {
+    // Lab internal marks — just a single lab exam mark
+    if (sub.labInternalMarks && sub.labInternalMarks.length > 0) {
+      const labMark = sub.labInternalMarks[0];
+      if (labMark !== undefined && !isNaN(labMark)) {
+        total += Math.min(settings.labComponentMarks, Math.max(0, labMark));
+      }
+    }
+    return Math.min(settings.labMaxInternalMarks, Math.round(total * 100) / 100);
+  }
+
+  return Math.min(settings.maxInternalMarks, Math.round(total * 100) / 100);
+}
+
 // Get GPA emoji
 export function getGPAEmoji(gpa: number): string {
   if (gpa >= 9.0) return '🌟';
@@ -83,4 +170,132 @@ export function gradeToPoint(grade: GradeLetter): number {
     'O': 10, 'A+': 9, 'A': 8, 'B+': 7, 'B': 6, 'C': 5, 'P': 4, 'F': 0,
   };
   return scale[grade];
+}
+
+export function marksToGradePoint(marks: number): number {
+  if (marks >= 90) return 10;
+  if (marks >= 80) return 9;
+  if (marks >= 70) return 8;
+  if (marks >= 60) return 7;
+  if (marks >= 50) return 6;
+  if (marks >= 45) return 5;
+  if (marks >= 40) return 4;
+  return 0;
+}
+
+export function gradePointToMinMarks(gp: number): number {
+  if (gp >= 10) return 90;
+  if (gp >= 9) return 80;
+  if (gp >= 8) return 70;
+  if (gp >= 7) return 60;
+  if (gp >= 6) return 50;
+  if (gp >= 5) return 45;
+  if (gp >= 4) return 40;
+  return 0;
+}
+
+export interface SubjectGoalTarget {
+  subjectId: string;
+  internalMarks: number;
+  labMarks: number;
+  credits: number;
+  targetGradePoint: number;
+  requiredExternal: number;
+  totalSubjectMax: number;
+}
+
+// Calculate the easiest path to hit a target SGPA
+export function calculateRequiredExternals(
+  subjects: { id: string; type: string; internalMarks: number; labMarks: number; credits: number }[],
+  targetSGPA: number,
+  settings: GradingSettings
+): SubjectGoalTarget[] {
+  if (subjects.length === 0) return [];
+  
+  const totalCredits = subjects.reduce((sum, s) => sum + s.credits, 0);
+  const requiredTotalPoints = targetSGPA * totalCredits;
+  
+  // Start everyone at minimum pass (Grade Point 4)
+  let targets = subjects.map(s => {
+    const totalSubjectMax = s.type === 'lab' 
+      ? (settings.labMaxInternalMarks + settings.labMaxExternalMarks) 
+      : (settings.maxInternalMarks + settings.maxExternalMarks);
+      
+    const minPercent = gradePointToMinMarks(4); // e.g. 40%
+    const minRequiredTotalMarks = Math.ceil((minPercent / 100) * totalSubjectMax);
+    
+    // Note: s.labMarks is kept for legacy compatibility but is now handled within internalMarks
+    const existingMarks = s.internalMarks + s.labMarks;
+    
+    return {
+      subjectId: s.id,
+      internalMarks: s.internalMarks,
+      labMarks: s.labMarks,
+      credits: s.credits,
+      targetGradePoint: 4,
+      requiredExternal: Math.max(0, minRequiredTotalMarks - existingMarks),
+      totalSubjectMax,
+      type: s.type
+    };
+  });
+  
+  let currentTotalPoints = targets.reduce((sum, t) => sum + (t.targetGradePoint * t.credits), 0);
+  
+  // Greedy approach: upgrade the subject that requires the least additional marks
+  while (currentTotalPoints < requiredTotalPoints) {
+    let bestSubjectIndex = -1;
+    let minCost = Infinity;
+    
+    for (let i = 0; i < targets.length; i++) {
+      const t = targets[i];
+      if (t.targetGradePoint < 10) {
+        const nextGradePoint = t.targetGradePoint + 1;
+        
+        const nextMinPercent = gradePointToMinMarks(nextGradePoint);
+        const nextMinTotalMarks = Math.ceil((nextMinPercent / 100) * t.totalSubjectMax);
+        const existingMarks = t.internalMarks + t.labMarks;
+        const requiredExtForNext = Math.max(0, nextMinTotalMarks - existingMarks);
+        
+        const maxExternalForSubject = t.type === 'lab' ? settings.labMaxExternalMarks : settings.maxExternalMarks;
+        
+        // If this upgrade requires more external marks than mathematically possible, skip it
+        if (requiredExtForNext > maxExternalForSubject) {
+          continue;
+        }
+        
+        const cost = requiredExtForNext - t.requiredExternal;
+        
+        // We prioritize subjects with higher credits to maximize SGPA impact per mark,
+        // so cost per credit is the true metric.
+        const costPerCredit = cost / t.credits;
+        
+        if (costPerCredit < minCost) {
+          minCost = costPerCredit;
+          bestSubjectIndex = i;
+        }
+      }
+    }
+    
+    // If we can't upgrade anymore (all at 10), we can't reach the goal mathematically
+    if (bestSubjectIndex === -1) break;
+    
+    // Upgrade the best subject
+    const best = targets[bestSubjectIndex];
+    best.targetGradePoint += 1;
+    
+    const nextMinPercent = gradePointToMinMarks(best.targetGradePoint);
+    const nextMinTotalMarks = Math.ceil((nextMinPercent / 100) * best.totalSubjectMax);
+    const existingMarks = best.internalMarks + best.labMarks;
+    
+    best.requiredExternal = Math.max(0, nextMinTotalMarks - existingMarks);
+    currentTotalPoints += best.credits;
+  }
+  
+  // If we exhausted all possible upgrades and still can't reach the target SGPA,
+  // it is mathematically impossible. Mark all as impossible.
+  if (currentTotalPoints < requiredTotalPoints) {
+    targets.forEach(t => t.requiredExternal = Infinity);
+  }
+  
+  return targets;
 }

@@ -14,7 +14,7 @@ export const DEFAULTS = {
 } as const;
 
 export const APP_INFO = {
-  name: 'Campora',
+  name: 'CampusIQ',
   version: '1.0.0',
   tagline: 'Your Academic Companion',
   description: 'The operating system for college students.',

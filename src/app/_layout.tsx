@@ -20,13 +20,59 @@ export default function RootLayout() {
     Inter_700Bold,
   });
 
+  const [storesHydrated, setStoresHydrated] = React.useState(false);
+
   useEffect(() => {
-    if (loaded || error) {
+    let isMounted = true;
+    const { useSettingsStore, useProfileStore, useSubjectStore, useAttendanceStore, useTimetableStore, useAssignmentStore, useExamStore, useAcademicStore } = require('@/stores');
+
+    const stores = [
+      useSettingsStore,
+      useProfileStore,
+      useSubjectStore,
+      useAttendanceStore,
+      useTimetableStore,
+      useAssignmentStore,
+      useExamStore,
+      useAcademicStore
+    ];
+
+    let hydratedStates = stores.map(store => store.persist.hasHydrated());
+
+    const checkHydration = () => {
+      if (hydratedStates.every(Boolean) && isMounted) {
+        setStoresHydrated(true);
+      }
+    };
+
+    const unsubs = stores.map((store, index) => 
+      store.persist.onFinishHydration(() => {
+        hydratedStates[index] = true;
+        checkHydration();
+      })
+    );
+
+    checkHydration();
+
+    return () => {
+      isMounted = false;
+      unsubs.forEach(unsub => {
+        if (unsub) unsub();
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    if ((loaded || error) && storesHydrated) {
       SplashScreen.hideAsync();
     }
-  }, [loaded, error]);
+  }, [loaded, error, storesHydrated]);
 
   if (!loaded && !error) {
+    return null;
+  }
+
+  if (!storesHydrated) {
     return null;
   }
 

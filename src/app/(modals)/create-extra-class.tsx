@@ -17,13 +17,14 @@ import { handleTimeInputChange, parseTimeInput, formatTime } from '@/features/ti
 export default function CreateExtraClassScreen() {
   const { colors, spacing, textStyles } = useTheme();
   const router = useRouter();
-  const { date } = useLocalSearchParams();
+  const { date, subjectId } = useLocalSearchParams();
   const dateStr = Array.isArray(date) ? date[0] : date;
+  const initialSubjectId = Array.isArray(subjectId) ? subjectId[0] : subjectId;
   
   const subjects = useSubjectStore(state => state.subjects);
   const addEntry = useTimetableStore(state => state.addEntry);
 
-  const [selectedSubjectId, setSelectedSubjectId] = useState('');
+  const [selectedSubjectId, setSelectedSubjectId] = useState(initialSubjectId || '');
   const [faculty, setFaculty] = useState('');
   const [room, setRoom] = useState('');
   const [color, setColor] = useState('#6366F1');

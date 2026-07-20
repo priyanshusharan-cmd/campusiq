@@ -11,24 +11,18 @@ import type { TimetableEntryWithSubject } from '@/types';
 import { formatTime } from '@/lib';
 import { useRouter } from 'expo-router';
 import { Pressable } from 'react-native';
+import { getSubjectTheme } from '@/utils/subjectTheme';
 
 interface TodayScheduleProps {
   classes: TimetableEntryWithSubject[];
 }
 
 export function TodaySchedule({ classes }: TodayScheduleProps) {
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
 
   // If no classes, return null to save space
   if (classes.length === 0) return null;
-
-  const getSubjectIcon = (subjectName: string): keyof typeof Ionicons.glyphMap => {
-    const s = subjectName.toLowerCase();
-    if (s.includes('database') || s.includes('dbms')) return 'server-outline';
-    if (s.includes('algorithm') || s.includes('programming') || s.includes('java') || s.includes('code')) return 'code-slash-outline';
-    return 'book-outline';
-  };
 
   return (
     <Animated.View entering={FadeInDown.delay(20).duration(100)} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.xl }}>
@@ -49,7 +43,8 @@ export function TodaySchedule({ classes }: TodayScheduleProps) {
         <View style={styles.list}>
           {classes.map((cls, index) => {
             const isLast = index === classes.length - 1;
-            const icon = getSubjectIcon(cls.subjectName);
+            const theme = getSubjectTheme(cls.subjectName, cls.subjectShortName, isDark);
+            const icon = cls.subjectIcon || theme.icon;
 
             return (
               <View key={cls.id}>

@@ -1,17 +1,74 @@
 // Campora — Profile Screen
 
 import React, { useState } from 'react';
-import { View, Text, Pressable, TextInput } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/theme';
 import { Card, ListRow } from '@/components/ui';
-import { useProfileStore, useAcademicStore } from '@/stores';
+import { useProfileStore, useAcademicStore, useSubjectStore } from '@/stores';
+import { calculateSubjectBounds } from '@/lib/gradingEngine';
+import { gradeToPoint } from '@/lib';
 import { ProfileViewCard } from './components/ProfileViewCard';
+
+function ProfileField({ 
+  icon, 
+  label, 
+  value, 
+  renderEdit,
+  isEditing,
+  onPress
+}: { 
+  icon: keyof typeof Ionicons.glyphMap, 
+  label: string, 
+  value?: string,
+  renderEdit?: React.ReactNode,
+  isEditing?: boolean,
+  onPress?: () => void
+}) {
+  const { colors, textStyles, isDark } = useTheme();
+  
+  return (
+    <Pressable 
+      onPress={onPress}
+      style={{ 
+        borderWidth: 1.5, 
+        borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
+        borderRadius: 16, 
+        paddingHorizontal: 16, 
+        paddingVertical: 14, 
+        position: 'relative'
+      }}
+    >
+      <View style={{ 
+        position: 'absolute', 
+        top: -10, 
+        left: 14, 
+        backgroundColor: colors.surface, 
+        paddingHorizontal: 6 
+      }}>
+        <Text style={[textStyles.smallMedium, { color: colors.textSecondary, fontSize: 11, letterSpacing: 0.5 }]}>
+          {label}
+        </Text>
+      </View>
+      
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Ionicons name={icon} size={22} color={colors.textSecondary} style={{ marginRight: 16 }} />
+        {isEditing && renderEdit ? (
+          <View style={{ flex: 1, minHeight: 24, justifyContent: 'center' }}>{renderEdit}</View>
+        ) : (
+          <Text style={[textStyles.h3, { color: colors.textPrimary, flex: 1, fontSize: 16 }]} numberOfLines={1}>
+            {value}
+          </Text>
+        )}
+      </View>
+    </Pressable>
+  );
+}
 
 function SectionTitle({ title }: { title: string }) {
   const { colors, spacing, textStyles } = useTheme();
@@ -33,6 +90,40 @@ export default function ProfileScreen() {
   const gradeEntries = useAcademicStore(s => s.gradeEntries);
   const completedCredits = gradeEntries.reduce((sum, e) => sum + e.credits, 0);
 
+  // Predicted SGPA Calculation
+  const subjects = useSubjectStore(s => s.subjects);
+  const currentSemNum = profile?.currentSemester || 1;
+  const currentSemesterSubjects = subjects.filter(s => !s.semesterId || s.semesterId === `sem-${currentSemNum}` || s.semesterId === currentSemNum.toString() || s.semesterId === currentSemester?.id);
+  
+  let displayedSGPA = currentSGPA;
+  let isPredictedSGPA = false;
+
+  if (currentSGPA === 0 && currentSemesterSubjects.length > 0) {
+    let totalPoints = 0;
+    let totalCredits = 0;
+    currentSemesterSubjects.forEach(sub => {
+      const bounds = calculateSubjectBounds(sub.components || [], {});
+      // Compute percentage (ceiling out of total max)
+      const maxPossible = sub.components?.reduce((sum, c) => sum + (c.type === 'grouped' ? c.weight : c.maxMarks), 0) || 100;
+      const percentage = Math.round((bounds.ceiling / maxPossible) * 100);
+      let gradePoints = 0;
+      if (percentage >= 90) gradePoints = 10;
+      else if (percentage >= 80) gradePoints = 9;
+      else if (percentage >= 70) gradePoints = 8;
+      else if (percentage >= 60) gradePoints = 7;
+      else if (percentage >= 50) gradePoints = 6;
+      else if (percentage >= 40) gradePoints = 5;
+      else if (percentage >= 35) gradePoints = 4;
+      
+      totalPoints += gradePoints * sub.credits;
+      totalCredits += sub.credits;
+    });
+    if (totalCredits > 0) {
+      displayedSGPA = totalPoints / totalCredits;
+      isPredictedSGPA = true;
+    }
+  }
+
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({
     name: profile?.name || '', email: profile?.email || '', phone: profile?.phone || '',
@@ -45,7 +136,21 @@ export default function ProfileScreen() {
 
   const toggleEdit = () => {
     if (isEditing) {
-      updateProfile({ ...form, currentSemester: parseInt(form.currentSemester) || 1 });
+      const newSemesterNum = parseInt(form.currentSemester) || 1;
+      updateProfile({ ...form, currentSemester: newSemesterNum });
+      
+      // Sync with Academic Store
+      const academicStore = useAcademicStore.getState();
+      const existingSemester = academicStore.semesters.find((s) => s.number === newSemesterNum);
+      if (existingSemester) {
+        academicStore.setCurrentSemester(existingSemester.id);
+      } else {
+        academicStore.addSemester({
+          name: `Semester ${newSemesterNum}`,
+          number: newSemesterNum,
+          isCurrent: true,
+        });
+      }
     } else {
       setForm({
         name: profile?.name || '', email: profile?.email || '', phone: profile?.phone || '',
@@ -58,13 +163,47 @@ export default function ProfileScreen() {
     setIsEditing(!isEditing);
   };
 
+  const handlePickAvatar = async () => {
+    const options: any[] = [
+      { text: "Cancel", style: "cancel" }
+    ];
+
+    if (profile?.avatarUri) {
+      options.push({
+        text: "Remove Photo",
+        style: "destructive",
+        onPress: () => updateProfile({ ...profile, avatarUri: undefined })
+      });
+    }
+
+    options.push({
+      text: "Choose from Library",
+      onPress: async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          alert('Sorry, we need camera roll permissions to make this work!');
+          return;
+        }
+        let result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+        if (!result.canceled) {
+          updateProfile({ ...profile, avatarUri: result.assets[0].uri });
+        }
+      }
+    });
+
+    Alert.alert("Profile Picture", "Choose an option", options);
+  };
+
   const renderRight = (key: keyof typeof form, placeholder: string, keyboardType: any = 'default') => {
     if (isEditing) {
       if (key === 'semesterStartDate' || key === 'semesterEndDate' || key === 'dob') {
         return (
-          <Pressable onPress={() => setShowDatePicker(key)}>
-            <Text style={[textStyles.small, { color: form[key] ? colors.textPrimary : colors.textTertiary, textAlign: 'right' }]}>{form[key] || placeholder}</Text>
-          </Pressable>
+          <Text style={[textStyles.h3, { color: form[key] ? colors.textPrimary : colors.textTertiary, textAlign: 'left', fontSize: 16 }]}>{form[key] || placeholder}</Text>
         );
       }
       return (
@@ -74,7 +213,7 @@ export default function ProfileScreen() {
           placeholder={placeholder}
           placeholderTextColor={colors.textTertiary}
           keyboardType={keyboardType}
-          style={[textStyles.small, { color: colors.textPrimary, flex: 1, textAlign: 'right', padding: 0 }, { outlineStyle: 'none' } as any]}
+          style={[textStyles.h3, { color: colors.textPrimary, flex: 1, textAlign: 'left', padding: 0, fontSize: 16 }, { outlineStyle: 'none' } as any]}
         />
       );
     }
@@ -93,7 +232,7 @@ export default function ProfileScreen() {
       return value as string;
     }
     if (key === 'currentSemester') return `Semester - ${value}`;
-    if (key === 'branch') return `Branch ${value}`;
+    if (key === 'branch') return value as string;
     if (key === 'section') return `Section ${value}`;
     return value as string;
   };
@@ -116,29 +255,32 @@ export default function ProfileScreen() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         <ProfileViewCard
-          name={profile?.name || 'Enter Name'}
+          name={profile?.name || 'Student Name'}
           enrollmentNumber={profile?.enrollmentNumber || 'Enter Roll Number'}
           branch={profile?.branch || 'Enter Branch'}
           semesterStr={semesterStr}
-          college={profile?.college || 'Enter College'}
-          section={profile?.section || 'Enter Section'}
-          currentSGPA={currentSGPA}
+          college={profile?.college || ''}
+          section={profile?.section || ''}
+          currentSGPA={displayedSGPA}
           cgpa={cgpa}
           completedCredits={completedCredits}
+          avatarUri={profile?.avatarUri}
+          isPredictedSGPA={isPredictedSGPA}
+          onAvatarPress={handlePickAvatar}
+          onAvatarLongPress={handlePickAvatar}
         />
 
         {/* Personal Information */}
         <Animated.View entering={FadeInDown.delay(20).duration(100)}>
           <SectionTitle title="Personal Information" />
           <View style={{ paddingHorizontal: spacing.xl }}>
-            <Card variant="flat" padding={0}>
-              <ListRow icon="person-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight} title="Full Name" rightText={getRightText('name')} rightElement={renderRight('name', 'Enter Full Name')} showChevron={false} />
-              <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-              <ListRow icon="mail-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight} title="Email" rightText={getRightText('email')} rightElement={renderRight('email', 'Enter Email Address', 'email-address')} showChevron={false} />
-              <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-              <ListRow icon="calendar-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight} title="Date of Birth" rightText={getRightText('dob')} rightElement={renderRight('dob', 'Select Date of Birth')} showChevron={false} />
-              <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-              <ListRow icon="card-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight} title="Roll Number" rightText={getRightText('enrollmentNumber')} rightElement={renderRight('enrollmentNumber', 'Enter Roll Number')} showChevron={false} />
+            <Card variant="flat" padding={20} style={{ borderRadius: 24 }}>
+              <View style={{ gap: 20 }}>
+                <ProfileField icon="person-outline" label="Full Name" value={getRightText('name')} isEditing={isEditing} renderEdit={renderRight('name', 'Enter Full Name')} />
+                <ProfileField icon="mail-outline" label="Email" value={getRightText('email')} isEditing={isEditing} renderEdit={renderRight('email', 'Enter Email Address', 'email-address')} />
+                <ProfileField icon="calendar-outline" label="Date of Birth" value={getRightText('dob')} isEditing={isEditing} renderEdit={renderRight('dob', 'Select Date of Birth')} onPress={isEditing ? () => setShowDatePicker('dob') : undefined} />
+                <ProfileField icon="card-outline" label="Roll Number" value={getRightText('enrollmentNumber')} isEditing={isEditing} renderEdit={renderRight('enrollmentNumber', 'Enter Roll Number')} />
+              </View>
             </Card>
           </View>
         </Animated.View>
@@ -147,31 +289,41 @@ export default function ProfileScreen() {
         <Animated.View entering={FadeInDown.delay(20).duration(100)}>
           <SectionTitle title="Academic Details" />
           <View style={{ paddingHorizontal: spacing.xl }}>
-            <Card variant="flat" padding={0}>
-              <ListRow icon="business-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight} title="College Name" rightText={getRightText('college')} rightElement={renderRight('college', 'Enter College Name')} showChevron={false} />
-              <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-              <ListRow icon="git-branch-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight} title="Branch" rightText={getRightText('branch')} rightElement={renderRight('branch', 'Enter Branch')} showChevron={false} />
-              <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-              <ListRow icon="school-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight} title="Current Semester" rightText={getRightText('currentSemester')} rightElement={renderRight('currentSemester', 'Enter Semester', 'numeric')} showChevron={false} />
-              <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-              <ListRow icon="time-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight} title="Semester Start" rightText={getRightText('semesterStartDate')} rightElement={renderRight('semesterStartDate', 'Select Start Date')} showChevron={false} />
-              <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-              <ListRow icon="time-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight} title="Semester End" rightText={getRightText('semesterEndDate')} rightElement={renderRight('semesterEndDate', 'Select End Date')} showChevron={false} />
+            <Card variant="flat" padding={20} style={{ borderRadius: 24 }}>
+              <View style={{ gap: 20 }}>
+                <ProfileField icon="business-outline" label="College Name" value={getRightText('college')} isEditing={isEditing} renderEdit={renderRight('college', 'Enter College Name')} />
+                <ProfileField icon="git-branch-outline" label="Branch" value={getRightText('branch')} isEditing={isEditing} renderEdit={renderRight('branch', 'Enter Branch')} />
+                <ProfileField icon="school-outline" label="Current Semester" value={getRightText('currentSemester')} isEditing={isEditing} renderEdit={renderRight('currentSemester', 'Enter Semester', 'numeric')} />
+                <ProfileField icon="time-outline" label="Semester Start" value={getRightText('semesterStartDate')} isEditing={isEditing} renderEdit={renderRight('semesterStartDate', 'Select Start Date')} onPress={isEditing ? () => setShowDatePicker('semesterStartDate') : undefined} />
+                <ProfileField icon="time-outline" label="Semester End" value={getRightText('semesterEndDate')} isEditing={isEditing} renderEdit={renderRight('semesterEndDate', 'Select End Date')} onPress={isEditing ? () => setShowDatePicker('semesterEndDate') : undefined} />
+              </View>
             </Card>
           </View>
         </Animated.View>
       </ScrollView>
 
       {showDatePicker && (
-        <DateTimePicker
-          value={form[showDatePicker as keyof typeof form] ? new Date(form[showDatePicker as keyof typeof form] as string) : new Date()}
-          mode="date"
-          display="default"
-          onChange={(event, date) => {
-            setShowDatePicker(null);
-            if (date) setForm(f => ({ ...f, [showDatePicker]: date.toISOString().split('T')[0] }));
-          }}
-        />
+        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.borderLight, paddingBottom: Platform.OS === 'ios' ? 40 : 20, zIndex: 1000, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 20 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 12, borderBottomWidth: 1, borderBottomColor: colors.borderLight }}>
+            <Pressable onPress={() => setShowDatePicker(null)}>
+              <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 16 }}>Done</Text>
+            </Pressable>
+          </View>
+          <View style={{ alignItems: 'center', width: '100%' }}>
+            <DateTimePicker
+              value={form[showDatePicker as keyof typeof form] ? new Date(form[showDatePicker as keyof typeof form] as string) : new Date()}
+              mode="date"
+              display="inline"
+              onValueChange={(event, date) => {
+                if (Platform.OS === 'android') setShowDatePicker(null);
+                setForm(f => ({ ...f, [showDatePicker]: date.toISOString().split('T')[0] }));
+              }}
+              onDismiss={() => {
+                if (Platform.OS === 'android') setShowDatePicker(null);
+              }}
+            />
+          </View>
+        </View>
       )}
     </SafeAreaView>
   );

@@ -22,8 +22,8 @@ interface ClassPickerModalProps {
 const STATUS_DISPLAY: Record<string, { color: string; label: string; bg: string }> = {
   present: { color: '#10B981', label: 'Present', bg: '#D1FAE5' },
   absent: { color: '#EF4444', label: 'Absent', bg: '#FEE2E2' },
-  cancelled: { color: '#D97706', label: 'Cancelled', bg: '#FEF3C7' },
-  holiday: { color: '#0D9488', label: 'Holiday', bg: '#CCFBF1' },
+  cancelled: { color: '#CA8A04', label: 'Cancelled', bg: '#FEF08A' },
+  holiday: { color: '#2563EB', label: 'Holiday', bg: '#DBEAFE' },
 };
 
 export function ClassPickerModal({ visible, onClose, classes, subjectId, selectedDayStr, onSelectClass }: ClassPickerModalProps) {
@@ -93,10 +93,11 @@ interface SubjectMenuModalProps {
   onClose: () => void;
   topOffset: number;
   onEditSubject: () => void;
+  onChangeTarget: () => void;
   onDeleteSubject: () => void;
 }
 
-export function SubjectMenuModal({ visible, onClose, topOffset, onEditSubject, onDeleteSubject }: SubjectMenuModalProps) {
+export function SubjectMenuModal({ visible, onClose, topOffset, onEditSubject, onChangeTarget, onDeleteSubject }: SubjectMenuModalProps) {
   const { colors } = useTheme();
 
   return (
@@ -108,6 +109,12 @@ export function SubjectMenuModal({ visible, onClose, topOffset, onEditSubject, o
             onPress={onEditSubject}
           >
             <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Edit Subject</Text>
+          </Pressable>
+          <Pressable 
+            style={styles.menuItem}
+            onPress={onChangeTarget}
+          >
+            <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Change Attendance Target</Text>
           </Pressable>
           <Pressable 
             style={styles.menuItem}

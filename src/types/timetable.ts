@@ -19,5 +19,6 @@ export interface TimetableEntryWithSubject extends TimetableEntry {
   subjectName: string;
   subjectShortName: string;
   subjectColor: string;
+  subjectIcon?: any;
   faculty: string;
 }

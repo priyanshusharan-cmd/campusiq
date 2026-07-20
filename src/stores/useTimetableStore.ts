@@ -111,6 +111,7 @@ export function useTodayClasses(): TimetableEntryWithSubject[] {
         subjectName: subject?.name || 'Unknown',
         subjectShortName: subject?.shortName || '??',
         subjectColor: entry.color || subject?.color || '#7C5CFC',
+        subjectIcon: subject?.icon,
         faculty: subject?.faculty || '',
       };
     });
@@ -131,6 +132,7 @@ export function useClassesForDay(day: DayOfWeek): TimetableEntryWithSubject[] {
         subjectName: subject?.name || 'Unknown',
         subjectShortName: subject?.shortName || '??',
         subjectColor: entry.color || subject?.color || '#7C5CFC',
+        subjectIcon: subject?.icon,
         faculty: subject?.faculty || '',
       };
     });
@@ -148,6 +150,13 @@ export function useClassesForDate(dateString: string, day: DayOfWeek): Timetable
     return [];
   }
 
+  // If the date is outside the semester bounds, return no classes
+  if (profile?.semesterStartDate && profile?.semesterEndDate) {
+    if (dateString < profile.semesterStartDate || dateString > profile.semesterEndDate) {
+      return [];
+    }
+  }
+
   return entries
     .filter((e) => {
       return e.date === dateString || (!e.date && e.dayOfWeek === day);
@@ -160,6 +169,7 @@ export function useClassesForDate(dateString: string, day: DayOfWeek): Timetable
         subjectName: subject?.name || 'Unknown',
         subjectShortName: subject?.shortName || '??',
         subjectColor: entry.color || subject?.color || '#7C5CFC',
+        subjectIcon: subject?.icon,
         faculty: subject?.faculty || '',
       };
     });

@@ -46,7 +46,7 @@ export default function TodayScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         
         {/* Top App Bar */}
-        <TopNavBar firstName={firstName} />
+        <TopNavBar firstName={firstName} avatarUri={profile?.avatarUri} />
 
         {!isSetupComplete ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.xl }}>

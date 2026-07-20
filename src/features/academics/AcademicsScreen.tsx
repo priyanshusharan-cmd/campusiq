@@ -26,10 +26,10 @@ export default function AcademicsScreen() {
     const realSemesters = [...semesters];
     const realSemNumbers = new Set(realSemesters.map(s => s.number));
     
-    // Generate dummy cards for past semesters (up to currentSem - 1)
-    const pastSemestersCount = Math.max(0, currentSem - 1);
+    // Generate dummy cards for all semesters up to currentSem
+    const semestersCount = Math.max(1, currentSem);
     
-    for (let i = 1; i <= pastSemestersCount; i++) {
+    for (let i = 1; i <= semestersCount; i++) {
       if (!realSemNumbers.has(i)) {
         realSemesters.push({
           id: `dummy-${i}`,
@@ -37,12 +37,15 @@ export default function AcademicsScreen() {
           number: i,
           sgpa: 0,
           totalCredits: 0,
-          isCurrent: false
         } as any);
       }
     }
     
-    return realSemesters.sort((a, b) => a.number - b.number);
+    // Set isCurrent correctly for both real and dummy cards
+    return realSemesters.map(s => ({
+      ...s,
+      isCurrent: s.number === currentSem
+    })).sort((a, b) => a.number - b.number);
   }, [currentSem, semesters]);
 
   return (
@@ -63,31 +66,6 @@ export default function AcademicsScreen() {
         </Card>
       </Animated.View>
 
-      <SectionHeader title="Quick Actions" />
-      <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.md }}>
-        <Card variant="flat" padding={0}>
-          <ListRow 
-            icon="locate-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight}
-            title="GPA Goals" 
-            subtitle="Set and track your academic goals"
-            onPress={() => router.push('/(modals)/goal' as any)} 
-          />
-          <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-          <ListRow 
-            icon="book-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight}
-            title="Subjects" 
-            subtitle="Manage your subjects and credits"
-            onPress={() => router.push('/academics/subjects' as any)} 
-          />
-          <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-          <ListRow 
-            icon="bar-chart-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight}
-            title="Performance Analytics" 
-            subtitle="Detailed insights on your academic performance"
-            onPress={() => router.push('/analytics' as any)} 
-          />
-        </Card>
-      </View>
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.xl, marginTop: spacing.xl, marginBottom: spacing.sm }}>
         <Text style={[textStyles.h3, { color: colors.textPrimary }]}>Semesters</Text>

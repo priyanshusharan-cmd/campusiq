@@ -3,25 +3,28 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { zustandStorage } from './storage';
-import type { Semester, GradeEntry, GradeLetter, ID } from '@/types';
-import { generateId } from '@/types';
+import type { Semester, GradeEntry, GradeLetter, ID, GradeScheme } from '@/types';
+import { generateId, DEFAULT_GRADE_SCHEME } from '@/types';
 import { gradeToPoint, calcSGPA, calcCGPA } from '@/lib';
 
 interface AcademicState {
   semesters: Semester[];
   gradeEntries: GradeEntry[];
+  gradeScheme: GradeScheme;
 
   // Semester actions
   addSemester: (data: { name: string; number: number; isCurrent?: boolean; sgpa?: number; totalCredits?: number }) => Semester;
   updateSemester: (id: ID, updates: Partial<Semester>) => void;
   removeSemester: (id: ID) => void;
   setCurrentSemester: (id: ID) => void;
+  setGradeScheme: (scheme: GradeScheme) => void;
 
   // Grade actions
   addGradeEntry: (data: { semesterId: ID; subjectId: ID; grade: GradeLetter; credits: number }) => void;
   updateGradeEntry: (id: ID, updates: Partial<GradeEntry>) => void;
   removeGradeEntry: (id: ID) => void;
   removeEntriesBySemester: (semesterId: ID) => void;
+  removeEntriesBySubject: (subjectId: ID) => void;
 
   // Computed
   getSGPA: (semesterId: ID) => number;
@@ -39,6 +42,7 @@ export const useAcademicStore = create<AcademicState>()(
     (set, get) => ({
   semesters: [],
   gradeEntries: [],
+  gradeScheme: DEFAULT_GRADE_SCHEME,
 
   addSemester: (data) => {
     const semester: Semester = {
@@ -77,6 +81,8 @@ export const useAcademicStore = create<AcademicState>()(
     }));
   },
 
+  setGradeScheme: (scheme) => set({ gradeScheme: scheme }),
+
   addGradeEntry: (data) => {
     const entry: GradeEntry = {
       id: generateId(),
@@ -112,6 +118,12 @@ export const useAcademicStore = create<AcademicState>()(
     }));
   },
 
+  removeEntriesBySubject: (subjectId) => {
+    set((state) => ({
+      gradeEntries: state.gradeEntries.filter((e) => e.subjectId !== subjectId),
+    }));
+  },
+
   getSGPA: (semesterId) => {
     const entries = get().gradeEntries.filter((e) => e.semesterId === semesterId);
     return calcSGPA(entries);
@@ -121,12 +133,23 @@ export const useAcademicStore = create<AcademicState>()(
     const { semesters, gradeEntries } = get();
     const semesterData = semesters
       .map((sem) => {
+        // First check if grade entries exist for detailed calculation
         const entries = gradeEntries.filter((e) => e.semesterId === sem.id);
-        const sgpa = calcSGPA(entries);
-        const credits = entries.reduce((sum, e) => sum + e.credits, 0);
-        return { sgpa, credits };
+        if (entries.length > 0) {
+          const sgpa = calcSGPA(entries);
+          const credits = entries.reduce((sum, e) => sum + e.credits, 0);
+          return { sgpa, credits };
+        }
+        
+        // Otherwise use manual entry if it exists
+        if (sem.sgpa && sem.sgpa > 0) {
+          // If backlogs are recorded, subtract them from the completed credits
+          const credits = (sem.totalCredits || 0) - (sem.backlogCredits || 0);
+          return { sgpa: sem.sgpa, credits };
+        }
+        return { sgpa: 0, credits: 0 };
       })
-      .filter((s) => s.sgpa > 0);
+      .filter((s) => s.sgpa > 0 && s.credits > 0);
     return calcCGPA(semesterData);
   },
 

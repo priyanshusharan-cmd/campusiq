@@ -9,14 +9,36 @@ import Animated, { useSharedValue, useAnimatedStyle, withTiming, withDelay, Easi
 import { styles } from '../styles/attendanceDetailStyles';
 
 interface AttendanceGaugeProps {
+  title?: string;
   percentage: number;
   present: number;
   totalClasses: number;
   canMiss: number;
+  target?: number; // Added target prop
 }
 
-export function AttendanceGauge({ percentage, present, totalClasses, canMiss }: AttendanceGaugeProps) {
-  const statusColor = percentage >= 75 ? '#10B981' : '#EF4444';
+export function AttendanceGauge({ title = 'Overall Attendance', percentage, present, totalClasses, canMiss, target = 75 }: AttendanceGaugeProps) {
+  const getStatus = (perc: number) => {
+    if (perc >= target + 10) return { label: 'Excellent', color: '#10B981' };
+    if (perc >= target + 5) return { label: 'Good', color: '#10B981' };
+    if (perc > target) return { label: 'Above Target', color: '#10B981' };
+    if (perc === target) return { label: 'On Track', color: '#10B981' };
+    if (perc >= target - 5) return { label: 'At Risk', color: '#F59E0B' };
+    return { label: 'Critical', color: '#EF4444' };
+  };
+
+  const status = getStatus(percentage);
+  const statusColor = status.color;
+  
+  const unit = title.toLowerCase().includes('lab') ? 'lab' : 'class';
+  const unitPlural = unit === 'class' ? 'classes' : unit + 's';
+  const totalUnitLabel = totalClasses === 1 ? unit : unitPlural;
+
+  let classesNeeded = 0;
+  if (percentage < target && target < 100) {
+     classesNeeded = Math.ceil((target * totalClasses - 100 * present) / (100 - target));
+     if (classesNeeded < 1) classesNeeded = 1; // Safeguard
+  }
 
   const rotation = useSharedValue(-90);
 
@@ -52,25 +74,22 @@ export function AttendanceGauge({ percentage, present, totalClasses, canMiss }: 
         style={styles.statsCard}
       >
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginBottom: 4 }}>Overall Attendance</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginBottom: 8 }}>
-              <Text style={{ color: '#fff', fontSize: 36, fontWeight: '700', lineHeight: 40 }}>{percentage}%</Text>
-              <View style={[styles.badge, { backgroundColor: `${statusColor}20`, marginBottom: 8, marginLeft: 12 }]}>
-                <Text style={{ color: statusColor, fontSize: 11, fontWeight: '600' }}>{percentage >= 75 ? 'Good' : 'Low'}</Text>
+          <View style={{ flex: 1, paddingRight: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginRight: 8 }}>{title}</Text>
+              <View style={[styles.badge, { backgroundColor: `${statusColor}30` }]}>
+                <Text style={{ color: statusColor, fontSize: 10, fontWeight: '600' }}>{status.label}</Text>
               </View>
             </View>
-            <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, marginBottom: 12 }}>{present} / {totalClasses} classes</Text>
+            <Text style={{ color: '#fff', fontSize: 36, fontWeight: '700', lineHeight: 40, marginBottom: 8 }}>{percentage}%</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, marginBottom: 12 }}>{present} / {totalClasses} {totalUnitLabel}</Text>
             
             {/* Progress Bar */}
             <View style={{ height: 4, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 2, width: '100%', marginBottom: 16 }}>
               <View style={{ height: '100%', backgroundColor: statusColor, borderRadius: 2, width: `${percentage}%` }} />
             </View>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="calendar-outline" size={14} color="rgba(255,255,255,0.6)" style={{ marginRight: 6 }} />
-              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>Last updated: Just now</Text>
-            </View>
+
           </View>
 
           {/* Gauge Indicator */}
@@ -87,17 +106,17 @@ export function AttendanceGauge({ percentage, present, totalClasses, canMiss }: 
               {/* Needle Base Circle */}
               <View style={styles.needleBase} />
             </View>
-            {canMiss >= 0 ? (
+            {percentage >= target ? (
               <>
                 <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 11, marginTop: 8 }}>You can miss</Text>
-                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{canMiss} more classes</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10 }}>to maintain 75%</Text>
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{canMiss} more {canMiss === 1 ? unit : unitPlural}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10 }}>to maintain {target}%</Text>
               </>
             ) : (
               <>
-                <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 11, marginTop: 8 }}>You need</Text>
-                <Text style={{ color: '#EF4444', fontSize: 14, fontWeight: '700' }}>{-canMiss} more classes</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10 }}>to reach 75%</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 11, marginTop: 8 }}>You need to attend</Text>
+                <Text style={{ color: '#EF4444', fontSize: 14, fontWeight: '700' }}>{classesNeeded} more {classesNeeded === 1 ? unit : unitPlural}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10 }}>to reach {target}%</Text>
               </>
             )}
           </View>

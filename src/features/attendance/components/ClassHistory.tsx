@@ -1,8 +1,8 @@
 // Campora — Class History Component
 // Shows a timeline of attendance records for a subject
 
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable, ActionSheetIOS } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { Card } from '@/components/ui';
@@ -14,11 +14,14 @@ interface AttendanceRecord {
   date: string;
   status: string;
   timetableEntryId?: string;
+  classType?: string;
 }
 
 interface ClassHistoryProps {
   records: AttendanceRecord[];
   subDetails: string;
+  hasTheory?: boolean;
+  hasLab?: boolean;
 }
 
 const STATUS_CONFIG: Record<string, { color: string; icon: string; label: string }> = {
@@ -28,22 +31,58 @@ const STATUS_CONFIG: Record<string, { color: string; icon: string; label: string
   holiday: { color: '#0D9488', icon: 'sunny-outline', label: 'Holiday' },
 };
 
-export function ClassHistory({ records, subDetails }: ClassHistoryProps) {
+export function ClassHistory({ records, subDetails, hasTheory, hasLab }: ClassHistoryProps) {
   const { colors, spacing, textStyles } = useTheme();
+  const [filter, setFilter] = useState('absent');
+
+  const openFilter = () => {
+    const showAdvanced = hasTheory && hasLab;
+    const options = showAdvanced 
+      ? ['Cancel', 'All', 'Present', 'Absent', 'Theory Present', 'Theory Absent', 'Lab Present', 'Lab Absent', 'Cancelled', 'Holiday']
+      : ['Cancel', 'All', 'Present', 'Absent', 'Cancelled', 'Holiday'];
+    const filterValues = showAdvanced
+      ? ['cancel', 'all', 'present', 'absent', 'theory_present', 'theory_absent', 'lab_present', 'lab_absent', 'cancelled', 'holiday']
+      : ['cancel', 'all', 'present', 'absent', 'cancelled', 'holiday'];
+
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex: 0,
+        title: 'Filter Class History',
+      },
+      (buttonIndex) => {
+        if (buttonIndex !== 0) {
+          setFilter(filterValues[buttonIndex]);
+        }
+      }
+    );
+  };
+
+  const filteredRecords = records.filter(record => {
+    if (filter === 'all') return true;
+    if (filter === 'theory_present') return record.status === 'present' && record.classType !== 'lab';
+    if (filter === 'theory_absent') return record.status === 'absent' && record.classType !== 'lab';
+    if (filter === 'lab_present') return record.status === 'present' && record.classType === 'lab';
+    if (filter === 'lab_absent') return record.status === 'absent' && record.classType === 'lab';
+    return record.status === filter;
+  });
+
+  const filterLabel = filter === 'all' ? 'All Status' : 
+    filter.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
   return (
     <View style={{ marginTop: spacing.xl }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
         <Text style={[textStyles.h3, { color: colors.textPrimary }]}>Class History</Text>
-        <View style={styles.filterDropdown}>
+        <Pressable style={styles.filterDropdown} onPress={openFilter}>
           <Ionicons name="funnel-outline" size={12} color="#4F46E5" style={{ marginRight: 4 }} />
-          <Text style={{ fontSize: 12, color: '#4F46E5', fontWeight: '500' }}>All Status</Text>
+          <Text style={{ fontSize: 12, color: '#4F46E5', fontWeight: '500' }}>{filterLabel}</Text>
           <Ionicons name="chevron-down" size={12} color="#4F46E5" style={{ marginLeft: 4 }} />
-        </View>
+        </Pressable>
       </View>
       
       <Card variant="elevated" padding={0}>
-        {records.length > 0 ? records.map((record, index) => {
+        {filteredRecords.length > 0 ? filteredRecords.map((record, index) => {
           const config = STATUS_CONFIG[record.status] || STATUS_CONFIG.absent;
           const { color, icon, label } = config;
           
@@ -67,12 +106,12 @@ export function ClassHistory({ records, subDetails }: ClassHistoryProps) {
                   </View>
                 </View>
               </View>
-              {index < records.length - 1 && <View style={styles.historyDivider} />}
+              {index < filteredRecords.length - 1 && <View style={styles.historyDivider} />}
             </React.Fragment>
           );
         }) : (
           <View style={{ padding: 24, alignItems: 'center' }}>
-            <Text style={{ color: colors.textSecondary }}>No attendance history yet.</Text>
+            <Text style={{ color: colors.textSecondary }}>No attendance history found.</Text>
           </View>
         )}
       </Card>

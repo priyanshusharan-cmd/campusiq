@@ -80,16 +80,26 @@ export function getPastScheduledClasses(
   subjectId: ID,
   timetableEntries: TimetableEntry[],
   events: Record<string, string>,
-  semesterStartDate?: string
+  semesterStartDate?: string,
+  semesterEndDate?: string
 ): { dateStr: string; entryId: ID }[] {
   const today = new Date();
   
   // Default to 1st of current month if no start date provided
   const start = semesterStartDate ? parseISO(semesterStartDate) : startOfMonth(today);
   
-  if (start > today) return [];
+  // Determine the end date: either today, or semesterEndDate if it's earlier than today
+  let end = today;
+  if (semesterEndDate) {
+    const semEnd = parseISO(semesterEndDate);
+    if (semEnd < today) {
+      end = semEnd;
+    }
+  }
 
-  const dates = eachDayOfInterval({ start, end: today });
+  if (start > end) return [];
+
+  const dates = eachDayOfInterval({ start, end });
   const result: { dateStr: string; entryId: ID }[] = [];
 
   const subjectEntries = timetableEntries.filter(e => e.subjectId === subjectId);

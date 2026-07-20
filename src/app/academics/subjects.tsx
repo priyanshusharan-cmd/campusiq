@@ -1,23 +1,24 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform, Alert } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { ScrollView, Swipeable } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/theme';
-import { useSubjectStore } from '@/stores';
+import { useSubjectStore, useTimetableStore } from '@/stores';
 
 export default function SubjectsListScreen() {
   const { colors, spacing, textStyles, radius } = useTheme();
   const router = useRouter();
   const subjects = useSubjectStore(s => s.subjects);
   const removeSubject = useSubjectStore(s => s.removeSubject);
+  const timetableEntries = useTimetableStore(s => s.entries);
 
   const handleDelete = (id: string, name: string) => {
     Alert.alert(
       'Delete Subject',
-      `Are you sure you want to delete \${name}? This will also delete related attendance and timetable records.`,
+      `Are you sure you want to delete ${name}? This will also delete related attendance and timetable records.`,
       [
         { text: 'Cancel', style: 'cancel' },
         { 
@@ -54,36 +55,81 @@ export default function SubjectsListScreen() {
             </Text>
           </View>
         ) : (
-          subjects.map((subject, index) => (
-            <Animated.View key={subject.id} entering={FadeInDown.delay(index * 50).duration(100)}>
+          subjects.map((subject, index) => {
+            const renderRightActions = () => (
               <Pressable 
-                style={[styles.subjectCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
-                onPress={() => router.push(`/(modals)/create-subject?id=\${subject.id}` as any)}
-                onLongPress={() => handleDelete(subject.id, subject.name)}
+                style={{
+                  backgroundColor: '#EF4444',
+                  justifyContent: 'center',
+                  alignItems: 'flex-end',
+                  width: 90,
+                  marginBottom: 12,
+                  borderRadius: 16,
+                  paddingRight: 24,
+                  marginLeft: -20, // Slide under effect
+                }}
+                onPress={() => handleDelete(subject.id, subject.name)}
               >
-                <View style={[styles.colorIndicator, { backgroundColor: subject.color }]} />
-                <View style={{ flex: 1, paddingVertical: 16, paddingRight: 12 }}>
-                  <Text style={[textStyles.h3, { color: colors.textPrimary, marginBottom: 4 }]} numberOfLines={1}>
-                    {subject.name}
-                  </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={[textStyles.smallMedium, { color: colors.textSecondary }]}>{subject.code}</Text>
-                    <View style={[styles.dot, { backgroundColor: colors.textQuaternary }]} />
-                    <Text style={[textStyles.smallMedium, { color: colors.textSecondary }]}>{subject.credits} Credits</Text>
-                  </View>
-                </View>
-                <View style={[styles.badge, { backgroundColor: subject.type === 'theory' ? '#E0E7FF' : subject.type === 'lab' ? '#DCFCE7' : '#FEF3C7' }]}>
-                  <Text style={[textStyles.small, { 
-                    color: subject.type === 'theory' ? '#4338CA' : subject.type === 'lab' ? '#15803D' : '#B45309',
-                    fontSize: 10,
-                    textTransform: 'capitalize'
-                  }]}>
-                    {subject.type}
-                  </Text>
-                </View>
+                <Ionicons name="trash-outline" size={24} color="#FFF" />
               </Pressable>
-            </Animated.View>
-          ))
+            );
+
+            const subjectEntries = timetableEntries.filter(e => e.subjectId === subject.id);
+            const hasTheory = subjectEntries.some(e => e.type === 'lecture');
+            const hasLab = subjectEntries.some(e => e.type === 'lab');
+
+            let displayType = 'Theory';
+            let bgColor = '#E0E7FF';
+            let textColor = '#4338CA';
+
+            if (hasLab) {
+              displayType = 'Theory & Lab';
+              bgColor = '#F3E8FF'; // Purple bg
+              textColor = '#7E22CE'; // Purple text
+            } else if (subject.type === 'elective') {
+              displayType = 'Elective';
+              bgColor = '#FEF3C7';
+              textColor = '#B45309';
+            } else {
+              displayType = 'Theory';
+            }
+
+            return (
+              <Animated.View key={subject.id} entering={FadeInDown.delay(index * 50).duration(100)}>
+                <Swipeable
+                  renderRightActions={renderRightActions}
+                  friction={2}
+                  rightThreshold={40}
+                >
+                  <Pressable 
+                    style={[styles.subjectCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
+                    onPress={() => router.push(`/(modals)/create-subject?id=${subject.id}` as any)}
+                  >
+                    <View style={[styles.colorIndicator, { backgroundColor: subject.color }]} />
+                    <View style={{ flex: 1, paddingVertical: 16, paddingRight: 12 }}>
+                      <Text style={[textStyles.h3, { color: colors.textPrimary, marginBottom: 4 }]} numberOfLines={1}>
+                        {subject.name}
+                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={[textStyles.smallMedium, { color: colors.textSecondary }]}>{subject.code}</Text>
+                        <View style={[styles.dot, { backgroundColor: colors.textQuaternary }]} />
+                        <Text style={[textStyles.smallMedium, { color: colors.textSecondary }]}>{subject.credits} Credits</Text>
+                      </View>
+                    </View>
+                    <View style={[styles.badge, { backgroundColor: bgColor }]}>
+                      <Text style={[textStyles.small, { 
+                        color: textColor,
+                        fontSize: 10,
+                        textTransform: 'uppercase'
+                      }]}>
+                        {displayType}
+                      </Text>
+                    </View>
+                  </Pressable>
+                </Swipeable>
+              </Animated.View>
+            );
+          })
         )}
       </ScrollView>
 

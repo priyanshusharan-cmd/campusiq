@@ -10,9 +10,10 @@ import { useRouter } from 'expo-router';
 
 interface TopNavBarProps {
   firstName: string;
+  avatarUri?: string;
 }
 
-export function TopNavBar({ firstName }: TopNavBarProps) {
+export function TopNavBar({ firstName, avatarUri }: TopNavBarProps) {
   const { colors, spacing, textStyles } = useTheme();
   const router = useRouter();
 
@@ -21,34 +22,40 @@ export function TopNavBar({ firstName }: TopNavBarProps) {
       {/* Placeholder to maintain flex balance for centered logo */}
       <View style={styles.iconBtn} />
 
-      {/* Campora Logo */}
+      {/* Native Designer Logo */}
       <View style={styles.logoContainer}>
-        {/* Simulating the logo with a graduation cap over the C */}
-        <View style={styles.logoIconContainer}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
           <View style={{
-            position: 'absolute',
-            width: 24,
-            height: 24,
-            borderRadius: 12,
-            backgroundColor: '#E0E7FF', // subtle blue blob from image
-            left: -2,
-            top: 6,
-            zIndex: -1
-          }} />
-          <Ionicons name="school" size={16} color={colors.primary} style={styles.logoHat} />
-          <Text style={[styles.logoText, { color: colors.primary, fontSize: 32 }]}>C</Text>
+            width: 30,
+            height: 30,
+            borderRadius: 8,
+            backgroundColor: colors.primary,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: 6,
+            shadowColor: colors.primary,
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+            elevation: 4,
+          }}>
+            <Ionicons name="school" size={18} color="#fff" style={{ marginLeft: 2 }} />
+          </View>
+          <Text style={{ fontFamily: 'Inter-Bold', fontSize: 22, color: colors.textPrimary, letterSpacing: -0.5 }}>
+            Campus<Text style={{ color: colors.primary }}>IQ</Text>
+          </Text>
         </View>
-        <Text style={[styles.logoText, { color: colors.primary, marginLeft: -2 }]}>ampora</Text>
       </View>
 
       <View style={styles.rightSection}>
-        <Pressable style={styles.iconBtn} hitSlop={12}>
-          <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
-          <View style={[styles.badge, { backgroundColor: colors.danger }]} />
-        </Pressable>
 
-        <Pressable style={[styles.avatarWrap, { justifyContent: 'center', alignItems: 'center', backgroundColor: colors.primaryLight }]} onPress={() => router.push('/profile' as any)}>
-          <Ionicons name="person" size={20} color={colors.primary} />
+
+        <Pressable style={[styles.avatarWrap, { justifyContent: 'center', alignItems: 'center', backgroundColor: colors.primaryLight, overflow: 'hidden' }]} onPress={() => router.push('/profile' as any)}>
+          {avatarUri ? (
+            <Image source={{ uri: avatarUri }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+          ) : (
+            <Ionicons name="person" size={20} color={colors.primary} />
+          )}
         </Pressable>
       </View>
     </View>

@@ -11,6 +11,9 @@ import { useSubjectStore } from '@/stores/useSubjectStore';
 import { useAttendanceStore, useSubjectAttendance } from '@/stores/useAttendanceStore';
 import { useTimetableStore } from '@/stores/useTimetableStore';
 import { DayOfWeek } from '@/types';
+import { useProfileStore } from '@/stores/useProfileStore';
+import { useSettingsStore } from '@/stores/useSettingsStore';
+import { getPastScheduledClasses } from '@/lib/attendanceUtils';
 
 // Modular components
 import { AttendanceGauge } from '@/features/attendance/components/AttendanceGauge';
@@ -35,6 +38,8 @@ export default function SubjectAttendanceDetailScreen() {
   const markAttendance = useAttendanceStore(s => s.markAttendance);
   const removeRecord = useAttendanceStore(s => s.removeRecord);
   const timetableEntries = useTimetableStore(s => s.entries);
+  const events = useTimetableStore(s => s.events);
+  const profile = useProfileStore(s => s.profile);
   const removeSubject = useSubjectStore(s => s.removeSubject);
   const subject = useSubjectStore(state => state.subjects.find(s => s.id === id));
   const subjectStats = useSubjectAttendance().find(s => s.subjectId === id);
@@ -50,15 +55,92 @@ export default function SubjectAttendanceDetailScreen() {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
 
+  const copyToClipboard = (text: string) => {
+    // Basic copy to clipboard for faculty/room
+  };
+
   const subjectRecords = useMemo(() => {
-    return allRecords
-      .filter(r => r.subjectId === id)
+    const explicitRecords = allRecords.filter(r => r.subjectId === id);
+    
+    // Get all scheduled past classes
+    const pastClasses = getPastScheduledClasses(id as string, timetableEntries, events, profile?.semesterStartDate);
+    
+    // Find assumed present classes
+    const assumedRecords = pastClasses
+      .filter(pc => !explicitRecords.some(er => er.date === pc.dateStr && er.timetableEntryId === pc.entryId))
+      .map(pc => ({
+        id: `assumed-${pc.dateStr}-${pc.entryId}`,
+        subjectId: id as string,
+        date: pc.dateStr,
+        status: 'present', // Assumed present
+        timetableEntryId: pc.entryId,
+      }));
+      
+    const allSubjectRecords = [...explicitRecords, ...assumedRecords]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [allRecords, id]);
+
+    // Enrich with classType for filtering
+    return allSubjectRecords.map(r => {
+      const entry = timetableEntries.find(e => e.id === r.timetableEntryId);
+      return {
+        ...r,
+        classType: entry?.type || 'lecture',
+      };
+    });
+  }, [allRecords, id, timetableEntries, events, profile]);
+
+  const subjectTimetableEntries = timetableEntries.filter(e => e.subjectId === id);
+  const hasTheory = subjectTimetableEntries.some(e => e.type === 'lecture');
+  const hasLab = subjectTimetableEntries.some(e => e.type === 'lab');
+
+  const getStatsForType = (typeCategory: 'theory' | 'lab') => {
+    const relevantEntries = subjectTimetableEntries.filter(e => 
+      typeCategory === 'lab' ? e.type === 'lab' : e.type === 'lecture'
+    );
+    const entryIds = new Set(relevantEntries.map(e => e.id));
+    if (entryIds.size === 0) return null;
+
+    const filteredRecords = allRecords.filter(r => r.subjectId === id && entryIds.has(r.timetableEntryId as string));
+    
+    const explicitPresent = filteredRecords.filter((r) => r.status === 'present').length;
+    const absent = filteredRecords.filter((r) => r.status === 'absent').length;
+
+    const pastScheduled = getPastScheduledClasses(id as string, timetableEntries, events, profile?.semesterStartDate)
+       .filter(c => entryIds.has(c.entryId));
+
+    let assumedPresent = 0;
+    for (const scheduled of pastScheduled) {
+      const hasRecord = filteredRecords.some(r => r.date === scheduled.dateStr && r.timetableEntryId === scheduled.entryId);
+      if (!hasRecord) assumedPresent++;
+    }
+
+    const present = explicitPresent + assumedPresent;
+    const totalClasses = present + absent;
+    // We compute percentage and canMiss inline since calcAttendancePercentage is not imported
+    const calcPerc = (p: number, t: number) => t === 0 ? 100 : Math.round((p / t) * 10000) / 100;
+    const percentage = calcPerc(present, totalClasses);
+    
+    const target = subject?.attendanceTarget ?? useSettingsStore.getState().attendanceTarget;
+    const calcMiss = (p: number, t: number, tgt: number) => {
+      if (t === 0) return 0;
+      const canMiss = Math.floor((p * 100 - tgt * t) / tgt);
+      return Math.max(0, canMiss);
+    };
+    const canMiss = calcMiss(present, totalClasses, target);
+
+    return { present, totalClasses, percentage, canMiss };
+  };
+
+  const theoryStats = getStatsForType('theory');
+  const labStats = getStatsForType('lab');
 
   const subjectName = subject?.name || "Unknown Subject";
   const initials = subject?.shortName || "?";
-  const typeText = subject?.type ? (subject.type.charAt(0).toUpperCase() + subject.type.slice(1) + " Subject") : "Subject";
+  
+  let typeText = "Subject";
+  if (hasLab) typeText = "Theory & Lab";
+  else if (hasTheory) typeText = "Theory Subject";
+
   const subDetails = [subject?.faculty, subject?.room].filter(Boolean).join(' · ');
 
   const confirmDeleteSubject = () => {
@@ -79,13 +161,73 @@ export default function SubjectAttendanceDetailScreen() {
     );
   };
 
+  const handleChangeTarget = () => {
+    setShowSubjectMenu(false);
+    
+    setTimeout(() => {
+      Alert.prompt(
+        'Attendance Target',
+        `Enter target % for ${subjectName} (e.g. 75, 80). Leave empty to use global target.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Save',
+            onPress: (text?: string) => {
+              const val = text?.trim();
+              const updateSubject = useSubjectStore.getState().updateSubject;
+              if (!val) {
+                updateSubject(id as string, { attendanceTarget: undefined });
+              } else {
+                const num = parseInt(val, 10);
+                if (!isNaN(num) && num > 0 && num <= 100) {
+                  updateSubject(id as string, { attendanceTarget: num });
+                } else {
+                  Alert.alert('Invalid Input', 'Please enter a valid number between 1 and 100.');
+                }
+              }
+            }
+          }
+        ],
+        'plain-text',
+        subject?.attendanceTarget ? subject.attendanceTarget.toString() : ''
+      );
+    }, 300);
+  };
+
   const handleDayPress = (day: any) => {
     const d = new Date(day.year, day.month - 1, day.day);
     const dayOfWeek = (d.getDay() === 0 ? 6 : d.getDay() - 1) as DayOfWeek;
-    const classesOnDay = timetableEntries.filter(e => e.subjectId === id && e.dayOfWeek === dayOfWeek);
+    
+    const classesOnDay = timetableEntries.filter(e => {
+      if (e.subjectId !== id) return false;
+      
+      // If this is a one-off extra class, it only applies to its specific date
+      if (e.date) {
+        return e.date === day.dateString;
+      }
+      
+      // Otherwise, it's a regular weekly class
+      if (e.dayOfWeek !== dayOfWeek) return false;
+      
+      // Regular classes shouldn't show up outside the semester bounds
+      if (profile?.semesterStartDate && day.dateString < profile.semesterStartDate) return false;
+      if (profile?.semesterEndDate && day.dateString > profile.semesterEndDate) return false;
+      
+      return true;
+    });
 
     if (classesOnDay.length === 0) {
-      Alert.alert('No Class', 'There is no class scheduled for this subject on this day.');
+      Alert.alert(
+        'No Class', 
+        'There is no class scheduled for this subject on this day. Would you like to create an extra class?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Create Extra Class', 
+            onPress: () => router.push(`/(modals)/create-extra-class?subjectId=${id}&date=${day.dateString}`) 
+          }
+        ]
+      );
       return;
     }
 
@@ -129,7 +271,7 @@ export default function SubjectAttendanceDetailScreen() {
               <Text style={{ color: subject?.color || '#4F46E5', fontWeight: '600', fontSize: 18 }}>{initials}</Text>
             </View>
             <View style={styles.headerTextContainer}>
-              <Text style={[textStyles.h2, { color: colors.textPrimary }]}>{subjectName}</Text>
+              <Text style={[textStyles.h2, { color: colors.textPrimary, textAlign: 'center' }]}>{subjectName}</Text>
               <View style={styles.headerSubInfo}>
                 <View style={styles.tag}>
                   <Ionicons name="bookmark-outline" size={12} color="#6B7280" style={{ marginRight: 4 }} />
@@ -137,7 +279,7 @@ export default function SubjectAttendanceDetailScreen() {
                 </View>
               </View>
               {subDetails ? (
-                <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 4 }}>{subDetails}</Text>
+                <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 4, textAlign: 'center' }}>{subDetails}</Text>
               ) : null}
             </View>
           </View>
@@ -162,9 +304,16 @@ export default function SubjectAttendanceDetailScreen() {
       <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
         {activeTab === 'attendance' ? (
           <>
-            <AttendanceGauge percentage={percentage} present={present} totalClasses={totalClasses} canMiss={canMiss} />
+            {(!hasTheory || !hasLab) ? (
+              <AttendanceGauge title="Overall Attendance" percentage={percentage} present={present} totalClasses={totalClasses} canMiss={canMiss} target={subject?.attendanceTarget ?? useSettingsStore.getState().attendanceTarget} />
+            ) : (
+              <View style={{ gap: 16 }}>
+                {theoryStats && <AttendanceGauge title="Theory Attendance" percentage={theoryStats.percentage} present={theoryStats.present} totalClasses={theoryStats.totalClasses} canMiss={theoryStats.canMiss} target={subject?.attendanceTarget ?? useSettingsStore.getState().attendanceTarget} />}
+                {labStats && <AttendanceGauge title="Lab Attendance" percentage={labStats.percentage} present={labStats.present} totalClasses={labStats.totalClasses} canMiss={labStats.canMiss} target={subject?.attendanceTarget ?? useSettingsStore.getState().attendanceTarget} />}
+              </View>
+            )}
             <AttendanceCalendar subjectId={id as string} onDayPress={handleDayPress} />
-            <ClassHistory records={subjectRecords} subDetails={subDetails} />
+            <ClassHistory records={subjectRecords} subDetails={subDetails} hasTheory={hasTheory} hasLab={hasLab} />
           </>
         ) : (
           <WeeklyClasses subjectId={id as string} subjectColor={subject?.color} />
@@ -193,6 +342,7 @@ export default function SubjectAttendanceDetailScreen() {
           setShowSubjectMenu(false);
           router.push(`/(modals)/create-subject?id=${id}`);
         }}
+        onChangeTarget={handleChangeTarget}
         onDeleteSubject={() => {
           setShowSubjectMenu(false);
           setTimeout(() => confirmDeleteSubject(), 300);

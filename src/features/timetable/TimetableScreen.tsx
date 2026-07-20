@@ -7,7 +7,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/theme';
 import { EmptyState } from '@/components/ui';
 import { TopNavBar } from '@/components/ui/TopNavBar';
@@ -39,6 +39,17 @@ export default function TimetableScreen() {
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      // Import dynamically or get the value from the hook
+      // Actually we can just use the same logic from the hook
+      const day = new Date().getDay();
+      const currentDayIndex = day === 0 ? 6 : day - 1;
+      const initialDay = Math.min(currentDayIndex, 5);
+      setSelectedDay(initialDay as any);
+    }, [setSelectedDay])
+  );
+
   const setAttendanceStatus = (status: 'present' | 'absent' | 'cancelled' | 'holiday' | 'none') => {
     if (!selectedClassId || !selectedSubjectId) return;
     const selectedDayStr = days[selectedDay].dateString;
@@ -57,7 +68,7 @@ export default function TimetableScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
       
       {/* Top App Bar */}
-      <TopNavBar firstName={firstName} />
+      <TopNavBar firstName={firstName} avatarUri={profile?.avatarUri} />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -65,11 +76,8 @@ export default function TimetableScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Page title and Toggles */}
-        <View style={styles.headerRow}>
+        <View style={[styles.headerRow, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={[textStyles.h1, { color: colors.textPrimary }]}>Timetable</Text>
-        </View>
-
-        <View style={[styles.toggleRow, { justifyContent: 'flex-end' }]}>
           <Pressable 
             style={[styles.dropdown, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
             onPress={() => setViewMode(v => v === 'week' ? 'month' : 'week')}

@@ -7,12 +7,14 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/theme';
-import { useSubjectStore } from '@/stores';
+import { useSubjectStore, useTimetableStore } from '@/stores';
 import { Card } from '@/components/ui/Card';
+import { getSubjectTheme } from '@/utils/subjectTheme';
 
 export function SubjectsList() {
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const subjects = useSubjectStore(s => s.subjects);
+  const timetableEntries = useTimetableStore(s => s.entries);
   const router = useRouter();
 
   if (subjects.length === 0) return null;
@@ -25,7 +27,16 @@ export function SubjectsList() {
 
       <View style={{ paddingHorizontal: spacing.xl, gap: spacing.md }}>
         {subjects.map((subject, index) => {
-          const typeText = subject.type ? (subject.type.charAt(0).toUpperCase() + subject.type.slice(1)) : 'Subject';
+          const subjectEntries = timetableEntries.filter(e => e.subjectId === subject.id);
+          const hasLab = subjectEntries.some(e => e.type === 'lab');
+          const hasTheory = subjectEntries.some(e => e.type === 'lecture');
+          
+          let typeText = subject.type ? subject.type : 'Subject';
+          if (hasLab) typeText = 'Theory & Lab';
+          else if (hasTheory) typeText = 'Theory';
+          
+          const theme = getSubjectTheme(subject.name, subject.code, isDark);
+          const icon = subject.icon || theme.icon;
           
           return (
             <Pressable 
@@ -35,14 +46,12 @@ export function SubjectsList() {
                 pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }
               ]}
             >
-              <Card variant="elevated" padding={spacing.md} style={[styles.card, { borderLeftWidth: 4, borderLeftColor: subject.color || colors.primary }]}>
+              <Card variant="elevated" padding={spacing.md} style={[styles.card, { borderLeftWidth: 4, borderLeftColor: theme.color }]}>
                 
                 <View style={styles.cardContent}>
                   {/* Left Icon */}
-                  <View style={[styles.iconSquare, { backgroundColor: (subject.color || colors.primary) + '15' }]}>
-                    <Text style={[textStyles.h3, { color: subject.color || colors.primary }]}>
-                      {subject.shortName || '?'}
-                    </Text>
+                  <View style={[styles.iconSquare, { backgroundColor: theme.bgColor }]}>
+                    <Ionicons name={icon} size={20} color={theme.color} />
                   </View>
                   
                   {/* Middle Info */}
@@ -60,7 +69,7 @@ export function SubjectsList() {
                   {/* Right Tag */}
                   <View style={[styles.tag, { backgroundColor: colors.surface }]}>
                     <Ionicons name="bookmark-outline" size={10} color={colors.textSecondary} style={{ marginRight: 2 }} />
-                    <Text style={[textStyles.caption, { color: colors.textSecondary }]}>{typeText}</Text>
+                    <Text style={[textStyles.caption, { color: colors.textSecondary, textTransform: 'uppercase' }]}>{typeText}</Text>
                   </View>
                 </View>
                 

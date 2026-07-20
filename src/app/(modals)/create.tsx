@@ -110,7 +110,7 @@ export default function CreateScreen() {
 
           <Section title="Tasks & Tests">
             <GridCard icon="document-text-outline" color="#F59E0B" title="Assignment" description="Add a new assignment" href="/(modals)/create-assignment" />
-            <GridCard icon="create-outline" color="#EF4444" title="Exam" description="Add an exam or quiz" href="/(modals)/create-exam" />
+            <GridCard icon="create-outline" color="#8B5CF6" title="Exam" description="Add an exam or quiz" href="/(modals)/create-exam" />
           </Section>
 
         </Animated.View>
