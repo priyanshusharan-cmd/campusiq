@@ -13,7 +13,7 @@ interface AcademicState {
   gradeScheme: GradeScheme;
 
   // Semester actions
-  addSemester: (data: { name: string; number: number; isCurrent?: boolean; sgpa?: number; totalCredits?: number }) => Semester;
+  addSemester: (data: { name: string; number: number; isCurrent?: boolean; sgpa?: number; totalCredits?: number; backlogCount?: number; backlogCredits?: number; sgpaSubjects?: any[] }) => Semester;
   updateSemester: (id: ID, updates: Partial<Semester>) => void;
   removeSemester: (id: ID) => void;
   setCurrentSemester: (id: ID) => void;
@@ -52,6 +52,9 @@ export const useAcademicStore = create<AcademicState>()(
       isCurrent: data.isCurrent || false,
       sgpa: data.sgpa,
       totalCredits: data.totalCredits,
+      backlogCount: data.backlogCount,
+      backlogCredits: data.backlogCredits,
+      sgpaSubjects: data.sgpaSubjects,
     };
     set((state) => {
       const semesters = data.isCurrent
@@ -121,6 +124,10 @@ export const useAcademicStore = create<AcademicState>()(
   removeEntriesBySubject: (subjectId) => {
     set((state) => ({
       gradeEntries: state.gradeEntries.filter((e) => e.subjectId !== subjectId),
+      semesters: state.semesters.map((sem) => ({
+        ...sem,
+        sgpaSubjects: sem.sgpaSubjects?.filter((s) => s.id !== subjectId),
+      })),
     }));
   },
 

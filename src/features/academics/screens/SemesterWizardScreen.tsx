@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { useAcademicStore } from '@/stores/useAcademicStore';
 import { useSubjectStore } from '@/stores/useSubjectStore';
+import { useProfileStore } from '@/stores/useProfileStore';
 import { SEMESTER_TEMPLATES } from '@/lib/gradingEngine';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -17,6 +18,7 @@ export function SemesterWizardScreen() {
   const { getCurrentSemester } = useAcademicStore();
   const { addSubject } = useSubjectStore();
   const currentSemester = getCurrentSemester();
+  const profile = useProfileStore(s => s.profile);
 
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
@@ -45,7 +47,7 @@ export function SemesterWizardScreen() {
                 code: sub.code || '',
                 credits: sub.credits || 3,
                 type: sub.type,
-                semesterId: currentSemester.id,
+                semesterId: (profile?.currentSemester || currentSemester.number).toString(),
                 components: sub.components,
               });
             });

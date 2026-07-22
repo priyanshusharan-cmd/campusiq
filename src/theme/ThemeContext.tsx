@@ -4,6 +4,7 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { lightColors, darkColors, type ThemeColors, type ThemeMode } from './colors';
+import { useSettingsStore } from '@/stores';
 import { spacing, radius, iconSize, componentHeight } from './spacing';
 import { textStyles, fontFamily, fontSize } from './typography';
 import { shadows, getShadow, getGlowShadow } from './shadows';
@@ -35,7 +36,8 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme();
-  const [mode, setMode] = useState<ThemeMode>('system');
+  const mode = useSettingsStore((s) => s.theme);
+  const setMode = useSettingsStore((s) => s.setTheme);
 
   const isDark = useMemo(() => {
     if (mode === 'system') return systemScheme === 'dark';
@@ -43,12 +45,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [mode, systemScheme]);
 
   const toggleTheme = useCallback(() => {
-    setMode(prev => {
-      if (prev === 'light') return 'dark';
-      if (prev === 'dark') return 'light';
-      return isDark ? 'light' : 'dark';
-    });
-  }, [isDark]);
+    setMode(isDark ? 'light' : 'dark');
+  }, [isDark, setMode]);
 
   const theme: Theme = useMemo(
     () => ({

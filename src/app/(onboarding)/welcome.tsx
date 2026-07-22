@@ -115,10 +115,10 @@ export default function WelcomeScreen() {
     }
   };
 
-  const inputWrapperStyle = styles.inputWrapper;
+  const inputWrapperStyle = [styles.inputWrapper, { backgroundColor: colors.bg, borderColor: colors.border }];
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.white }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false} bounces={false}>
         {/* Top Header */}
         <LinearGradient colors={[colors.primary, '#4C1D95']} style={[styles.headerArea, { paddingTop: insets.top }]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
@@ -128,7 +128,7 @@ export default function WelcomeScreen() {
             </Pressable>
           )}
           <Animated.View entering={FadeInDown.delay(20).duration(80)} style={styles.brandingWrap}>
-            <View style={[styles.appIconContainer, { backgroundColor: colors.white }]}>
+            <View style={[styles.appIconContainer, { backgroundColor: colors.surface }]}>
               <Ionicons name="school" size={40} color={colors.primary} />
             </View>
             <Text style={[textStyles.h1, { color: colors.white, marginTop: spacing.md }]}>CampusIQ</Text>
@@ -136,7 +136,7 @@ export default function WelcomeScreen() {
         </LinearGradient>
 
         {/* Form */}
-        <View style={[styles.formContainer, { backgroundColor: colors.white, borderTopLeftRadius: radius['2xl'], borderTopRightRadius: radius['2xl'] }]}>
+        <View style={[styles.formContainer, { backgroundColor: colors.surface, borderTopLeftRadius: radius['2xl'], borderTopRightRadius: radius['2xl'] }]}>
           <Animated.View key={`header-${step}`} entering={FadeInRight.duration(300).springify()}>
             <Text style={[textStyles.h1, { color: colors.textPrimary }]}>
               {step === 1 ? 'Personal Details' : step === 2 ? 'Academic Details' : 'Semester Details'}
@@ -198,7 +198,7 @@ export default function WelcomeScreen() {
       {showDatePicker && (
         <Modal transparent animationType="fade" visible={true}>
           <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: 24 }}>
-            <Animated.View entering={FadeInDown.duration(300)} style={{ backgroundColor: colors.white, borderRadius: 24, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.15, shadowRadius: 30, elevation: 20 }}>
+            <Animated.View entering={FadeInDown.duration(300)} style={{ backgroundColor: colors.surface, borderRadius: 24, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.15, shadowRadius: 30, elevation: 20 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <Text style={[textStyles.h2, { color: colors.textPrimary }]}>Select Date</Text>
                 <Pressable onPress={() => setShowDatePicker(null)}>
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   brandingWrap: { alignItems: 'center', marginTop: -20 },
   appIconContainer: { width: 80, height: 80, borderRadius: 24, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20, elevation: 10 },
   formContainer: { flex: 1, marginTop: -32, paddingHorizontal: 24, paddingTop: 32, shadowColor: '#000', shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.05, shadowRadius: 15, elevation: 20 },
-  inputWrapper: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderRadius: 16, height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF' },
+  inputWrapper: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderRadius: 16, height: 56, paddingHorizontal: 16 },
   submitButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 56, borderRadius: 16, shadowColor: '#7C5CFC', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 5 },
   snackbar: { position: 'absolute', alignSelf: 'center', flexDirection: 'row', alignItems: 'center', backgroundColor: '#EF4444', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 5, zIndex: 1000 },
 });

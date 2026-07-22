@@ -10,9 +10,11 @@ import { useSubjectStore } from '@/stores/useSubjectStore';
 import { useTimetableStore } from '@/stores/useTimetableStore';
 import { format, parseISO } from 'date-fns';
 import { DayOfWeek } from '@/types';
+import { useSettingsStore } from '@/stores/useSettingsStore';
+import { useAttendanceStore } from '@/stores/useAttendanceStore';
 import { TextInput, Select, ColorPicker } from '@/components/form';
 import { TimePickerModal } from '@/features/timetable/components/TimePickers';
-import { handleTimeInputChange, parseTimeInput, formatTime } from '@/features/timetable/utils/timeUtils';
+import { handleTimeInputChange, parseTimeInput, formatTime, timeToMinutes } from '@/features/timetable/utils/timeUtils';
 
 export default function CreateExtraClassScreen() {
   const { colors, spacing, textStyles } = useTheme();
@@ -39,6 +41,16 @@ export default function CreateExtraClassScreen() {
 
   useEffect(() => { if (startTime) setStartTimeInput(formatTime(startTime)); }, [startTime]);
   useEffect(() => { if (endTime) setEndTimeInput(formatTime(endTime)); }, [endTime]);
+
+  useEffect(() => {
+    if (initialSubjectId) {
+      const subj = subjects.find(s => s.id === initialSubjectId);
+      if (subj) {
+        setFaculty(subj.faculty || '');
+        setColor(subj.color || '#6366F1');
+      }
+    }
+  }, [initialSubjectId]);
 
   const selectedSubject = subjects.find(s => s.id === selectedSubjectId);
 
@@ -76,6 +88,39 @@ export default function CreateExtraClassScreen() {
     const dayOfWeek = (jsDate.getDay() + 6) % 7 as DayOfWeek;
     const startStr = format(finalStartTime, 'HH:mm');
     const endStr = format(finalEndTime, 'HH:mm');
+
+    const startMins = timeToMinutes(startStr);
+    const endMins = timeToMinutes(endStr);
+    const { collegeStartTime, collegeEndTime } = useSettingsStore.getState();
+    const cStrMins = timeToMinutes(collegeStartTime);
+    const cEndMins = timeToMinutes(collegeEndTime);
+
+    if (startMins < cStrMins || endMins > cEndMins) {
+      Alert.alert('Outside College Timings', `Classes must be within ${collegeStartTime} and ${collegeEndTime}. Please update college timings if needed.`);
+      setIsSubmitting(false);
+      return;
+    }
+
+    const attendanceRecords = useAttendanceStore.getState().records;
+    const timetableEntries = useTimetableStore.getState().entries;
+    const overlapping = timetableEntries.filter(e => {
+      const isSameDay = e.date === dateStr || (!e.date && e.dayOfWeek === dayOfWeek);
+      if (!isSameDay) return false;
+      
+      const eStart = timeToMinutes(e.startTime);
+      const eEnd = timeToMinutes(e.endTime);
+      const timeOverlap = startMins < eEnd && endMins > eStart;
+      if (!timeOverlap) return false;
+      
+      const record = attendanceRecords.find(r => r.timetableEntryId === e.id && r.date === dateStr);
+      return !(record && (record.status === 'cancelled' || record.status === 'holiday'));
+    });
+
+    if (overlapping.length > 0) {
+      Alert.alert('Class Overlap', 'There is already a class scheduled at this time. Please mark it as cancelled or holiday before adding an extra class.');
+      setIsSubmitting(false);
+      return;
+    }
 
     addEntry({ subjectId: selectedSubjectId, dayOfWeek, date: dateStr, startTime: startStr, endTime: endStr, room, type: 'lecture', color });
     router.back();

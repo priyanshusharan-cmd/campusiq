@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { useTodayData } from './hooks/useTodayData';
-import { useProfileStore, useSubjectStore } from '@/stores';
+import { useProfileStore, useSubjectStore, useActiveSubjects } from '@/stores';
 import { useRouter } from 'expo-router';
 
 // Components
@@ -21,7 +21,7 @@ import { SubjectsList } from './components/SubjectsList';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function TodayScreen() {
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
   
   const profile = useProfileStore(s => s.profile);
@@ -32,16 +32,17 @@ export default function TodayScreen() {
   const { 
     firstName, 
     cgpa,
+    expectedSGPA,
     overallAttendance,
     todayClasses, 
   } = useTodayData();
 
   return (
     <LinearGradient 
-      colors={['#EEF2FF', '#FAFAFA', '#FFFFFF']} 
+      colors={isDark ? ['#0F1016', '#1A162D', '#0F1016'] : ['#F8FAFC', '#EEF2FF', '#E0E7FF']} 
       style={styles.container}
       start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 0.3 }}
+      end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.container} edges={['top']}>
         
@@ -50,8 +51,8 @@ export default function TodayScreen() {
 
         {!isSetupComplete ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.xl }}>
-            <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: colors.primaryLight, justifyContent: 'center', alignItems: 'center', marginBottom: 24 }}>
-              <Ionicons name="calendar-outline" size={40} color={colors.primary} />
+            <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: isDark ? 'rgba(99, 102, 241, 0.15)' : colors.primaryLight, justifyContent: 'center', alignItems: 'center', marginBottom: 24 }}>
+              <Ionicons name="calendar-outline" size={40} color={isDark ? '#818CF8' : colors.primary} />
             </View>
             <Text style={[textStyles.h2, { color: colors.textPrimary, textAlign: 'center', marginBottom: 12 }]}>Welcome to CampusIQ!</Text>
             <Text style={[textStyles.body, { color: colors.textSecondary, textAlign: 'center', marginBottom: 32 }]}>
@@ -74,14 +75,14 @@ export default function TodayScreen() {
             <GreetingHeader firstName={firstName} />
 
           {!hasSubjects ? (
-            <View style={{ marginTop: spacing.xl, padding: spacing.xl, alignItems: 'center', backgroundColor: colors.surface, marginHorizontal: spacing.xl, borderRadius: 16 }}>
-              <Ionicons name="book-outline" size={48} color={colors.textTertiary} style={{ marginBottom: 12 }} />
+            <View style={{ marginTop: spacing.xl, padding: spacing.xl, alignItems: 'center', backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : colors.surface, borderWidth: isDark ? 1 : 0, borderColor: 'rgba(255,255,255,0.05)', marginHorizontal: spacing.xl, borderRadius: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.05, shadowRadius: 12, elevation: 2 }}>
+              <Ionicons name="book-outline" size={48} color={isDark ? "rgba(255,255,255,0.3)" : colors.textTertiary} style={{ marginBottom: 12 }} />
               <Text style={[textStyles.h3, { color: colors.textPrimary, marginBottom: 8 }]}>No Subjects Yet</Text>
               <Text style={[textStyles.small, { color: colors.textSecondary, textAlign: 'center', marginBottom: 20 }]}>
                 Add your classes to start tracking attendance and managing your timetable.
               </Text>
               <Pressable 
-                style={{ backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8, flexDirection: 'row', alignItems: 'center' }}
+                style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : colors.primary, borderWidth: isDark ? 1 : 0, borderColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8, flexDirection: 'row', alignItems: 'center' }}
                 onPress={() => router.push('/(modals)/create-subject' as any)}
               >
                 <Ionicons name="add" size={20} color="#fff" style={{ marginRight: 4 }} />
@@ -93,18 +94,15 @@ export default function TodayScreen() {
               {/* Quick Stats Grid / Scroll */}
               <QuickStatsStrip 
                 cgpa={cgpa} 
+                expectedSGPA={expectedSGPA}
                 attendancePercentage={overallAttendance.percentage}
                 attendanceTotal={overallAttendance.total}
-                todayClassCount={todayClasses.length}
               />
 
               {/* Today's Schedule Card */}
               <View style={{ marginTop: spacing.md }}>
                 <TodaySchedule classes={todayClasses} />
               </View>
-
-              {/* All Subjects List */}
-              <SubjectsList />
             </>
           )}
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput, Dimensions, KeyboardAvoidingView, Platform, Alert, Switch } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/theme';
-import { useAcademicStore } from '@/stores';
+import { useAcademicStore, useSubjectStore } from '@/stores';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { getGPALabel } from '@/lib';
 
@@ -79,10 +79,57 @@ export default function SemesterSGPAScreen() {
 
   const semesterNum = parseInt(semNumber || '1', 10);
   const existingSem = semesters.find(s => s.number === semesterNum);
+  
+  const allSubjects = useSubjectStore(s => s.subjects);
+  
+  const initialSubjects = useMemo(() => {
+    // Step 1: Get subjects for this specific semester number
+    const semStr = semesterNum.toString();
+    const semSubjects = allSubjects.filter(s => s.semesterId === semStr);
 
-  const [subjects, setSubjects] = useState<SubjectEntry[]>([
-    { id: '1', name: '', code: '', credits: '', totalMarks: '', gradePoint: '' }
-  ]);
+    // Step 2: Get any saved SGPA subjects from the academic store
+    const savedSubjects = existingSem?.sgpaSubjects || [];
+
+    if (savedSubjects.length === 0 && semSubjects.length === 0) {
+      // No data at all — show one blank row
+      return [{ id: Date.now().toString(), name: '', code: '', credits: '', totalMarks: '', gradePoint: '' }];
+    }
+
+    if (savedSubjects.length === 0 && semSubjects.length > 0) {
+      // Subjects exist from "Create Subject" but no grade tracker data yet
+      return semSubjects.map(s => ({
+        id: s.id,
+        name: s.name,
+        code: s.code || '',
+        credits: (s.credits || 0).toString(),
+        totalMarks: '',
+        gradePoint: ''
+      }));
+    }
+
+    // savedSubjects has data — merge with any new subjects not already in saved
+    const merged = [...savedSubjects];
+    semSubjects.forEach(s => {
+      const existsById = merged.find(saved => saved.id === s.id);
+      const existsByName = merged.find(saved => 
+        saved.name.trim().toLowerCase() === s.name.trim().toLowerCase() && saved.name.trim() !== ''
+      );
+      if (!existsById && !existsByName) {
+        merged.push({
+          id: s.id,
+          name: s.name,
+          code: s.code || '',
+          credits: (s.credits || 0).toString(),
+          totalMarks: '',
+          gradePoint: ''
+        });
+      }
+    });
+
+    return merged;
+  }, [allSubjects, existingSem, semesterNum]);
+
+  const [subjects, setSubjects] = useState<SubjectEntry[]>(initialSubjects);
 
   const addSubject = () => {
     setSubjects([...subjects, { id: Date.now().toString(), name: '', code: '', credits: '', totalMarks: '', gradePoint: '' }]);
@@ -142,17 +189,59 @@ export default function SemesterSGPAScreen() {
     };
   }, [subjects, passingMarks]);
 
+  useEffect(() => {
+    // Auto-save ONLY the academic store data (subjects list, sgpa, credits)
+    // Do NOT create SubjectStore subjects here (that happens on explicit Save)
+    const currentSem = useAcademicStore.getState().semesters.find(s => s.number === semesterNum);
+    
+    // Only auto-save if there's meaningful data (at least one subject with a name)
+    const hasMeaningfulData = subjects.some(s => s.name.trim() !== '');
+    if (!hasMeaningfulData) return;
+    
+    if (currentSem) {
+      updateSemester(currentSem.id, { sgpa, totalCredits, backlogCount, backlogCredits, sgpaSubjects: subjects });
+    } else {
+      addSemester({ name: `Semester ${semesterNum}`, number: semesterNum, isCurrent: false, sgpa, totalCredits, backlogCount, backlogCredits, sgpaSubjects: subjects });
+    }
+  }, [subjects, sgpa, totalCredits, backlogCount, backlogCredits, semesterNum]);
+
   const handleSave = () => {
     if (totalCredits === 0) {
       Alert.alert('Incomplete', 'Please enter credits and grade points/marks to calculate SGPA.');
       return;
     }
 
+    // Save to academic store
     if (existingSem) {
-      updateSemester(existingSem.id, { sgpa, totalCredits, backlogCount, backlogCredits });
+      updateSemester(existingSem.id, { sgpa, totalCredits, backlogCount, backlogCredits, sgpaSubjects: subjects });
     } else {
-      addSemester({ name: `Semester ${semesterNum}`, number: semesterNum, isCurrent: false, sgpa, totalCredits, backlogCount, backlogCredits });
+      addSemester({ name: `Semester ${semesterNum}`, number: semesterNum, isCurrent: false, sgpa, totalCredits, backlogCount, backlogCredits, sgpaSubjects: subjects });
     }
+
+    // --- TWO-WAY SYNC: Create subjects in SubjectStore if they don't exist ---
+    const subjectStore = useSubjectStore.getState();
+    const semStr = semesterNum.toString();
+    const existingSubjectsForSem = subjectStore.subjects.filter(s => s.semesterId === semStr);
+
+    subjects.forEach(sub => {
+      if (!sub.name.trim()) return; // Skip blank entries
+
+      // Check if subject already exists by ID or name
+      const existsById = existingSubjectsForSem.find(s => s.id === sub.id);
+      const existsByName = existingSubjectsForSem.find(s => 
+        s.name.trim().toLowerCase() === sub.name.trim().toLowerCase()
+      );
+
+      if (!existsById && !existsByName) {
+        // Create subject in SubjectStore
+        subjectStore.addSubject({
+          name: sub.name,
+          code: sub.code || '',
+          credits: parseFloat(sub.credits) || 3,
+          semesterId: semStr,
+        });
+      }
+    });
 
     Alert.alert('Success 🎉', 'Semester SGPA has been saved successfully.', [
       { text: 'Awesome!', onPress: () => router.back() }
@@ -162,11 +251,36 @@ export default function SemesterSGPAScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: colors.bg }]}>
-        <Pressable onPress={() => router.back()} style={styles.iconBtn} hitSlop={12}>
+        <Pressable onPress={() => router.back()} style={[styles.iconBtn, { backgroundColor: colors.borderLight }]} hitSlop={12}>
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </Pressable>
         <Text style={[textStyles.h3, { color: colors.textPrimary }]}>Semester {semesterNum} SGPA</Text>
-        <View style={{ width: 40 }} />
+        <Pressable 
+          onPress={() => {
+            Alert.alert(
+              'Clear Subjects',
+              `Are you sure you want to clear all subjects for Semester ${semesterNum}? This will remove all grade data for this semester.`,
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { 
+                  text: 'Clear All', 
+                  style: 'destructive', 
+                  onPress: () => {
+                    setSubjects([{ id: Date.now().toString(), name: '', code: '', credits: '', totalMarks: '', gradePoint: '' }]);
+                    // Also clear from academic store
+                    if (existingSem) {
+                      updateSemester(existingSem.id, { sgpa: 0, totalCredits: 0, backlogCount: 0, backlogCredits: 0, sgpaSubjects: [] });
+                    }
+                  }
+                }
+              ]
+            );
+          }} 
+          style={[styles.iconBtn, { backgroundColor: colors.borderLight }]} 
+          hitSlop={12}
+        >
+          <Ionicons name="ellipsis-vertical" size={20} color={colors.textPrimary} />
+        </Pressable>
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
@@ -307,7 +421,7 @@ export default function SemesterSGPAScreen() {
 
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  iconBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center' },
+  iconBtn: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   topStats: { flexDirection: 'row', gap: 12, marginBottom: 24, paddingHorizontal: 4, alignItems: 'stretch' },
   statBoxGradient: { padding: 20, borderRadius: 24, justifyContent: 'center', shadowColor: '#7C5CFC', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 6 },
   statBox: { flex: 1, padding: 20, borderRadius: 24, borderWidth: 1, justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },

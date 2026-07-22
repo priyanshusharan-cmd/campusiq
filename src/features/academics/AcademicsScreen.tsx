@@ -14,10 +14,11 @@ import { useAcademicStore, useProfileStore } from '@/stores';
 import { getGPALabel } from '@/lib';
 
 export default function AcademicsScreen() {
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
   const cgpa = useAcademicStore((s) => s.getCGPA());
   const semesters = useAcademicStore((s) => s.semesters);
+  const gradeEntries = useAcademicStore((s) => s.gradeEntries);
   const getSGPA = useAcademicStore((s) => s.getSGPA);
   const profile = useProfileStore((s) => s.profile);
   const currentSem = profile?.currentSemester || 1;
@@ -49,13 +50,8 @@ export default function AcademicsScreen() {
   }, [currentSem, semesters]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.xl, paddingTop: spacing['3xl'], paddingBottom: spacing.lg }}>
-        <Ionicons name="arrow-back" size={24} color={colors.textPrimary} onPress={() => router.back()} style={{ marginRight: spacing.md }} />
-        <Text style={[textStyles.h2, { color: colors.textPrimary }]}>Grades & SGPA</Text>
-      </View>
+    <View style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
 
       <Animated.View entering={FadeInDown.delay(20).duration(100)} style={{ paddingHorizontal: spacing.xl }}>
         <Card style={{ alignItems: 'center', paddingVertical: spacing['3xl'] }}>
@@ -130,8 +126,8 @@ export default function AcademicsScreen() {
           })
         )}
       </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+    </View>
   );
 }
 const styles = StyleSheet.create({

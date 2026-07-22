@@ -5,11 +5,11 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/theme';
-import { useSubjectStore, useSettingsStore } from '@/stores';
+import { useSubjectStore, useSettingsStore, useActiveSubjects } from '@/stores';
 import { GlassSlider, Card } from '@/components/ui';
 
 export default function AttendanceGoalsScreen() {
-  const { colors, spacing, textStyles, radius } = useTheme();
+  const { colors, spacing, textStyles, radius, isDark } = useTheme();
   const router = useRouter();
   const { width: windowWidth } = useWindowDimensions();
   
@@ -17,7 +17,7 @@ export default function AttendanceGoalsScreen() {
   const modalInnerWidth = Math.min(windowWidth * 0.9, 400) - 48;
   
   // Stores
-  const subjects = useSubjectStore(s => s.subjects);
+  const subjects = useActiveSubjects();
   const updateSubject = useSubjectStore(s => s.updateSubject);
   const globalTarget = useSettingsStore(s => s.attendanceTarget);
   const setGlobalTarget = useSettingsStore(s => s.setAttendanceTarget);
@@ -54,7 +54,7 @@ export default function AttendanceGoalsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bgSecondary }} edges={['top']}>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.surface }]}>
-        <Pressable onPress={() => router.back()} style={styles.iconBtn} hitSlop={12}>
+        <Pressable onPress={() => router.back()} style={[styles.iconBtn, { backgroundColor: colors.borderLight }]} hitSlop={12}>
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </Pressable>
         <Text style={[textStyles.h2, { color: colors.textPrimary, flex: 1, textAlign: 'center' }]}>Attendance Goals</Text>
@@ -112,8 +112,8 @@ export default function AttendanceGoalsScreen() {
                     </Text>
                     <Text style={[textStyles.small, { color: colors.textSecondary }]}>{subject.code}</Text>
                   </View>
-                  <View style={[styles.targetBadge, { backgroundColor: subject.attendanceTarget ? colors.primaryLight : '#F3F4F6' }]}>
-                    <Text style={[textStyles.smallMedium, { color: subject.attendanceTarget ? colors.primary : colors.textSecondary }]}>
+                  <View style={[styles.targetBadge, { backgroundColor: subject.attendanceTarget ? (isDark ? 'rgba(124, 92, 252, 0.15)' : colors.primaryLight) : (isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6') }]}>
+                    <Text style={[textStyles.smallMedium, { color: subject.attendanceTarget ? (isDark ? '#A78BFA' : colors.primary) : (isDark ? '#FFFFFF' : colors.textSecondary) }]}>
                       {subject.attendanceTarget ? `${subject.attendanceTarget}%` : `${globalTarget}%`}
                     </Text>
                   </View>
@@ -150,7 +150,7 @@ export default function AttendanceGoalsScreen() {
 
                 <View style={{ flexDirection: 'row', gap: 12 }}>
                   <Pressable 
-                    style={[styles.sheetBtn, { flex: 1, backgroundColor: '#F3F4F6' }]}
+                    style={[styles.sheetBtn, { flex: 1, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6' }]}
                     onPress={handleResetSubjectTarget}
                   >
                     <Text style={[textStyles.bodyMedium, { color: colors.textPrimary }]}>Use Default</Text>
@@ -184,7 +184,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -15,7 +15,7 @@ interface TimePickerProps {
 }
 
 export function TimePickerModal({ visible, value, title, onClose, onChange }: TimePickerProps) {
-  const { colors, textStyles } = useTheme();
+  const { colors, textStyles, isDark } = useTheme();
 
   if (Platform.OS === 'ios') {
     return (
@@ -37,6 +37,8 @@ export function TimePickerModal({ visible, value, title, onClose, onChange }: Ti
               }}
               onDismiss={onClose}
               style={{ alignSelf: 'center', marginVertical: 10 }}
+              textColor={colors.textPrimary}
+              themeVariant={isDark ? 'dark' : 'light'}
             />
           </View>
         </View>

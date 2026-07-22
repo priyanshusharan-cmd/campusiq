@@ -74,10 +74,10 @@ export function ClassHistory({ records, subDetails, hasTheory, hasLab }: ClassHi
     <View style={{ marginTop: spacing.xl }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
         <Text style={[textStyles.h3, { color: colors.textPrimary }]}>Class History</Text>
-        <Pressable style={styles.filterDropdown} onPress={openFilter}>
-          <Ionicons name="funnel-outline" size={12} color="#4F46E5" style={{ marginRight: 4 }} />
-          <Text style={{ fontSize: 12, color: '#4F46E5', fontWeight: '500' }}>{filterLabel}</Text>
-          <Ionicons name="chevron-down" size={12} color="#4F46E5" style={{ marginLeft: 4 }} />
+        <Pressable style={[styles.filterDropdown, { backgroundColor: colors.primaryLight }]} onPress={openFilter}>
+          <Ionicons name="funnel-outline" size={12} color={colors.primary} style={{ marginRight: 4 }} />
+          <Text style={{ fontSize: 12, color: colors.primary, fontWeight: '500' }}>{filterLabel}</Text>
+          <Ionicons name="chevron-down" size={12} color={colors.primary} style={{ marginLeft: 4 }} />
         </Pressable>
       </View>
       
@@ -106,7 +106,7 @@ export function ClassHistory({ records, subDetails, hasTheory, hasLab }: ClassHi
                   </View>
                 </View>
               </View>
-              {index < filteredRecords.length - 1 && <View style={styles.historyDivider} />}
+              {index < filteredRecords.length - 1 && <View style={[styles.historyDivider, { backgroundColor: colors.divider }]} />}
             </React.Fragment>
           );
         }) : (

@@ -8,7 +8,7 @@ export interface SubjectTheme {
   bgColor: string;
 }
 
-export function getSubjectTheme(name: string = '', code: string = '', isDark: boolean = false, customColor?: string): SubjectTheme {
+export function getSubjectTheme(name: string = '', code: string = '', isDark: boolean = false, customColor?: string, customIcon?: string): SubjectTheme {
   const lowerName = name.toLowerCase();
   const lowerCode = code.toLowerCase();
 
@@ -68,7 +68,7 @@ export function getSubjectTheme(name: string = '', code: string = '', isDark: bo
   const bgColor = customColor ? `${customColor}26` : (isDark ? palette[4] : palette[2]);
 
   return {
-    icon: palette[0],
+    icon: (customIcon as IoniconName) || palette[0],
     color: baseColor,
     bgColor: bgColor,
   };

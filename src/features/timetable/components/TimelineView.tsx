@@ -9,15 +9,18 @@ import { useTheme } from '@/theme';
 import type { TimetableEntryWithSubject } from '@/types';
 import { formatTime } from '@/lib';
 import { useRouter } from 'expo-router';
+import { getSubjectTheme } from '@/utils/subjectTheme';
+import { useSettingsStore } from '@/stores';
 
 interface TimelineViewProps {
   classes: TimetableEntryWithSubject[];
   onLongPressClass?: (cls: TimetableEntryWithSubject) => void;
+  onEmptySlotLongPress?: (timeStr: string) => void;
 }
 
 const HOUR_HEIGHT = 100;
 
-export function TimelineView({ classes, onLongPressClass }: TimelineViewProps) {
+export function TimelineView({ classes, onLongPressClass, onEmptySlotLongPress }: TimelineViewProps) {
   const { colors, spacing, textStyles } = useTheme();
   const router = useRouter();
 
@@ -26,24 +29,33 @@ export function TimelineView({ classes, onLongPressClass }: TimelineViewProps) {
     return h * 60 + m;
   };
 
-  const minHour = classes.length > 0 
-    ? Math.min(...classes.map(c => parseInt(c.startTime.split(':')[0], 10)), 8)
-    : 8;
-  const maxHour = classes.length > 0
-    ? Math.max(...classes.map(c => {
-        const h = parseInt(c.endTime.split(':')[0], 10);
-        const m = parseInt(c.endTime.split(':')[1], 10);
-        return m > 0 ? h + 1 : h; 
-      }), 17)
-    : 17;
+  const { collegeStartTime, collegeEndTime } = useSettingsStore();
+  const cMinHour = parseInt(collegeStartTime.split(':')[0], 10) || 8;
+  const cMaxHour = parseInt(collegeEndTime.split(':')[0], 10) || 17;
+  const isNightShift = cMaxHour < cMinHour;
+
+  let minHour = cMinHour;
+  let maxHour = isNightShift ? cMaxHour + 24 : cMaxHour;
+
+  classes.forEach(c => {
+    let sH = parseInt(c.startTime.split(':')[0], 10);
+    let eH = parseInt(c.endTime.split(':')[0], 10);
+    const m = parseInt(c.endTime.split(':')[1], 10);
+    if (m > 0) eH += 1;
+
+    if (isNightShift && sH < cMinHour) sH += 24;
+    if (isNightShift && eH < cMinHour) eH += 24;
+    if (eH < sH) eH += 24;
+  });
     
   const length = Math.max(1, maxHour - minHour + 1);
   const hours = Array.from({ length }, (_, i) => i + minHour);
 
   const getAmPm = (hour: number) => {
-    const h = hour % 12 === 0 ? 12 : hour % 12;
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    return { h, ampm };
+    const displayHour = hour % 24;
+    const h = displayHour % 12 === 0 ? 12 : displayHour % 12;
+    const ampm = displayHour >= 12 ? 'PM' : 'AM';
+    return { h, ampm, displayHour };
   };
 
   return (
@@ -65,16 +77,42 @@ export function TimelineView({ classes, onLongPressClass }: TimelineViewProps) {
       })}
 
       {/* Class Cards */}
-      <View style={styles.cardsOverlay}>
+      <Pressable 
+        style={styles.cardsOverlay}
+        onLongPress={(e) => {
+          if (!onEmptySlotLongPress) return;
+          const tappedMins = (e.nativeEvent.locationY / HOUR_HEIGHT) * 60;
+          const totalMins = Math.round(minHour * 60 + tappedMins);
+          // Round to nearest 30 mins
+          const remainder = totalMins % 30;
+          const roundedMins = totalMins - remainder + (remainder >= 15 ? 30 : 0);
+          
+          let h = Math.floor(roundedMins / 60) % 24;
+          const m = roundedMins % 60;
+          
+          const ampm = h >= 12 ? 'PM' : 'AM';
+          const displayH = h % 12 === 0 ? 12 : h % 12;
+          const timeStr = `${displayH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${ampm}`;
+          
+          onEmptySlotLongPress(timeStr);
+        }}
+      >
         {classes.map((cls, idx) => {
-          const startMins = parseTimeToMinutes(cls.startTime);
-          const endMins = parseTimeToMinutes(cls.endTime);
+          let startMins = parseTimeToMinutes(cls.startTime);
+          let endMins = parseTimeToMinutes(cls.endTime);
+          
+          if (isNightShift && startMins < cMinHour * 60) startMins += 24 * 60;
+          if (isNightShift && endMins < cMinHour * 60) endMins += 24 * 60;
+          if (endMins < startMins) endMins += 24 * 60;
+          
           const timelineStartMins = minHour * 60;
           
           const topOffset = ((startMins - timelineStartMins) / 60) * HOUR_HEIGHT;
-          const duration = Math.max(endMins - startMins, 45); // minimum height limit for readability
+          const duration = endMins - startMins;
           const height = (duration / 60) * HOUR_HEIGHT;
           
+          const theme = getSubjectTheme(cls.subjectName, cls.subjectShortName, colors.bg === '#000000', cls.subjectColor, cls.subjectIcon);
+
           return (
             <Animated.View 
               key={cls.id}
@@ -82,10 +120,10 @@ export function TimelineView({ classes, onLongPressClass }: TimelineViewProps) {
               style={[
                 styles.classBlockAbsolute, 
                 { 
-                  backgroundColor: cls.subjectColor + '15',
+                  backgroundColor: theme.bgColor,
                   top: topOffset + 12, // +12 to align with the text which has some padding
                   height: height - 4, // slight gap
-                  borderLeftColor: cls.subjectColor,
+                  borderLeftColor: theme.color,
                   borderLeftWidth: 4,
                 }
               ]}
@@ -96,11 +134,11 @@ export function TimelineView({ classes, onLongPressClass }: TimelineViewProps) {
                 onLongPress={() => onLongPressClass?.(cls)}
               >
                 <View style={styles.blockHeader}>
-                  <Text style={[textStyles.bodyMedium, { color: cls.subjectColor, flex: 1 }]} numberOfLines={1}>
+                  <Text style={[textStyles.bodyMedium, { color: theme.color, flex: 1 }]} numberOfLines={1}>
                     {cls.subjectName}
                   </Text>
                   <View style={styles.timeTag}>
-                    <View style={[styles.dot, { backgroundColor: cls.subjectColor }]} />
+                    <View style={[styles.dot, { backgroundColor: theme.color }]} />
                     <Text style={[textStyles.small, { color: colors.textSecondary, fontSize: 10 }]} numberOfLines={1}>
                       {formatTime(cls.startTime)} - {formatTime(cls.endTime)}
                     </Text>
@@ -126,7 +164,7 @@ export function TimelineView({ classes, onLongPressClass }: TimelineViewProps) {
             </Animated.View>
           );
         })}
-      </View>
+      </Pressable>
     </View>
   );
 }

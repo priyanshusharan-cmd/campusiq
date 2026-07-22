@@ -14,7 +14,7 @@ import { DayOfWeek } from '@/types';
 import { useProfileStore } from '@/stores/useProfileStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { getPastScheduledClasses } from '@/lib/attendanceUtils';
-
+import { getSubjectTheme } from '@/utils/subjectTheme';
 // Modular components
 import { AttendanceGauge } from '@/features/attendance/components/AttendanceGauge';
 import { AttendanceCalendar } from '@/features/attendance/components/AttendanceCalendar';
@@ -27,7 +27,7 @@ import { styles } from '@/features/attendance/styles/attendanceDetailStyles';
 export default function SubjectAttendanceDetailScreen() {
   const { id, tab } = useLocalSearchParams();
   const router = useRouter();
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
   const [showSubjectMenu, setShowSubjectMenu] = useState(false);
@@ -261,21 +261,27 @@ export default function SubjectAttendanceDetailScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
       {/* Header */}
-      <View style={styles.headerContainer}>
+      <View style={[styles.headerContainer, { backgroundColor: isDark ? '#000000' : '#ffffff', borderBottomColor: colors.borderLight }]}>
         <View style={styles.headerTop}>
           <Pressable onPress={() => router.back()} style={styles.iconButton}>
             <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
           </Pressable>
           <View style={styles.headerInfo}>
-            <View style={[styles.iconSquare, { backgroundColor: subject?.color ? `${subject.color}20` : '#E0E7FF' }]}>
-              <Text style={{ color: subject?.color || '#4F46E5', fontWeight: '600', fontSize: 18 }}>{initials}</Text>
-            </View>
+            {(() => {
+              const theme = getSubjectTheme(subject?.name || '', subject?.code || '', colors.bg === '#000000', subject?.color, subject?.icon);
+              const icon = theme.icon;
+              return (
+                <View style={[styles.iconSquare, { backgroundColor: theme.bgColor }]}>
+                  <Ionicons name={icon} size={28} color={theme.color} />
+                </View>
+              );
+            })()}
             <View style={styles.headerTextContainer}>
               <Text style={[textStyles.h2, { color: colors.textPrimary, textAlign: 'center' }]}>{subjectName}</Text>
               <View style={styles.headerSubInfo}>
-                <View style={styles.tag}>
-                  <Ionicons name="bookmark-outline" size={12} color="#6B7280" style={{ marginRight: 4 }} />
-                  <Text style={{ fontSize: 11, color: '#6B7280', fontWeight: '500' }}>{typeText}</Text>
+                <View style={[styles.tag, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6' }]}>
+                  <Ionicons name="bookmark-outline" size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
+                  <Text style={{ fontSize: 11, color: colors.textSecondary, fontWeight: '500' }}>{typeText}</Text>
                 </View>
               </View>
               {subDetails ? (
@@ -291,12 +297,12 @@ export default function SubjectAttendanceDetailScreen() {
         {/* Tabs */}
         <View style={styles.tabsContainer}>
           <Pressable style={[styles.tab, activeTab === 'overview' && styles.activeTab]} onPress={() => setActiveTab('overview')}>
-            <Text style={[styles.tabText, activeTab === 'overview' ? styles.activeTabText : { color: colors.textSecondary }]}>Overview</Text>
-            {activeTab === 'overview' && <View style={styles.activeTabIndicator} />}
+            <Text style={[styles.tabText, activeTab === 'overview' ? [styles.activeTabText, { color: colors.primary }] : { color: colors.textSecondary }]}>Overview</Text>
+            {activeTab === 'overview' && <View style={[styles.activeTabIndicator, { backgroundColor: colors.primary }]} />}
           </Pressable>
           <Pressable style={[styles.tab, activeTab === 'attendance' && styles.activeTab]} onPress={() => setActiveTab('attendance')}>
-            <Text style={[styles.tabText, activeTab === 'attendance' ? styles.activeTabText : { color: colors.textSecondary }]}>Attendance</Text>
-            {activeTab === 'attendance' && <View style={styles.activeTabIndicator} />}
+            <Text style={[styles.tabText, activeTab === 'attendance' ? [styles.activeTabText, { color: colors.primary }] : { color: colors.textSecondary }]}>Attendance</Text>
+            {activeTab === 'attendance' && <View style={[styles.activeTabIndicator, { backgroundColor: colors.primary }]} />}
           </Pressable>
         </View>
       </View>

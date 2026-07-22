@@ -10,7 +10,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/theme';
 import { Card, ListRow } from '@/components/ui';
-import { useProfileStore, useAcademicStore, useSubjectStore } from '@/stores';
+import { useProfileStore, useAcademicStore, useSubjectStore, useActiveSubjects } from '@/stores';
 import { calculateSubjectBounds } from '@/lib/gradingEngine';
 import { gradeToPoint } from '@/lib';
 import { ProfileViewCard } from './components/ProfileViewCard';
@@ -86,15 +86,13 @@ export default function ProfileScreen() {
   
   const currentSemester = useAcademicStore(s => s.getCurrentSemester());
   const currentSGPA = useAcademicStore(s => currentSemester ? s.getSGPA(currentSemester.id) : 0);
+  const semesters = useAcademicStore(s => s.semesters);
   const cgpa = useAcademicStore(s => s.getCGPA());
   const gradeEntries = useAcademicStore(s => s.gradeEntries);
   const completedCredits = gradeEntries.reduce((sum, e) => sum + e.credits, 0);
 
-  // Predicted SGPA Calculation
-  const subjects = useSubjectStore(s => s.subjects);
-  const currentSemNum = profile?.currentSemester || 1;
-  const currentSemesterSubjects = subjects.filter(s => !s.semesterId || s.semesterId === `sem-${currentSemNum}` || s.semesterId === currentSemNum.toString() || s.semesterId === currentSemester?.id);
-  
+  // Current SGPA Calculation
+  const currentSemesterSubjects = useActiveSubjects();
   let displayedSGPA = currentSGPA;
   let isPredictedSGPA = false;
 
@@ -137,19 +135,69 @@ export default function ProfileScreen() {
   const toggleEdit = () => {
     if (isEditing) {
       const newSemesterNum = parseInt(form.currentSemester) || 1;
-      updateProfile({ ...form, currentSemester: newSemesterNum });
+      const currentSemesterNum = profile?.currentSemester || 1;
       
-      // Sync with Academic Store
-      const academicStore = useAcademicStore.getState();
-      const existingSemester = academicStore.semesters.find((s) => s.number === newSemesterNum);
-      if (existingSemester) {
-        academicStore.setCurrentSemester(existingSemester.id);
+      const saveChanges = () => {
+        updateProfile({ ...form, currentSemester: newSemesterNum });
+        
+        // Sync with Academic Store
+        const academicStore = useAcademicStore.getState();
+        const existingSemester = academicStore.semesters.find((s) => s.number === newSemesterNum);
+        if (existingSemester) {
+          academicStore.setCurrentSemester(existingSemester.id);
+        } else {
+          academicStore.addSemester({
+            name: `Semester ${newSemesterNum}`,
+            number: newSemesterNum,
+            isCurrent: true,
+          });
+        }
+        
+        // --- SYNC SUBJECTS: If grade tracker has data for this semester, create subjects ---
+        const targetAcademicSem = academicStore.semesters.find(s => s.number === newSemesterNum);
+        if (targetAcademicSem?.sgpaSubjects && targetAcademicSem.sgpaSubjects.length > 0) {
+          const subjectStore = useSubjectStore.getState();
+          const semStr = newSemesterNum.toString();
+          const existingSubjectsForSem = subjectStore.subjects.filter(s => s.semesterId === semStr);
+          
+          targetAcademicSem.sgpaSubjects.forEach(sgpaSub => {
+            if (!sgpaSub.name || !sgpaSub.name.trim()) return;
+            
+            const existsById = existingSubjectsForSem.find(s => s.id === sgpaSub.id);
+            const existsByName = existingSubjectsForSem.find(s => 
+              s.name.trim().toLowerCase() === sgpaSub.name.trim().toLowerCase()
+            );
+            
+            if (!existsById && !existsByName) {
+              subjectStore.addSubject({
+                name: sgpaSub.name,
+                code: sgpaSub.code || '',
+                credits: parseFloat(sgpaSub.credits) || 3,
+                semesterId: semStr,
+              });
+            }
+          });
+        }
+        
+        setIsEditing(false);
+      };
+
+      if (newSemesterNum !== currentSemesterNum) {
+        Alert.alert(
+          "Change Semester?",
+          `Are you sure you want to switch to Semester ${newSemesterNum}? This will load all subjects, timetable, and attendance records for Semester ${newSemesterNum}.`,
+          [
+            { text: "Cancel", style: "cancel" },
+            { 
+              text: "Switch Semester", 
+              onPress: saveChanges 
+            }
+          ]
+        );
+        return; // Don't toggle edit mode yet, wait for confirmation
       } else {
-        academicStore.addSemester({
-          name: `Semester ${newSemesterNum}`,
-          number: newSemesterNum,
-          isCurrent: true,
-        });
+        saveChanges();
+        return;
       }
     } else {
       setForm({
@@ -240,6 +288,91 @@ export default function ProfileScreen() {
   const currentSemesterNum = profile?.currentSemester;
   const semesterStr = currentSemesterNum ? `${currentSemesterNum}${currentSemesterNum === 1 ? 'st' : currentSemesterNum === 2 ? 'nd' : currentSemesterNum === 3 ? 'rd' : 'th'} Semester` : 'Enter Semester';
 
+  const handleGraduation = () => {
+    const currentSemNum = profile?.currentSemester || 1;
+    const nextSem = currentSemNum + 1;
+    
+    // --- VALIDATION: Check if grade tracker is complete for current semester ---
+    const academicStore = useAcademicStore.getState();
+    const currentAcademicSem = academicStore.semesters.find(s => s.number === currentSemNum);
+    
+    if (!currentAcademicSem) {
+      // No academic data at all for current semester
+      Alert.alert(
+        'Grade Tracker Incomplete',
+        `Please fill in your SGPA details for Semester ${currentSemNum} in the Grade Tracker before graduating.`
+      );
+      return;
+    }
+    
+    const sgpaSubjects = currentAcademicSem.sgpaSubjects || [];
+    
+    // Check if there are subjects and they all have required data
+    if (sgpaSubjects.length === 0) {
+      Alert.alert(
+        'Grade Tracker Incomplete',
+        `Please add subjects and their grades for Semester ${currentSemNum} in the Grade Tracker before graduating.`
+      );
+      return;
+    }
+    
+    // Check each subject has name, credits, and grade point
+    const incompleteSubjects = sgpaSubjects.filter(sub => {
+      const hasName = sub.name && sub.name.trim() !== '';
+      const hasCredits = parseFloat(sub.credits) > 0;
+      const hasGradePoint = parseFloat(sub.gradePoint) > 0;
+      return hasName && (!hasCredits || !hasGradePoint);
+    });
+    
+    if (incompleteSubjects.length > 0) {
+      const names = incompleteSubjects.map(s => s.name).join(', ');
+      Alert.alert(
+        'Grade Tracker Incomplete',
+        `The following subjects are missing credits or grade points: ${names}. Please complete them before graduating.`
+      );
+      return;
+    }
+    
+    // Check if SGPA has been calculated (should be > 0)
+    if (!currentAcademicSem.sgpa || currentAcademicSem.sgpa <= 0) {
+      Alert.alert(
+        'Save SGPA First',
+        `Please save your SGPA for Semester ${currentSemNum} in the Grade Tracker before graduating.`
+      );
+      return;
+    }
+    
+    // --- All validations passed, proceed with graduation ---
+    Alert.alert(
+      "Confirm Graduation",
+      `Graduate from Semester ${currentSemNum} to Semester ${nextSem}?\n\nYour Semester ${currentSemNum} SGPA: ${currentAcademicSem.sgpa.toFixed(2)}\n\nThis will move you to the new semester. Your old data is preserved and accessible via the Grade Tracker.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: `Graduate to Sem ${nextSem}`, 
+          onPress: () => {
+            // Update profile to new semester
+            updateProfile({ currentSemester: nextSem });
+            
+            // Mark old semester as not current in academic store
+            const existingNewSem = academicStore.semesters.find(s => s.number === nextSem);
+            if (existingNewSem) {
+              academicStore.setCurrentSemester(existingNewSem.id);
+            } else {
+              academicStore.addSemester({
+                name: `Semester ${nextSem}`,
+                number: nextSem,
+                isCurrent: true,
+              });
+            }
+
+            Alert.alert("Congratulations! 🎉", `You are now in Semester ${nextSem}. Add your new subjects to get started.`);
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
       {/* Header */}
@@ -299,6 +432,25 @@ export default function ProfileScreen() {
               </View>
             </Card>
           </View>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(20).duration(100)} style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>
+          <Pressable 
+            onPress={handleGraduation}
+            style={({ pressed }) => ({
+              backgroundColor: colors.primary + '15',
+              paddingVertical: 16,
+              borderRadius: 16,
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: colors.primary + '30',
+              opacity: pressed ? 0.7 : 1
+            })}
+          >
+            <Text style={[textStyles.h3, { color: colors.primary }]}>
+              🎓 Graduate Semester {profile?.currentSemester || 1}
+            </Text>
+          </Pressable>
         </Animated.View>
       </ScrollView>
 

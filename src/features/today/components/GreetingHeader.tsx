@@ -12,7 +12,7 @@ interface GreetingHeaderProps {
 }
 
 export function GreetingHeader({ firstName }: GreetingHeaderProps) {
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
 
   return (
     <Animated.View
@@ -23,10 +23,10 @@ export function GreetingHeader({ firstName }: GreetingHeaderProps) {
         paddingBottom: spacing.lg,
       }}
     >
-      <Text style={[textStyles.h1, { color: colors.textPrimary }]}>
+      <Text style={[textStyles.h1, { color: isDark ? '#FFFFFF' : colors.textPrimary, fontFamily: 'Inter-Bold', letterSpacing: -0.5 }]}>
         {getGreeting()}, {firstName}! {getGreetingEmoji()}
       </Text>
-      <Text style={[textStyles.body, { color: colors.textSecondary, marginTop: 4 }]}>
+      <Text style={[textStyles.body, { color: isDark ? 'rgba(255,255,255,0.7)' : colors.textSecondary, marginTop: 4 }]}>
         Let&apos;s make today productive.
       </Text>
     </Animated.View>

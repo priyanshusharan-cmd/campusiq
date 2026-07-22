@@ -7,14 +7,14 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { Card } from '@/components/ui';
-import { useAssignmentStore, useSubjectStore } from '@/stores';
+import { useAssignmentStore, useSubjectStore, useActiveSubjects } from '@/stores';
 import type { Priority } from '@/types';
 
 export default function CreateAssignmentModal() {
   const { colors, spacing, textStyles, radius } = useTheme();
   const router = useRouter();
   
-  const subjects = useSubjectStore(s => s.subjects);
+  const subjects = useActiveSubjects();
   const addAssignment = useAssignmentStore(s => s.addAssignment);
   
   const [title, setTitle] = useState('');

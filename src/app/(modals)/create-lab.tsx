@@ -15,7 +15,7 @@ import { TimePickerModal } from '@/features/timetable/components/TimePickers';
 import { formatTime, DAY_MAP, DAY_OPTIONS } from '@/features/timetable/utils/timeUtils';
 
 export default function CreateLabScreen() {
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
 
   const subjects = useSubjectStore(state => state.subjects);
@@ -82,7 +82,7 @@ export default function CreateLabScreen() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
           {/* Quick Tip */}
-          <View style={[styles.tipBanner, { backgroundColor: '#FFF1F2', borderColor: '#FFE4E6' }]}>
+          <View style={[styles.tipBanner, { backgroundColor: isDark ? 'rgba(244, 63, 94, 0.1)' : '#FFF1F2', borderColor: isDark ? 'rgba(244, 63, 94, 0.2)' : '#FFE4E6' }]}>
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
                 <Ionicons name="bulb-outline" size={16} color="#F43F5E" style={{ marginRight: 6 }} />

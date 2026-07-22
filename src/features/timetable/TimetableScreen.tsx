@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/theme';
 import { EmptyState } from '@/components/ui';
 import { TopNavBar } from '@/components/ui/TopNavBar';
@@ -16,13 +17,15 @@ import { useTimetableData } from './hooks';
 import { DaySelector } from './components/DaySelector';
 import { TimelineView } from './components/TimelineView';
 import { MonthCalendarView } from './components/MonthCalendarView';
-import { useProfileStore, useSubjectStore, useAttendanceStore } from '@/stores';
 import { AttendanceStatusModal } from '@/components/ui/AttendanceStatusModal';
+import { useSettingsStore, useTimetableStore, useProfileStore, useSubjectStore, useAttendanceStore } from '@/stores';
+import { TextInput } from '@/components/form';
+import { KeyboardAvoidingView, Platform, Modal } from 'react-native';
 
 export default function TimetableScreen() {
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const router = useRouter();
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const { selectedDay, setSelectedDay, classes, days } = useTimetableData();
   const profile = useProfileStore(s => s.profile);
   const subjects = useSubjectStore(s => s.subjects);
@@ -38,6 +41,9 @@ export default function TimetableScreen() {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
+
+  const { collegeStartTime, collegeEndTime } = useSettingsStore();
+  const timetableEntries = useTimetableStore(s => s.entries);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -64,11 +70,62 @@ export default function TimetableScreen() {
     setShowStatusModal(false);
   };
 
+  const handleEmptySlotLongPress = (timeStr: string) => {
+    const startMins = timeToMinutes(timeStr);
+    const endMins = startMins + 60;
+    
+    const isCollision = classes.some(entry => {
+      const eStart = timeToMinutes(entry.startTime);
+      const eEnd = timeToMinutes(entry.endTime);
+      return Math.max(startMins, eStart) < Math.min(endMins, eEnd);
+    });
+
+    const startFormatted = timeStr;
+    let endFormatted = '';
+    
+    if (!isCollision) {
+      let endH = Math.floor(endMins / 60) % 24;
+      const endM = endMins % 60;
+      const ampm = endH >= 12 ? 'PM' : 'AM';
+      const displayEndH = endH % 12 === 0 ? 12 : endH % 12;
+      endFormatted = `${displayEndH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')} ${ampm}`;
+    }
+
+    Alert.alert(
+      'Create Extra Class',
+      `Do you want to add a class starting at ${startFormatted}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Add Class', 
+          onPress: () => {
+            const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const dayStr = dayNames[selectedDay];
+            router.push({
+              pathname: '/(modals)/create-class',
+              params: {
+                initialDay: dayStr,
+                initialStartTime: startFormatted,
+                initialEndTime: endFormatted
+              }
+            });
+          }
+        }
+      ]
+    );
+  };
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
-      
-      {/* Top App Bar */}
-      <TopNavBar firstName={firstName} avatarUri={profile?.avatarUri} />
+    <LinearGradient 
+      colors={isDark ? ['#0F1016', '#1A162D', '#0F1016'] : ['#F8FAFC', '#EEF2FF', '#E0E7FF']} 
+      style={{ flex: 1 }}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+    >
+      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+        
+        {/* Top App Bar */}
+        <TopNavBar firstName={firstName} avatarUri={profile?.avatarUri} />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -78,14 +135,17 @@ export default function TimetableScreen() {
         {/* Page title and Toggles */}
         <View style={[styles.headerRow, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={[textStyles.h1, { color: colors.textPrimary }]}>Timetable</Text>
-          <Pressable 
-            style={[styles.dropdown, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
-            onPress={() => setViewMode(v => v === 'week' ? 'month' : 'week')}
-          >
-            <Ionicons name="calendar-outline" size={14} color={colors.primary} style={{ marginRight: 6 }} />
-            <Text style={[textStyles.smallMedium, { color: colors.primary }]}>{viewMode === 'week' ? 'Week' : 'Month'}</Text>
-            <Ionicons name="chevron-down" size={14} color={colors.primary} style={{ marginLeft: 4 }} />
-          </Pressable>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            
+            <Pressable 
+              style={[styles.dropdown, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
+              onPress={() => setViewMode(v => v === 'week' ? 'month' : 'week')}
+            >
+              <Ionicons name="calendar-outline" size={14} color={colors.primary} style={{ marginRight: 6 }} />
+              <Text style={[textStyles.smallMedium, { color: colors.primary }]}>{viewMode === 'week' ? 'Week' : 'Month'}</Text>
+              <Ionicons name="chevron-down" size={14} color={colors.primary} style={{ marginLeft: 4 }} />
+            </Pressable>
+          </View>
         </View>
 
         {viewMode === 'week' ? (
@@ -130,6 +190,7 @@ export default function TimetableScreen() {
                   setSelectedSubjectId(cls.subjectId);
                   setShowStatusModal(true);
                 }}
+                onEmptySlotLongPress={handleEmptySlotLongPress}
               />
             )}
 
@@ -139,47 +200,7 @@ export default function TimetableScreen() {
           <MonthCalendarView />
         )}
 
-        {/* Bottom Info Cards */}
-        <Animated.View entering={FadeInDown.delay(20).duration(100)} style={styles.bottomCards}>
-          
-
-
-          {/* Quick Actions */}
-          <Card variant="outlined" padding={16} style={{ borderRadius: 16, marginTop: 12 }}>
-            <Text style={[textStyles.smallMedium, { color: colors.textPrimary, marginBottom: 12 }]}>Quick Actions</Text>
-            <View style={styles.actionsRow}>
-              <ActionItem 
-                icon="calendar-outline" 
-                color={colors.primary} 
-                label="Add Class" 
-                onPress={() => router.push('/(modals)/create-class')}
-              />
-              <ActionItem 
-                icon="add-circle-outline" 
-                color={colors.warning} 
-                label="Extra Class" 
-                onPress={() => router.push(`/(modals)/create-extra-class?date=${days[selectedDay].dateString}` as any)}
-              />
-              <ActionItem 
-                icon="share-social-outline" 
-                color={colors.info} 
-                label="Share" 
-                onPress={async () => {
-                  try {
-                    await Share.share({
-                      message: 'Check out my class timetable on CampusIQ!',
-                    });
-                  } catch (error) {
-                    console.error(error);
-                  }
-                }}
-              />
-            </View>
-
-
-          </Card>
-
-        </Animated.View>
+        {/* Bottom Info Cards removed as per redesign */}
 
       </ScrollView>
 
@@ -190,7 +211,37 @@ export default function TimetableScreen() {
         onSelectStatus={setAttendanceStatus}
       />
 
-    </SafeAreaView>
+      
+      {/* Add Extra Class FAB */}
+      {viewMode === 'week' && hasSubjects && (
+        <Pressable 
+          style={{
+            position: 'absolute',
+            bottom: 24,
+            right: 24,
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+            backgroundColor: colors.primary,
+            justifyContent: 'center',
+            alignItems: 'center',
+            shadowColor: '#000',
+            shadowOpacity: 0.3,
+            shadowOffset: { width: 0, height: 4 },
+            shadowRadius: 8,
+            elevation: 8,
+          }}
+          onPress={() => {
+            const dateStr = days[selectedDay].dateString;
+            router.push(`/(modals)/create-extra-class?date=${dateStr}`);
+          }}
+        >
+          <Ionicons name="add" size={32} color="#FFF" />
+        </Pressable>
+      )}
+
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 

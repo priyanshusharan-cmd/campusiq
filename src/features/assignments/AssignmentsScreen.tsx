@@ -1,6 +1,6 @@
 // Campora — Assignments Screen
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,20 +9,21 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { Card, EmptyState, Badge } from '@/components/ui';
-import { useAssignmentStore, useSubjectStore } from '@/stores';
+import { useAssignmentStore, useActiveSubjects } from '@/stores';
 import { formatDate, getDueUrgency } from '@/lib';
 
 export default function AssignmentsScreen() {
   const { colors, spacing, textStyles } = useTheme();
   const router = useRouter();
   const assignments = useAssignmentStore((s) => s.assignments);
-  const subjects = useSubjectStore((s) => s.subjects);
+  const subjects = useActiveSubjects();
+  const activeSubjectIds = useMemo(() => new Set(subjects.map(s => s.id)), [subjects]);
   const toggleComplete = useAssignmentStore((s) => s.toggleComplete);
   
   const [filter, setFilter] = useState<'pending' | 'completed'>('pending');
 
   const filteredAssignments = assignments.filter((a) => 
-    filter === 'pending' ? a.status !== 'completed' : a.status === 'completed'
+    (filter === 'pending' ? a.status !== 'completed' : a.status === 'completed') && activeSubjectIds.has(a.subjectId)
   ).sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 
   return (

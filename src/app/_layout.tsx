@@ -87,25 +87,43 @@ export default function RootLayout() {
   );
 }
 
+import { Drawer } from 'react-native-drawer-layout';
+import { usePathname } from 'expo-router';
+import { useDrawerStore } from '@/stores/useDrawerStore';
+import MoreScreen from '@/features/more/MoreScreen';
+
 function RootLayoutNav() {
   const { isDark } = useTheme();
+  const pathname = usePathname();
+  const { isOpen, setDrawerOpen } = useDrawerStore();
+  
+  // Only allow swipe to open on the home screen '/'
+  const isHome = pathname === '/' || pathname === '';
 
   return (
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right', gestureEnabled: true, fullScreenGestureEnabled: true }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
-        <Stack.Screen name="(onboarding)" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="(modals)" options={{ headerShown: false, animation: 'default' }} />
-        {/* Additional stacks for sub-pages like academics, assignments, exams, etc. */}
-        <Stack.Screen name="academics" />
-        <Stack.Screen name="assignments" />
-        <Stack.Screen name="exams" />
-        <Stack.Screen name="analytics" />
-        <Stack.Screen name="profile" />
-        <Stack.Screen name="settings" />
-      </Stack>
+      <Drawer
+        open={isOpen}
+        onOpen={() => setDrawerOpen(true)}
+        onClose={() => setDrawerOpen(false)}
+        swipeEdgeWidth={isHome ? 100 : 0}
+        renderDrawerContent={() => <MoreScreen />}
+      >
+        <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right', gestureEnabled: true, fullScreenGestureEnabled: true }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
+          <Stack.Screen name="(onboarding)" options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen name="(modals)" options={{ headerShown: false, animation: 'default' }} />
+          {/* Additional stacks for sub-pages like academics, assignments, exams, etc. */}
+          <Stack.Screen name="academics" />
+          <Stack.Screen name="assignments" />
+          <Stack.Screen name="exams" />
+          <Stack.Screen name="analytics" />
+          <Stack.Screen name="profile" />
+          <Stack.Screen name="settings" />
+        </Stack>
+      </Drawer>
     </>
   );
 }

@@ -5,7 +5,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { AttendanceRecord, AttendanceStatus, SubjectAttendance, ID } from '@/types';
 import { generateId, getAttendanceStatus } from '@/types';
 import { calcAttendancePercentage, calcCanMiss, calcNeedToAttend, getPastScheduledClasses } from '@/lib/attendanceUtils';
-import { useSubjectStore } from './useSubjectStore';
+import { useSubjectStore, useActiveSubjects } from './useSubjectStore';
 import { useSettingsStore } from './useSettingsStore';
 import { useTimetableStore } from './useTimetableStore';
 import { useProfileStore } from './useProfileStore';
@@ -174,7 +174,7 @@ export const useAttendanceStore = create<AttendanceState>()(
 // Derived hook: get subject-wise attendance summary
 export function useSubjectAttendance(): SubjectAttendance[] {
   const records = useAttendanceStore((s) => s.records);
-  const subjects = useSubjectStore((s) => s.subjects);
+  const subjects = useActiveSubjects();
   const target = useSettingsStore((s) => s.attendanceTarget);
   const timetableEntries = useTimetableStore((s) => s.entries);
   const events = useTimetableStore((s) => s.events);

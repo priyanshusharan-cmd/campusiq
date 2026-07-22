@@ -27,25 +27,23 @@ export function SubjectPredictorCard({ subject, scheme, onPress }: SubjectPredic
   const currentBoundary = getGradeBoundary(scheme, currentScore);
   const maxBoundary = getGradeBoundary(scheme, maxScore);
 
-  const subjectTheme = getSubjectTheme(subject.name, subject.code, isDark);
+  const subjectTheme = getSubjectTheme(subject.name, subject.code, isDark, subject.color, subject.icon);
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={styles.cardContainer}>
-      <BlurView
-        intensity={isDark ? 30 : 60}
-        tint={isDark ? 'dark' : 'light'}
+      <View
         style={[
           styles.blurContainer,
           {
-            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
-            borderColor: colors.border,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : colors.surface,
+            borderColor: colors.borderLight,
             borderWidth: 1,
           }
         ]}
       >
         <View style={styles.header}>
           <View style={[styles.iconContainer, { backgroundColor: subjectTheme.bgColor }]}>
-            <Ionicons name={subject.icon || subjectTheme.icon} size={20} color={subjectTheme.color} />
+            <Ionicons name={subjectTheme.icon} size={20} color={subjectTheme.color} />
           </View>
           <View style={styles.headerText}>
             <Text style={[styles.subjectName, { color: colors.textPrimary, fontFamily: fontFamily.semiBold }]} numberOfLines={1}>
@@ -85,7 +83,7 @@ export function SubjectPredictorCard({ subject, scheme, onPress }: SubjectPredic
             </Text>
           </View>
         </View>
-      </BlurView>
+      </View>
     </TouchableOpacity>
   );
 }

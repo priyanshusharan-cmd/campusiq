@@ -77,13 +77,16 @@ const modalStyles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   content: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    minHeight: 300,
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 24,
     maxHeight: '80%',
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',

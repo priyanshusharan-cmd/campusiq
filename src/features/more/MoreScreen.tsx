@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/theme';
 import { ListRow, Card } from '@/components/ui';
 import { useProfileStore, useAcademicStore } from '@/stores';
+import { useDrawerStore } from '@/stores/useDrawerStore';
 import { getGPALabel } from '@/lib';
 import { Alert } from 'react-native';
 
@@ -26,7 +27,10 @@ function SectionTitle({ title }: { title: string }) {
 export default function MoreScreen() {
   const { colors, spacing, textStyles, radius } = useTheme();
   const router = useRouter();
+  const { setDrawerOpen } = useDrawerStore();
   const profile = useProfileStore((s) => s.profile);
+  const semesters = useAcademicStore((s) => s.semesters);
+  const gradeEntries = useAcademicStore((s) => s.gradeEntries);
   const cgpa = useAcademicStore((s) => s.getCGPA());
 
   const name = profile?.name || 'Guest User';
@@ -37,6 +41,13 @@ export default function MoreScreen() {
   const currentSemester = useAcademicStore(s => s.getCurrentSemester());
   const currentSGPA = useAcademicStore(s => currentSemester ? s.getSGPA(currentSemester.id) : 0);
   const sgpaValue = currentSGPA > 0 ? currentSGPA.toFixed(2) : '--';
+
+  const handleNav = (route: string) => {
+    setDrawerOpen(false);
+    setTimeout(() => {
+      router.push(route as any);
+    }, 50);
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
@@ -52,7 +63,7 @@ export default function MoreScreen() {
 
         {/* Profile Card */}
       <Animated.View entering={FadeInDown.delay(20).duration(100)} style={{ paddingHorizontal: spacing.xl, marginTop: spacing.md }}>
-        <Pressable onPress={() => router.push('/profile' as any)} style={{ borderRadius: 24, overflow: 'hidden', elevation: 8, shadowColor: colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 16 }}>
+        <Pressable onPress={() => handleNav('/profile')} style={{ borderRadius: 24, overflow: 'hidden', elevation: 8, shadowColor: colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 16 }}>
           <LinearGradient
             colors={['#0F172A', '#1E1B4B', '#4C1D95']}
             style={{ padding: 20 }}
@@ -85,15 +96,6 @@ export default function MoreScreen() {
                   </View>
                 </View>
               </View>
-
-              {/* CGPA Card Mini */}
-              <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: 14, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', marginLeft: 12 }}>
-                <Text style={[textStyles.small, { color: 'rgba(255,255,255,0.7)', fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 }]}>CGPA</Text>
-                <Text style={[textStyles.h2, { color: '#FFFFFF', fontSize: 28, marginVertical: 4 }]}>{cgpa > 0 ? cgpa.toFixed(2) : '--'}</Text>
-                <View style={{ backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>
-                  <Text style={[textStyles.small, { color: '#FFFFFF', fontSize: 10, fontWeight: '600' }]}>{cgpa > 0 ? getGPALabel(cgpa) : 'No grades'}</Text>
-                </View>
-              </View>
             </View>
           </LinearGradient>
         </Pressable>
@@ -105,45 +107,31 @@ export default function MoreScreen() {
         <View style={{ paddingHorizontal: spacing.xl }}>
           <Card variant="flat" padding={0}>
             <ListRow 
-              icon="document-text-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight}
-              title="Grades & SGPA Tracker" 
-              subtitle="View semester grades and SGPA history" 
-              onPress={() => router.push('/academics' as any)} 
-            />
-            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-            <ListRow 
-              icon="locate-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight}
-              title="GPA Goals" 
-              subtitle="Set and track your academic goals"
-              onPress={() => router.push('/(modals)/goal' as any)} 
-            />
-            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-            <ListRow 
               icon="flag-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight}
               title="Attendance Goals" 
               subtitle="Set default and subject-specific targets"
-              onPress={() => router.push('/academics/attendance-goals' as any)} 
+              onPress={() => handleNav('/academics/attendance-goals')} 
             />
             <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
             <ListRow 
               icon="settings-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight}
               title="Academic Settings" 
               subtitle="Configure passing marks and criteria"
-              onPress={() => router.push('/academics/settings' as any)} 
+              onPress={() => handleNav('/academics/settings')} 
             />
             <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
             <ListRow 
               icon="book-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight}
               title="Subjects" 
               subtitle="Manage your subjects and credits"
-              onPress={() => router.push('/academics/subjects' as any)} 
+              onPress={() => handleNav('/academics/subjects')} 
             />
             <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
             <ListRow 
               icon="bar-chart-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight}
               title="Performance Analytics" 
               subtitle="Detailed insights on your academic performance"
-              onPress={() => router.push('/analytics' as any)} 
+              onPress={() => handleNav('/analytics')} 
             />
           </Card>
         </View>
@@ -158,7 +146,7 @@ export default function MoreScreen() {
               icon="settings-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight}
               title="Settings" 
               subtitle="Customize your app experience" 
-              onPress={() => router.push('/settings' as any)} 
+              onPress={() => handleNav('/settings')} 
             />
             <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
             <ListRow 

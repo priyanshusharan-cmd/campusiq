@@ -59,8 +59,8 @@ export function SubjectAttendanceRow({ data, isLast = false }: SubjectAttendance
   const progressWidth = `${Math.min(data.percentage, 100)}%`;
   const isPerfect = data.totalClasses > 0 && data.percentage === 100;
   
-  const theme = getSubjectTheme(data.subjectName, subjectCode, isDark);
-  const icon = fullSubject?.icon || theme.icon;
+  const theme = getSubjectTheme(data.subjectName, subjectCode, isDark, data.subjectColor || fullSubject?.color, fullSubject?.icon);
+  const icon = theme.icon;
 
   return (
     <Pressable onPress={() => router.push(`/attendance/${data.subjectId}?tab=attendance`)} style={styles.container}>

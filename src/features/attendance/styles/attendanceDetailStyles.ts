@@ -222,7 +222,6 @@ export const styles = StyleSheet.create({
   filterDropdown: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EEF2FF',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 6,
@@ -253,7 +252,6 @@ export const styles = StyleSheet.create({
   },
   historyDivider: {
     height: 1,
-    backgroundColor: '#F3F4F6',
     marginLeft: 64, // To align with content
   },
   modalOverlay: {

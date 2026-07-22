@@ -1,6 +1,6 @@
 // Campora — Exams Screen
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,14 +9,23 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { Card, EmptyState } from '@/components/ui';
-import { useExamStore, useSubjectStore } from '@/stores';
+import { useExamStore, useActiveSubjects } from '@/stores';
 import { formatDateFull, getCountdown } from '@/lib';
 
 export default function ExamsScreen() {
   const { colors, spacing, textStyles } = useTheme();
   const router = useRouter();
-  const exams = useExamStore((s) => s.getUpcoming());
-  const subjects = useSubjectStore((s) => s.subjects);
+  const exams = useExamStore((s) => s.exams);
+  const subjects = useActiveSubjects();
+  const activeSubjectIds = useMemo(() => new Set(subjects.map(s => s.id)), [subjects]);
+  
+  const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
+  const today = new Date().toISOString().split('T')[0];
+
+  const filteredExams = exams.filter((e) => {
+    const isUpcoming = e.date >= today;
+    return (filter === 'upcoming' ? isUpcoming : !isUpcoming) && activeSubjectIds.has(e.subjectId);
+  }).sort((a, b) => filter === 'upcoming' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date));
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
@@ -26,10 +35,10 @@ export default function ExamsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 100, gap: spacing.md }}>
-        {exams.length === 0 ? (
+        {filteredExams.length === 0 ? (
           <EmptyState icon="school-outline" title="No Exams" subtitle="You have no upcoming exams." />
         ) : (
-          exams.map((exam, index) => {
+          filteredExams.map((exam, index) => {
             const subject = subjects.find(s => s.id === exam.subjectId);
             const countdown = getCountdown(exam.date);
             const typeLabel = exam.type.charAt(0).toUpperCase() + exam.type.slice(1);

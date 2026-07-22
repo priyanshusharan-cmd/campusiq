@@ -7,14 +7,14 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { Card } from '@/components/ui';
-import { useExamStore, useSubjectStore } from '@/stores';
+import { useExamStore, useSubjectStore, useActiveSubjects } from '@/stores';
 import type { ExamType } from '@/types';
 
 export default function CreateExamModal() {
   const { colors, spacing, textStyles, radius } = useTheme();
   const router = useRouter();
   
-  const subjects = useSubjectStore(s => s.subjects);
+  const subjects = useActiveSubjects();
   const addExam = useExamStore(s => s.addExam);
   
   const [ setTitle] = useState('');

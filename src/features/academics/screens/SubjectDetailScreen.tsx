@@ -6,6 +6,7 @@ import { useTheme } from '@/theme';
 import { useAcademicStore } from '@/stores/useAcademicStore';
 import { useSubjectStore } from '@/stores/useSubjectStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
+import { getSubjectTheme } from '@/utils/subjectTheme';
 import { calculateSubjectBounds, getGradeBoundary, convertLegacyToComponents, calculateSGPAImpact } from '@/lib/gradingEngine';
 import type { AssessmentComponent } from '@/types/grading';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,8 +33,9 @@ export function SubjectDetailScreen() {
 
   const [simulatedMarks, setSimulatedMarks] = useState<Record<string, number>>({});
 
-  const themeColor = subject.color;
-  const themeBgColor = isDark ? `${subject.color}20` : `${subject.color}15`;
+  const theme = getSubjectTheme(subject.name, subject.code, isDark, subject.color, subject.icon);
+  const themeColor = theme.color;
+  const themeBgColor = theme.bgColor;
 
   const bounds = useMemo(() => calculateSubjectBounds(components, simulatedMarks), [components, simulatedMarks]);
   

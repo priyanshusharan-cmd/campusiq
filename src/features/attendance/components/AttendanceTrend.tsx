@@ -14,7 +14,7 @@ import { parseISO, subWeeks, isBefore, isSameDay, startOfMonth, endOfMonth, addM
 import { getPastScheduledClasses } from '@/lib/attendanceUtils';
 
 export function AttendanceTrend() {
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const records = useAttendanceStore(s => s.records);
   const subjects = useSubjectStore(s => s.subjects);
   const timetableEntries = useTimetableStore(s => s.entries);
@@ -108,7 +108,7 @@ export function AttendanceTrend() {
       <Animated.View entering={FadeInDown.delay(20).duration(100)} style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>
         <Card variant="elevated" padding={20} style={{ borderRadius: 20 }}>
           <View style={styles.header}>
-            <Text style={[textStyles.smallMedium, { color: colors.textPrimary }]}>Attendance Trend</Text>
+            <Text style={[textStyles.h3, { color: isDark ? '#FFFFFF' : colors.textPrimary, fontSize: 18 }]}>Attendance Trend</Text>
           </View>
           <View style={{ marginTop: 24, alignItems: 'center', justifyContent: 'center', height: 120 }}>
             <Text style={[textStyles.body, { color: colors.textSecondary }]}>Not enough data for trend</Text>
@@ -122,7 +122,7 @@ export function AttendanceTrend() {
     <Animated.View entering={FadeInDown.delay(20).duration(100)} style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>
       <Card variant="elevated" padding={20} style={{ borderRadius: 20 }}>
         <View style={styles.header}>
-          <Text style={[textStyles.smallMedium, { color: colors.textPrimary }]}>Attendance Trend</Text>
+          <Text style={[textStyles.h3, { color: isDark ? '#FFFFFF' : colors.textPrimary, fontSize: 18 }]}>Attendance Trend</Text>
         </View>
         <View style={{ marginTop: 16 }}>
           <LineChart

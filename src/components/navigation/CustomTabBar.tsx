@@ -50,36 +50,14 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
   const tabs: { key: string; label: string; icon: keyof typeof Ionicons.glyphMap; activeIcon: keyof typeof Ionicons.glyphMap }[] = [
     { key: 'index', label: 'Home', icon: 'home-outline', activeIcon: 'home' },
     { key: 'schedule', label: 'Timetable', icon: 'calendar-outline', activeIcon: 'calendar' },
-    { key: 'fab', label: '', icon: 'add', activeIcon: 'add' },
     { key: 'attendance', label: 'Attendance', icon: 'checkmark-circle-outline', activeIcon: 'checkmark-circle' },
-    { key: 'more', label: 'More', icon: 'grid-outline', activeIcon: 'grid' },
+    { key: 'gpa', label: 'GPA', icon: 'stats-chart-outline', activeIcon: 'stats-chart' },
   ];
 
   return (
     <View style={[styles.container, { backgroundColor: colors.tabBar, borderTopColor: colors.tabBarBorder }]}>
       {tabs.map((tab, index) => {
-        if (tab.key === 'fab') {
-          return (
-            <View key="fab" style={styles.fabContainer}>
-              <Pressable
-                onPress={() => {
-                  router.push('/(modals)/create' as any);
-                }}
-                style={[
-                  styles.fab,
-                  { backgroundColor: colors.primary },
-                  shadows.lg,
-                ]}
-              >
-                <Ionicons name="add" size={28} color="#FFFFFF" />
-              </Pressable>
-            </View>
-          );
-        }
-
-        // Map tab key to actual route index (skip fab)
-        const routeIndex = index > 2 ? index - 1 : index;
-        const isActive = state.index === routeIndex;
+        const isActive = state.index === index;
 
         return (
           <TabItem
@@ -89,7 +67,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
             activeIcon={tab.activeIcon}
             isActive={isActive}
             onPress={() => {
-              const route = state.routes[routeIndex];
+              const route = state.routes[index];
               const event = navigation.emit({
                 type: 'tabPress',
                 target: route.key,

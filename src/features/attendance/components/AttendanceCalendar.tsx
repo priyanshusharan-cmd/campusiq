@@ -21,7 +21,7 @@ interface AttendanceCalendarProps {
 }
 
 export function AttendanceCalendar({ subjectId, onDayPress }: AttendanceCalendarProps) {
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const allRecords = useAttendanceStore(s => s.records);
   const timetableEntries = useTimetableStore(s => s.entries);
   const events = useTimetableStore(s => s.events);
@@ -36,12 +36,26 @@ export function AttendanceCalendar({ subjectId, onDayPress }: AttendanceCalendar
   const markedDates = useMemo(() => {
     const marks: Record<string, any> = {};
 
+    const presentBg = isDark ? 'rgba(16, 185, 129, 0.2)' : '#D1FAE5';
+    const presentText = '#10B981';
+
+    const absentBg = isDark ? 'rgba(239, 68, 68, 0.2)' : '#FEE2E2';
+    const absentText = '#EF4444';
+
+    const cancelBg = isDark ? 'rgba(202, 138, 4, 0.2)' : '#FEF08A';
+    const cancelText = '#CA8A04';
+
+    const holidayBg = isDark ? 'rgba(37, 99, 235, 0.2)' : '#DBEAFE';
+    const holidayText = '#2563EB';
+
+    const todayBg = isDark ? 'rgba(255, 255, 255, 0.1)' : '#EEF2FF';
+
     const pastScheduled = getPastScheduledClasses(subjectId, timetableEntries, events, profile?.semesterStartDate, profile?.semesterEndDate);
     pastScheduled.forEach(scheduled => {
       marks[scheduled.dateStr] = {
         customStyles: {
-          container: { backgroundColor: '#D1FAE5', borderRadius: 8 },
-          text: { color: '#10B981', fontWeight: '500' }
+          container: { backgroundColor: presentBg, borderRadius: 8 },
+          text: { color: presentText, fontWeight: '500' }
         }
       };
     });
@@ -65,29 +79,29 @@ export function AttendanceCalendar({ subjectId, onDayPress }: AttendanceCalendar
       if (hasAbsent) {
         marks[dateStr] = {
           customStyles: {
-            container: { backgroundColor: '#FEE2E2', borderRadius: 8 },
-            text: { color: '#EF4444', fontWeight: '500' }
+            container: { backgroundColor: absentBg, borderRadius: 8 },
+            text: { color: absentText, fontWeight: '500' }
           }
         };
       } else if (hasCancelled) {
         marks[dateStr] = {
           customStyles: {
-            container: { backgroundColor: '#FEF08A', borderRadius: 8 },
-            text: { color: '#CA8A04', fontWeight: '500' }
+            container: { backgroundColor: cancelBg, borderRadius: 8 },
+            text: { color: cancelText, fontWeight: '500' }
           }
         };
       } else if (hasHoliday) {
         marks[dateStr] = {
           customStyles: {
-            container: { backgroundColor: '#DBEAFE', borderRadius: 8 },
-            text: { color: '#2563EB', fontWeight: '500' }
+            container: { backgroundColor: holidayBg, borderRadius: 8 },
+            text: { color: holidayText, fontWeight: '500' }
           }
         };
       } else {
         marks[dateStr] = {
           customStyles: {
-            container: { backgroundColor: '#D1FAE5', borderRadius: 8 },
-            text: { color: '#10B981', fontWeight: '500' }
+            container: { backgroundColor: presentBg, borderRadius: 8 },
+            text: { color: presentText, fontWeight: '500' }
           }
         };
       }
@@ -97,13 +111,13 @@ export function AttendanceCalendar({ subjectId, onDayPress }: AttendanceCalendar
     if (!marks[todayStr]) {
       marks[todayStr] = {
         customStyles: {
-          container: { backgroundColor: '#EEF2FF', borderRadius: 8 },
-          text: { color: '#4F46E5', fontWeight: '500' }
+          container: { backgroundColor: todayBg, borderRadius: 8 },
+          text: { color: colors.primary, fontWeight: '500' }
         }
       };
     }
     return marks;
-  }, [subjectRecords, timetableEntries, events, profile]);
+  }, [subjectRecords, timetableEntries, events, profile, isDark, colors.primary]);
 
   return (
     <View style={{ marginTop: spacing.xl }}>
@@ -114,14 +128,14 @@ export function AttendanceCalendar({ subjectId, onDayPress }: AttendanceCalendar
           markingType={'custom'}
           markedDates={markedDates}
           theme={{
-            backgroundColor: '#ffffff',
-            calendarBackground: '#ffffff',
-            textSectionTitleColor: '#9CA3AF',
-            selectedDayBackgroundColor: '#4F46E5',
+            backgroundColor: isDark ? 'transparent' : '#ffffff',
+            calendarBackground: isDark ? 'transparent' : '#ffffff',
+            textSectionTitleColor: isDark ? 'rgba(255,255,255,0.5)' : '#9CA3AF',
+            selectedDayBackgroundColor: colors.primary,
             selectedDayTextColor: '#ffffff',
-            todayTextColor: '#4F46E5',
-            dayTextColor: '#374151',
-            textDisabledColor: '#D1D5DB',
+            todayTextColor: colors.primary,
+            dayTextColor: isDark ? '#E2E8F0' : '#374151',
+            textDisabledColor: isDark ? 'rgba(255,255,255,0.2)' : '#D1D5DB',
             arrowColor: colors.primary,
             monthTextColor: colors.textPrimary,
             textDayFontWeight: '400',
@@ -132,7 +146,7 @@ export function AttendanceCalendar({ subjectId, onDayPress }: AttendanceCalendar
             textDayHeaderFontSize: 12,
           }}
           renderArrow={(direction: string) => (
-            <View style={styles.calNavBtn}>
+            <View style={[styles.calNavBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#EEF2FF' }]}>
               <Ionicons name={direction === 'left' ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.primary} />
             </View>
           )}

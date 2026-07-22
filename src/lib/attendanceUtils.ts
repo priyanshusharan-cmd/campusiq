@@ -88,13 +88,10 @@ export function getPastScheduledClasses(
   // Default to 1st of current month if no start date provided
   const start = semesterStartDate ? parseISO(semesterStartDate) : startOfMonth(today);
   
-  // Determine the end date: either today, or semesterEndDate if it's earlier than today
+  // Determine the end date: either today, or semesterEndDate if provided
   let end = today;
   if (semesterEndDate) {
-    const semEnd = parseISO(semesterEndDate);
-    if (semEnd < today) {
-      end = semEnd;
-    }
+    end = parseISO(semesterEndDate);
   }
 
   if (start > end) return [];

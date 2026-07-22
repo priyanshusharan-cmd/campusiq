@@ -7,13 +7,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { useSubjectStore } from '@/stores/useSubjectStore';
 import { useProfileStore } from '@/stores/useProfileStore';
+import { getSubjectTheme } from '@/utils/subjectTheme';
 import { DEFAULTS } from '@/constants';
 import type { SubjectType } from '@/types';
 
-import { TextInput, Select, ColorPicker, SegmentedControl } from '@/components/form';
+import { TextInput, Select, ColorPicker, SegmentedControl, IconPicker } from '@/components/form';
 
 export default function CreateSubjectScreen() {
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const subjectId = Array.isArray(id) ? id[0] : id;
@@ -28,7 +29,10 @@ export default function CreateSubjectScreen() {
   const [faculty, setFaculty] = useState(existingSubject?.faculty || '');
   const [description, setDescription] = useState('');
   const [subjectType, setSubjectType] = useState<SubjectType>(existingSubject?.type || 'theory');
-  const [color, setColor] = useState(existingSubject?.color || '#10B981');
+  const [userColor, setUserColor] = useState<string | undefined>(existingSubject?.color);
+  const [icon, setIcon] = useState<string | undefined>(existingSubject?.icon);
+  
+  const { icon: autoIcon, color: autoColor } = getSubjectTheme(name, code, false, userColor, icon);
   
   const profile = useProfileStore(state => state.profile);
 
@@ -61,7 +65,8 @@ export default function CreateSubjectScreen() {
         faculty,
         type: subjectType,
         credits,
-        color
+        color: autoColor,
+        icon
       });
     } else {
       addSubject({
@@ -71,6 +76,8 @@ export default function CreateSubjectScreen() {
         type: subjectType,
         credits,
         semesterId: profile?.currentSemester?.toString() || '1',
+        color: autoColor,
+        icon
       });
     }
     
@@ -91,8 +98,8 @@ export default function CreateSubjectScreen() {
               {isEditing ? 'Update the details of your subject' : 'Add a new subject to track'}
             </Text>
           </View>
-          <View style={[styles.headerIconWrap, { backgroundColor: '#ECFDF5' }]}>
-            <Ionicons name="book-outline" size={24} color="#10B981" />
+          <View style={[styles.headerIconWrap, { backgroundColor: `${autoColor}20` }]}>
+            <Ionicons name={autoIcon as any} size={24} color={autoColor} />
           </View>
         </View>
       </View>
@@ -106,7 +113,7 @@ export default function CreateSubjectScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Quick Tip Banner */}
-          <View style={[styles.tipBanner, { backgroundColor: '#ECFDF5', borderColor: '#D1FAE5' }]}>
+          <View style={[styles.tipBanner, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#ECFDF5', borderColor: isDark ? 'rgba(16, 185, 129, 0.2)' : '#D1FAE5' }]}>
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
                 <Ionicons name="bulb-outline" size={16} color="#10B981" style={{ marginRight: 6 }} />
@@ -176,7 +183,14 @@ export default function CreateSubjectScreen() {
             numberOfLines={4} 
           />
           
-          <ColorPicker label="Color" value={color} onChange={setColor} />
+          <ColorPicker label="Color" value={autoColor} onChange={setUserColor} />
+
+          <IconPicker 
+            label="Subject Icon" 
+            value={autoIcon} 
+            onChange={setIcon} 
+            selectedColor={autoColor} 
+          />
 
         </ScrollView>
       </KeyboardAvoidingView>

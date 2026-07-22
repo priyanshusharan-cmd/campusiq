@@ -24,6 +24,14 @@ export interface Semester {
   backlogCount?: number;
   backlogCredits?: number;
   isCurrent: boolean;
+  sgpaSubjects?: {
+    id: string;
+    name: string;
+    code: string;
+    credits: string;
+    totalMarks: string;
+    gradePoint: string;
+  }[];
 }
 
 // Indian 10-point CGPA Scale

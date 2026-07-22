@@ -82,3 +82,16 @@ export const DAY_MAP: Record<string, number> = {
 };
 
 export const DAY_OPTIONS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+/**
+ * Handles time input blur to set Date object and format string.
+ */
+export const handleTimeBlur = (text: string, setDate: (d: Date) => void, setInput: (s: string) => void) => {
+  const parsed = parseTimeInput(text);
+  if (parsed) {
+    const d = new Date();
+    d.setHours(parsed.getHours(), parsed.getMinutes(), 0, 0);
+    setDate(d);
+    setInput(formatTime(d));
+  }
+};

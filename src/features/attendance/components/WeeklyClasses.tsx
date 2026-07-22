@@ -19,7 +19,7 @@ interface WeeklyClassesProps {
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 export function WeeklyClasses({ subjectId, subjectColor }: WeeklyClassesProps) {
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
   const timetableEntries = useTimetableStore(s => s.entries);
   const removeEntry = useTimetableStore(s => s.removeEntry);
@@ -97,8 +97,8 @@ export function WeeklyClasses({ subjectId, subjectColor }: WeeklyClassesProps) {
                         </Text>
                       </View>
                       <View style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
-                        <View style={[styles.statusBadge, { backgroundColor: '#F3F4F6' }]}>
-                          <Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: '500' }}>
+                        <View style={[styles.statusBadge, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6' }]}>
+                          <Text style={{ color: isDark ? '#FFFFFF' : colors.textSecondary, fontSize: 12, fontWeight: '500' }}>
                             {cls.type.charAt(0).toUpperCase() + cls.type.slice(1)}
                           </Text>
                         </View>

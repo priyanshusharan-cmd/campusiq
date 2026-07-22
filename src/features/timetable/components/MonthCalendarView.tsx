@@ -33,11 +33,17 @@ export function MonthCalendarView() {
 
     const buttons: any[] = [];
 
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+    const isFuture = dateString > todayStr;
+
     if (hasClasses) {
-      buttons.push({
-        text: '✅ Mark All Present',
-        onPress: () => markBulkAttendance(dateString, 'present'),
-      });
+      if (!isFuture) {
+        buttons.push({
+          text: '✅ Mark All Present',
+          onPress: () => markBulkAttendance(dateString, 'present'),
+        });
+      }
       buttons.push({
         text: '❌ Mark All Absent',
         onPress: () => markBulkAttendance(dateString, 'absent'),
@@ -211,6 +217,10 @@ export function MonthCalendarView() {
       />
 
       <View style={styles.legendRow}>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
+          <Text style={[styles.legendText, { color: colors.textSecondary }]}>Present</Text>
+        </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>Absent</Text>

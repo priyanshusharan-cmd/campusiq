@@ -16,7 +16,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" />
       <Tabs.Screen name="schedule" />
       <Tabs.Screen name="attendance" />
-      <Tabs.Screen name="more" />
+      <Tabs.Screen name="gpa" />
     </Tabs>
   );
 }

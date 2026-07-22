@@ -1,25 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { useAcademicStore } from '@/stores/useAcademicStore';
-import { useSubjectStore } from '@/stores/useSubjectStore';
+import { useActiveSubjects } from '@/stores/useSubjectStore';
 import { SubjectPredictorCard } from '../components/SubjectPredictorCard';
 import { generatePDFReport } from '@/lib/pdfGenerator';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useProfileStore } from '@/stores/useProfileStore';
 
 export function ForecasterScreen() {
   const insets = useSafeAreaInsets();
-  const { colors, isDark, fontFamily } = useTheme();
+  const { colors, isDark, textStyles } = useTheme();
   const router = useRouter();
   
   const { gradeScheme, getCurrentSemester, semesters, addSemester, setCurrentSemester } = useAcademicStore();
   const currentSemester = getCurrentSemester();
-  const { subjects } = useSubjectStore();
+  const semesterSubjects = useActiveSubjects();
   const profile = useProfileStore(s => s.profile);
+  const firstName = profile?.name?.split(' ')[0] || 'Student';
+
+  const [dreamSgpa, setDreamSgpa] = useState(8.5);
 
   useEffect(() => {
     if (!currentSemester && profile?.currentSemester) {
@@ -36,7 +39,7 @@ export function ForecasterScreen() {
     }
   }, [currentSemester, profile?.currentSemester, semesters, setCurrentSemester, addSemester]);
   
-  const semesterSubjects = subjects.filter(s => s.semesterId === currentSemester?.id);
+  // Subjects are automatically filtered for the current semester via useActiveSubjects
 
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -63,8 +66,8 @@ export function ForecasterScreen() {
 
   if (!currentSemester) {
     return (
-      <View style={[styles.emptyContainer, { backgroundColor: colors.bg }]}>
-        <Text style={{ color: colors.textSecondary, fontFamily: fontFamily.medium }}>
+      <View style={[styles.emptyContainer, { flex: 1 }]}>
+        <Text style={{ color: colors.textSecondary }}>
           No active semester found.
         </Text>
       </View>
@@ -72,36 +75,47 @@ export function ForecasterScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg }]}>
+    <View style={styles.container}>
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 100 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>
-            Grade Forecaster
-          </Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary, fontFamily: fontFamily.regular }]}>
-            Predict and track your academic journey
-          </Text>
-        </View>
 
-        <TouchableOpacity 
-          onPress={handleExportPDF} 
-          disabled={isGenerating}
-          style={styles.exportButtonContainer}
+        {/* GPA Tuner Card */}
+        <LinearGradient
+          colors={['#8A73FF', '#6B58F5']}
+          style={styles.tunerCard}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
         >
-          <BlurView intensity={isDark ? 40 : 80} tint={isDark ? 'dark' : 'light'} style={[styles.exportButton, { borderColor: colors.primary + '50', borderWidth: 1 }]}>
-            <Ionicons name="document-text-outline" size={24} color={colors.primary} />
-            <Text style={[styles.exportText, { color: colors.primary, fontFamily: fontFamily.semiBold }]}>
-              {isGenerating ? "Generating..." : "Export Performance Report"}
-            </Text>
-          </BlurView>
-        </TouchableOpacity>
+          <View style={styles.tunerControls}>
+            <Pressable 
+              style={styles.tunerButton} 
+              onPress={() => setDreamSgpa(prev => Math.max(0, prev - 0.1))}
+            >
+              <Ionicons name="remove" size={24} color="#8A73FF" />
+            </Pressable>
+            <Text style={styles.dreamSgpaText}>{dreamSgpa.toFixed(1)}</Text>
+            <Pressable 
+              style={styles.tunerButton}
+              onPress={() => setDreamSgpa(prev => Math.min(10, prev + 0.1))}
+            >
+              <Ionicons name="add" size={24} color="#8A73FF" />
+            </Pressable>
+          </View>
+          <Text style={styles.tunerDescription}>
+            Tune your dream SGPA to calculate exactly what you need in the final exams.
+          </Text>
+          <View style={styles.maxAchievablePill}>
+            <Text style={styles.maxAchievableText}>Max Achievable: 8.52 SGPA</Text>
+          </View>
+        </LinearGradient>
+
+
 
         <View style={styles.listHeader}>
-          <Text style={[styles.listTitle, { color: colors.textPrimary, fontFamily: fontFamily.semiBold }]}>
-            Subjects ({semesterSubjects.length})
+          <Text style={[textStyles.h3, { color: isDark ? '#FFFFFF' : colors.textPrimary }]}>
+            Subject Goals
           </Text>
         </View>
 
@@ -111,13 +125,13 @@ export function ForecasterScreen() {
             subject={subject} 
             scheme={gradeScheme} 
             onPress={() => {
-              router.push(`/(modals)/subject-detail?id=${subject.id}`);
+              router.push(`/(modals)/subject-detail?id=${subject.id}` as any);
             }} 
           />
         ))}
 
         {semesterSubjects.length === 0 && (
-          <Text style={[styles.emptyText, { color: colors.textSecondary, fontFamily: fontFamily.regular }]}>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
             No subjects added to this semester yet.
           </Text>
         )}
@@ -136,23 +150,65 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
   },
   header: {
+    alignItems: 'center',
     marginBottom: 24,
   },
   title: {
-    fontSize: 28,
-    marginBottom: 4,
+    fontSize: 18,
+    fontWeight: '700',
   },
-  subtitle: {
-    fontSize: 16,
-    opacity: 0.8,
+  tunerCard: {
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  exportButtonContainer: {
-    marginBottom: 24,
-    borderRadius: 16,
-    overflow: 'hidden',
+  tunerControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  tunerButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  dreamSgpaText: {
+    fontSize: 56,
+    fontWeight: '800',
+    color: '#FFF',
+    marginHorizontal: 32,
+    letterSpacing: -1,
+  },
+  tunerDescription: {
+    color: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  maxAchievablePill: {
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  maxAchievableText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '600',
   },
   exportButton: {
     flexDirection: 'row',
@@ -160,19 +216,45 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 16,
     borderRadius: 16,
+    marginBottom: 32,
   },
   exportText: {
-    marginLeft: 12,
-    fontSize: 16,
+    marginLeft: 10,
+    fontSize: 14,
+    fontWeight: '600',
   },
   listHeader: {
-    marginBottom: 12,
-  },
-  listTitle: {
-    fontSize: 18,
+    marginBottom: 16,
   },
   emptyText: {
     marginTop: 20,
     textAlign: 'center',
+  },
+  segmentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 4,
+    borderRadius: 24,
+    width: '80%',
+  },
+  segmentButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  segmentActive: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  segmentText: {
+    fontSize: 14,
+    fontWeight: '500',
   }
 });
+

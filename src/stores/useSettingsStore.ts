@@ -42,6 +42,8 @@ interface SettingsState {
   // Academic
   attendanceTarget: number;
   weekStartsOn: 0 | 1; // 0=Monday, 1=Sunday
+  collegeStartTime: string;
+  collegeEndTime: string;
 
   // Notifications
   hapticFeedback: boolean;
@@ -90,6 +92,7 @@ interface SettingsState {
   // Actions
   setTheme: (theme: ThemeMode) => void;
   setAttendanceTarget: (target: number) => void;
+  setCollegeTimings: (start: string, end: string) => void;
   setOnboardingCompleted: (completed: boolean) => void;
   toggleHapticFeedback: () => void;
   toggleClassReminders: () => void;
@@ -112,6 +115,8 @@ const initialState = {
   accentColor: '#7C5CFC',
   attendanceTarget: DEFAULTS.attendanceTarget,
   weekStartsOn: 0 as const,
+  collegeStartTime: '08:00',
+  collegeEndTime: '18:00',
   hapticFeedback: true,
   classReminders: true,
   reminderMinutesBefore: DEFAULTS.reminderMinutesBefore,
@@ -158,6 +163,8 @@ export const useSettingsStore = create<SettingsState>()(
       setTheme: (theme) => set({ theme }),
 
       setAttendanceTarget: (target) => set({ attendanceTarget: Math.max(0, Math.min(100, target)) }),
+
+      setCollegeTimings: (start, end) => set({ collegeStartTime: start, collegeEndTime: end }),
 
       setOnboardingCompleted: (completed) => set({ onboardingCompleted: completed }),
 

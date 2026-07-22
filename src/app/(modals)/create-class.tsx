@@ -10,19 +10,20 @@ import { useSubjectStore } from '@/stores/useSubjectStore';
 import { useTimetableStore } from '@/stores/useTimetableStore';
 import { format } from 'date-fns';
 import { DayOfWeek } from '@/types';
+import { useSettingsStore } from '@/stores/useSettingsStore';
 import { TextInput, Select, ColorPicker } from '@/components/form';
 import { TimePickerModal } from '@/features/timetable/components/TimePickers';
 import { handleTimeInputChange, parseTimeInput, formatTime, timeToMinutes, DAY_MAP, DAY_OPTIONS } from '@/features/timetable/utils/timeUtils';
 
 export default function CreateClassScreen() {
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
   const subjects = useSubjectStore(state => state.subjects);
   const addEntry = useTimetableStore(state => state.addEntry);
   const updateEntry = useTimetableStore(state => state.updateEntry);
   const entries = useTimetableStore(state => state.entries);
 
-  const { editId } = useLocalSearchParams();
+  const { editId, subjectId: initialSubjectId, isLab, initialDay, initialStartTime, initialEndTime } = useLocalSearchParams();
 
   const [selectedSubjectId, setSelectedSubjectId] = useState('');
   const [faculty, setFaculty] = useState('');
@@ -69,8 +70,34 @@ export default function CreateClassScreen() {
           setColor(subj.color || '#6366F1');
         }
       }
+    } else if (initialSubjectId || initialDay || initialStartTime || initialEndTime) {
+      if (initialSubjectId) {
+        setSelectedSubjectId(initialSubjectId as string);
+        if (isLab === 'true') {
+          setClassType('lab');
+        }
+        const subj = subjects.find(s => s.id === initialSubjectId);
+        if (subj) {
+          setFaculty(subj.faculty || '');
+          setColor(subj.color || '#6366F1');
+        }
+      }
+      
+      if (initialDay) {
+        setSelectedDay(initialDay as string);
+      }
+      
+      if (initialStartTime) {
+        const parsed = parseTimeInput(initialStartTime as string);
+        if (parsed) setStartTime(parsed);
+      }
+      
+      if (initialEndTime) {
+        const parsed = parseTimeInput(initialEndTime as string);
+        if (parsed) setEndTime(parsed);
+      }
     }
-  }, [editId]);
+  }, [editId, initialSubjectId, isLab, initialDay, initialStartTime, initialEndTime]);
 
   const selectedSubject = subjects.find(s => s.id === selectedSubjectId);
 
@@ -112,6 +139,16 @@ export default function CreateClassScreen() {
     const startMins = timeToMinutes(startStr);
     const endMins = timeToMinutes(endStr);
 
+    const { collegeStartTime, collegeEndTime } = useSettingsStore.getState();
+    const cStrMins = timeToMinutes(collegeStartTime);
+    const cEndMins = timeToMinutes(collegeEndTime);
+
+    if (startMins < cStrMins || endMins > cEndMins) {
+      Alert.alert('Outside College Timings', `Classes must be within ${collegeStartTime} and ${collegeEndTime}. Please update college timings if needed.`);
+      setIsSubmitting(false);
+      return;
+    }
+
     const entriesState = useTimetableStore.getState().entries;
     const isCollision = entriesState.some(entry => {
       if (entry.id === editId) return false;
@@ -152,7 +189,7 @@ export default function CreateClassScreen() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {/* Quick Tip */}
-          <View style={[styles.tipBanner, { backgroundColor: '#F3F0FF', borderColor: '#E9E3FF' }]}>
+          <View style={[styles.tipBanner, { backgroundColor: isDark ? 'rgba(124, 92, 252, 0.1)' : '#F3F0FF', borderColor: isDark ? 'rgba(124, 92, 252, 0.2)' : '#E9E3FF' }]}>
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
                 <Ionicons name="bulb-outline" size={16} color="#7C5CFC" style={{ marginRight: 6 }} />
@@ -177,14 +214,14 @@ export default function CreateClassScreen() {
             <Text style={[textStyles.smallMedium, { color: colors.textPrimary, marginBottom: 8 }]}>Class Type <Text style={{ color: '#EF4444' }}>*</Text></Text>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <Pressable 
-                style={[styles.typeOption, classType === 'lecture' && { backgroundColor: '#F3F0FF', borderColor: '#7C5CFC' }]}
+                style={[styles.typeOption, classType === 'lecture' && { backgroundColor: isDark ? 'rgba(124, 92, 252, 0.1)' : '#F3F0FF', borderColor: '#7C5CFC' }]}
                 onPress={() => setClassType('lecture')}
               >
                 <Ionicons name="book-outline" size={20} color={classType === 'lecture' ? '#7C5CFC' : colors.textSecondary} />
                 <Text style={{ marginLeft: 8, color: classType === 'lecture' ? '#7C5CFC' : colors.textSecondary, fontWeight: '500' }}>Lecture</Text>
               </Pressable>
               <Pressable 
-                style={[styles.typeOption, classType === 'lab' && { backgroundColor: '#F3F0FF', borderColor: '#7C5CFC' }]}
+                style={[styles.typeOption, classType === 'lab' && { backgroundColor: isDark ? 'rgba(124, 92, 252, 0.1)' : '#F3F0FF', borderColor: '#7C5CFC' }]}
                 onPress={() => setClassType('lab')}
               >
                 <Ionicons name="flask-outline" size={20} color={classType === 'lab' ? '#7C5CFC' : colors.textSecondary} />

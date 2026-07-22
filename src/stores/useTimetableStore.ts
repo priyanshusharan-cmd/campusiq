@@ -5,7 +5,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { TimetableEntry, TimetableEntryWithSubject, ID, DayOfWeek, ClassType } from '@/types';
 import { generateId } from '@/types';
 import { getCurrentDayOfWeek, isTimeInRange, isTimePast } from '@/lib';
-import { useSubjectStore } from './useSubjectStore';
+import { useSubjectStore, useActiveSubjects } from './useSubjectStore';
 import { useProfileStore } from './useProfileStore';
 import { format } from 'date-fns';
 import { zustandStorage } from './storage';
@@ -89,7 +89,7 @@ export const useTimetableStore = create<TimetableState>()(
 // Derived hook: get today's classes enriched with subject data
 export function useTodayClasses(): TimetableEntryWithSubject[] {
   const entries = useTimetableStore((s) => s.entries);
-  const subjects = useSubjectStore((s) => s.subjects);
+  const activeSubjects = useActiveSubjects();
   const profile = useProfileStore((s) => s.profile);
   const today = getCurrentDayOfWeek();
   const todayDateStr = format(new Date(), 'yyyy-MM-dd');
@@ -101,11 +101,11 @@ export function useTodayClasses(): TimetableEntryWithSubject[] {
           return false;
         }
       }
-      return e.dayOfWeek === today;
+      return e.dayOfWeek === today && activeSubjects.some(s => s.id === e.subjectId);
     })
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
     .map((entry) => {
-      const subject = subjects.find((s) => s.id === entry.subjectId);
+      const subject = activeSubjects.find((s) => s.id === entry.subjectId);
       return {
         ...entry,
         subjectName: subject?.name || 'Unknown',
@@ -120,13 +120,15 @@ export function useTodayClasses(): TimetableEntryWithSubject[] {
 // Get enriched entries for any day
 export function useClassesForDay(day: DayOfWeek): TimetableEntryWithSubject[] {
   const entries = useTimetableStore((s) => s.entries);
-  const subjects = useSubjectStore((s) => s.subjects);
+  const activeSubjects = useActiveSubjects();
 
   return entries
-    .filter((e) => e.dayOfWeek === day)
+    .filter((e) => {
+      return e.dayOfWeek === day && activeSubjects.some(s => s.id === e.subjectId);
+    })
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
     .map((entry) => {
-      const subject = subjects.find((s) => s.id === entry.subjectId);
+      const subject = activeSubjects.find((s) => s.id === entry.subjectId);
       return {
         ...entry,
         subjectName: subject?.name || 'Unknown',
@@ -142,7 +144,7 @@ export function useClassesForDay(day: DayOfWeek): TimetableEntryWithSubject[] {
 export function useClassesForDate(dateString: string, day: DayOfWeek): TimetableEntryWithSubject[] {
   const entries = useTimetableStore((s) => s.entries);
   const events = useTimetableStore((s) => s.events);
-  const subjects = useSubjectStore((s) => s.subjects);
+  const activeSubjects = useActiveSubjects();
   const profile = useProfileStore((s) => s.profile);
 
   // If the date is marked as a holiday or exam day, return no classes
@@ -159,11 +161,12 @@ export function useClassesForDate(dateString: string, day: DayOfWeek): Timetable
 
   return entries
     .filter((e) => {
-      return e.date === dateString || (!e.date && e.dayOfWeek === day);
+      const isActiveSubject = activeSubjects.some(s => s.id === e.subjectId);
+      return isActiveSubject && (e.date === dateString || (!e.date && e.dayOfWeek === day));
     })
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
     .map((entry) => {
-      const subject = subjects.find((s) => s.id === entry.subjectId);
+      const subject = activeSubjects.find((s) => s.id === entry.subjectId);
       return {
         ...entry,
         subjectName: subject?.name || 'Unknown',

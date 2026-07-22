@@ -13,14 +13,19 @@ interface TopNavBarProps {
   avatarUri?: string;
 }
 
+import { useDrawerStore } from '@/stores/useDrawerStore';
+
 export function TopNavBar({ firstName, avatarUri }: TopNavBarProps) {
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
+  const openDrawer = useDrawerStore(s => s.openDrawer);
 
   return (
     <View style={[styles.container, { paddingHorizontal: spacing.xl, paddingVertical: spacing.md }]}>
-      {/* Placeholder to maintain flex balance for centered logo */}
-      <View style={styles.iconBtn} />
+      {/* Hamburger Menu for More */}
+      <Pressable style={styles.iconBtn} onPress={openDrawer}>
+        <Ionicons name="menu" size={28} color={isDark ? '#FFFFFF' : colors.textPrimary} />
+      </Pressable>
 
       {/* Native Designer Logo */}
       <View style={styles.logoContainer}>
@@ -29,20 +34,20 @@ export function TopNavBar({ firstName, avatarUri }: TopNavBarProps) {
             width: 30,
             height: 30,
             borderRadius: 8,
-            backgroundColor: colors.primary,
+            backgroundColor: isDark ? '#818CF8' : colors.primary, // Vibrant Indigo
             justifyContent: 'center',
             alignItems: 'center',
             marginRight: 6,
-            shadowColor: colors.primary,
+            shadowColor: isDark ? '#818CF8' : colors.primary,
             shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.3,
-            shadowRadius: 4,
+            shadowOpacity: 0.5,
+            shadowRadius: 6,
             elevation: 4,
           }}>
             <Ionicons name="school" size={18} color="#fff" style={{ marginLeft: 2 }} />
           </View>
-          <Text style={{ fontFamily: 'Inter-Bold', fontSize: 22, color: colors.textPrimary, letterSpacing: -0.5 }}>
-            Campus<Text style={{ color: colors.primary }}>IQ</Text>
+          <Text style={{ fontFamily: 'Inter-Bold', fontSize: 22, color: isDark ? '#FFFFFF' : colors.textPrimary, letterSpacing: -0.5 }}>
+            Campus<Text style={{ color: isDark ? '#818CF8' : colors.primary }}>IQ</Text>
           </Text>
         </View>
       </View>
@@ -50,11 +55,11 @@ export function TopNavBar({ firstName, avatarUri }: TopNavBarProps) {
       <View style={styles.rightSection}>
 
 
-        <Pressable style={[styles.avatarWrap, { justifyContent: 'center', alignItems: 'center', backgroundColor: colors.primaryLight, overflow: 'hidden' }]} onPress={() => router.push('/profile' as any)}>
+        <Pressable style={[styles.avatarWrap, { justifyContent: 'center', alignItems: 'center', backgroundColor: isDark ? 'rgba(129, 140, 248, 0.15)' : colors.primaryLight, overflow: 'hidden', borderColor: isDark ? 'rgba(255,255,255,0.1)' : colors.borderLight }]} onPress={() => router.push('/profile' as any)}>
           {avatarUri ? (
             <Image source={{ uri: avatarUri }} style={{ width: 36, height: 36, borderRadius: 18 }} />
           ) : (
-            <Ionicons name="person" size={20} color={colors.primary} />
+            <Ionicons name="person" size={20} color={isDark ? "#818CF8" : colors.primary} />
           )}
         </Pressable>
       </View>

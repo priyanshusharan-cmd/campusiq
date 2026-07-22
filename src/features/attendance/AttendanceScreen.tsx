@@ -14,6 +14,7 @@ import { useAttendanceData } from './hooks';
 import { useProfileStore } from '@/stores';
 import { useRouter } from 'expo-router';
 import { Alert, Pressable } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 // Components
 import { OverviewCards } from './components/OverviewCards';
@@ -22,17 +23,23 @@ import { SubjectAttendanceRow } from './components/SubjectAttendanceRow';
 import { AttendanceTrend } from './components/AttendanceTrend';
 
 export default function AttendanceScreen() {
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const { subjectAttendance, overall, insight } = useAttendanceData();
   const profile = useProfileStore(s => s.profile);
   const router = useRouter();
   const firstName = profile?.name?.split(' ')[0] || 'Student';
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
-      
-      {/* Top App Bar */}
-      <TopNavBar firstName={profile?.name?.split(' ')[0] || 'Student'} avatarUri={profile?.avatarUri} />
+    <LinearGradient 
+      colors={isDark ? ['#0F1016', '#1A162D', '#0F1016'] : ['#F8FAFC', '#EEF2FF', '#E0E7FF']} 
+      style={{ flex: 1 }}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+    >
+      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+        
+        {/* Top App Bar */}
+        <TopNavBar firstName={profile?.name?.split(' ')[0] || 'Student'} avatarUri={profile?.avatarUri} />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -66,28 +73,27 @@ export default function AttendanceScreen() {
         </Animated.View>
 
         {/* Subject-wise list */}
-        <Animated.View entering={FadeInDown.delay(20).duration(100)} style={{ paddingHorizontal: spacing.xl }}>
-          <View style={styles.sectionHeader}>
-            <Text style={[textStyles.smallMedium, { color: colors.textPrimary }]}>Subject-wise Attendance</Text>
-            <Pressable style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => router.push('/analytics' as any)}>
-              <Text style={[textStyles.smallMedium, { color: colors.primary }]}>View Insights</Text>
-              <Ionicons name="chevron-forward" size={14} color={colors.primary} />
-            </Pressable>
-          </View>
+        <Animated.View entering={FadeInDown.delay(20).duration(100)} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.xl }}>
+          <View style={[styles.cardContainer, isDark ? styles.cardContainerDark : styles.cardContainerLight]}>
+            <View style={styles.header}>
+              <Text style={[textStyles.h3, { color: isDark ? '#FFFFFF' : colors.textPrimary, fontSize: 18 }]}>Subject-wise Attendance</Text>
+            </View>
 
-          <Card variant="elevated" padding={0} style={{ borderRadius: 20, overflow: 'hidden' }}>
-            {subjectAttendance.map((subject, index) => {
-              const isLast = index === subjectAttendance.length - 1;
-              return <SubjectAttendanceRow key={subject.subjectId} data={subject} isLast={isLast} />;
-            })}
-          </Card>
+            <View style={[styles.list, { paddingBottom: 16 }]}>
+              {subjectAttendance.map((subject, index) => {
+                const isLast = index === subjectAttendance.length - 1;
+                return <SubjectAttendanceRow key={subject.subjectId} data={subject} isLast={isLast} />;
+              })}
+            </View>
+          </View>
         </Animated.View>
 
         {/* Attendance Trend Chart */}
         <AttendanceTrend />
 
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
@@ -108,10 +114,52 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
-  sectionHeader: {
+  cardContainer: {
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  cardContainerDark: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  cardContainerLight: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+  },
+  list: {
+    paddingBottom: 8,
+  },
+  handleContainer: {
+    alignItems: 'center',
+    paddingBottom: 12,
+  },
+  handle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+  },
+  handleDark: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  handleLight: {
+    backgroundColor: '#E5E7EB',
   }
 });

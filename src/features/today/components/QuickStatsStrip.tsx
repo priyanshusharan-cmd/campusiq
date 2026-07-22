@@ -11,13 +11,13 @@ import { useTheme } from '@/theme';
 
 interface QuickStatsStripProps {
   cgpa: number;
+  expectedSGPA: number;
   attendancePercentage: number;
   attendanceTotal: number;
-  todayClassCount: number;
 }
 
-export function QuickStatsStrip({ cgpa, attendancePercentage, attendanceTotal, todayClassCount }: QuickStatsStripProps) {
-  const { colors, spacing, textStyles } = useTheme();
+export function QuickStatsStrip({ cgpa, expectedSGPA, attendancePercentage, attendanceTotal }: QuickStatsStripProps) {
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
 
   return (
@@ -28,52 +28,58 @@ export function QuickStatsStrip({ cgpa, attendancePercentage, attendanceTotal, t
         contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 12, paddingBottom: spacing.md }}
       >
         {/* CGPA Card */}
-        <View style={styles.card}>
-          <View style={[styles.iconWrap, { backgroundColor: colors.primaryLight }]}>
-            {/* The icon in the image has axes and a trend line. stats-chart-outline is a good fallback in Ionicons */}
-            <Ionicons name="stats-chart-outline" size={20} color={colors.primary} />
+        <Pressable 
+          style={[styles.card, !isDark && styles.cardLight]}
+          onPress={() => router.push('/(tabs)/gpa?tab=tracker' as any)}
+        >
+          <View style={[styles.iconWrap, { backgroundColor: isDark ? 'rgba(129, 140, 248, 0.15)' : colors.primaryLight }]}>
+            <Ionicons name="school-outline" size={20} color={isDark ? "#818CF8" : colors.primary} />
           </View>
-          <Text style={[textStyles.smallMedium, { color: colors.textPrimary, marginTop: 16 }]}>CGPA</Text>
-          <Text style={[textStyles.display, { color: colors.primary, fontSize: 32, marginVertical: 4 }]}>
-            {cgpa.toFixed(2)}
+          <Text style={[textStyles.smallMedium, { color: isDark ? '#FFFFFF' : colors.textPrimary, marginTop: 16 }]}>CGPA</Text>
+          <Text style={[textStyles.display, { color: isDark ? '#818CF8' : colors.primary, fontSize: 32, marginVertical: 4, textShadowColor: isDark ? 'rgba(129, 140, 248, 0.3)' : 'transparent', textShadowOffset: {width: 0, height: 2}, textShadowRadius: isDark ? 8 : 0 }]}>
+            {cgpa > 0 ? cgpa.toFixed(2) : '--'}
           </Text>
           <View style={styles.footerRow}>
-            <Text style={[textStyles.small, { color: colors.textSecondary }]}>Good Job!</Text>
-            <Ionicons name="trending-up" size={14} color={colors.primary} style={{ marginLeft: 4 }} />
+            <Text style={[textStyles.small, { color: isDark ? 'rgba(255,255,255,0.6)' : colors.textSecondary }]}>View Tracker</Text>
+            <Ionicons name="chevron-forward" size={12} color={isDark ? "rgba(255,255,255,0.4)" : colors.textTertiary} style={{ marginLeft: 2 }} />
           </View>
-        </View>
+        </Pressable>
+
+        {/* Expected SGPA Card */}
+        <Pressable 
+          style={[styles.card, !isDark && styles.cardLight]}
+          onPress={() => router.push('/(tabs)/gpa?tab=goals' as any)}
+        >
+          <View style={[styles.iconWrap, { backgroundColor: isDark ? 'rgba(244, 114, 182, 0.15)' : '#FCE7F3' }]}>
+            <Ionicons name="sparkles" size={20} color={isDark ? "#F472B6" : '#DB2777'} />
+          </View>
+          <Text style={[textStyles.smallMedium, { color: isDark ? '#FFFFFF' : colors.textPrimary, marginTop: 16 }]}>Expected SGPA</Text>
+          <Text style={[textStyles.display, { color: isDark ? '#F472B6' : '#DB2777', fontSize: 32, marginVertical: 4, textShadowColor: isDark ? 'rgba(244, 114, 182, 0.3)' : 'transparent', textShadowOffset: {width: 0, height: 2}, textShadowRadius: isDark ? 8 : 0 }]}>
+            {expectedSGPA > 0 ? expectedSGPA.toFixed(2) : '--'}
+          </Text>
+          <View style={styles.footerRow}>
+            <Text style={[textStyles.small, { color: isDark ? 'rgba(255,255,255,0.6)' : colors.textSecondary }]}>View Goals</Text>
+            <Ionicons name="chevron-forward" size={12} color={isDark ? "rgba(255,255,255,0.4)" : colors.textTertiary} style={{ marginLeft: 2 }} />
+          </View>
+        </Pressable>
 
         {/* Attendance Card */}
-        <View style={styles.card}>
-          <View style={[styles.iconWrap, { backgroundColor: colors.successLight }]}>
-            <Ionicons name="shield-checkmark-outline" size={20} color={colors.success} />
+        <Pressable 
+          style={[styles.card, !isDark && styles.cardLight]}
+          onPress={() => router.push('/(tabs)/attendance' as any)}
+        >
+          <View style={[styles.iconWrap, { backgroundColor: isDark ? 'rgba(52, 211, 153, 0.15)' : colors.successLight }]}>
+            <Ionicons name="shield-checkmark-outline" size={20} color={isDark ? "#34D399" : colors.success} />
           </View>
-          <Text style={[textStyles.smallMedium, { color: colors.textPrimary, marginTop: 16 }]}>Attendance</Text>
-          <Text style={[textStyles.display, { color: colors.success, fontSize: 32, marginVertical: 4 }]}>
+          <Text style={[textStyles.smallMedium, { color: isDark ? '#FFFFFF' : colors.textPrimary, marginTop: 16 }]}>Attendance</Text>
+          <Text style={[textStyles.display, { color: isDark ? '#34D399' : colors.success, fontSize: 32, marginVertical: 4, textShadowColor: isDark ? 'rgba(52, 211, 153, 0.3)' : 'transparent', textShadowOffset: {width: 0, height: 2}, textShadowRadius: isDark ? 8 : 0 }]}>
             {attendancePercentage}%
           </Text>
           <View style={styles.footerRow}>
-            <Text style={[textStyles.small, { color: colors.textSecondary }]}>Above Target</Text>
-            <Ionicons name="trending-up" size={14} color={colors.success} style={{ marginLeft: 4 }} />
+            <Text style={[textStyles.small, { color: isDark ? 'rgba(255,255,255,0.6)' : colors.textSecondary }]}>View Details</Text>
+            <Ionicons name="chevron-forward" size={12} color={isDark ? "rgba(255,255,255,0.4)" : colors.textTertiary} style={{ marginLeft: 2 }} />
           </View>
-        </View>
-
-        {/* Today's Classes Card */}
-        <View style={styles.card}>
-          <View style={[styles.iconWrap, { backgroundColor: colors.infoLight }]}>
-            <Ionicons name="calendar-outline" size={20} color={colors.info} />
-          </View>
-          <Text style={[textStyles.smallMedium, { color: colors.textPrimary, marginTop: 16 }]}>Today&apos;s Classes</Text>
-          <Text style={[textStyles.display, { color: colors.info, fontSize: 32, marginVertical: 4 }]}>
-            {todayClassCount}
-          </Text>
-          <View style={styles.footerRow}>
-            <Pressable style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => router.push('/(tabs)/timetable' as any)}>
-              <Text style={[textStyles.small, { color: colors.textSecondary }]}>View Timetable</Text>
-              <Ionicons name="chevron-forward" size={12} color={colors.textTertiary} style={{ marginLeft: 2 }} />
-            </Pressable>
-          </View>
-        </View>
+        </Pressable>
 
       </ScrollView>
     </Animated.View>
@@ -82,10 +88,21 @@ export function QuickStatsStrip({ cgpa, attendancePercentage, attendanceTotal, t
 
 const styles = StyleSheet.create({
   card: {
-    width: 140,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    width: 145,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
     padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  cardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
