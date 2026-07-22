@@ -4,11 +4,6 @@
     "slug": "campusiq",
     "version": "1.0.0",
     "icon": "./assets/images/icon.png",
-    "splash": {
-      "image": "./assets/images/icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#181424"
-    },
     "orientation": "portrait",
     "scheme": "campusiq",
     "userInterfaceStyle": "automatic",
@@ -17,7 +12,8 @@
       "bundleIdentifier": "com.anonymous.campusiq"
     },
     "android": {
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.campusiq"
     },
     "web": {
       "output": "static",
