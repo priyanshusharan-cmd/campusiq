@@ -14,14 +14,14 @@ interface AttendanceStatusModalProps {
   onSelectStatus: (status: AttendanceStatus) => void;
 }
 
-const STATUS_OPTIONS: Array<{
+const STATUS_OPTIONS: {
   status: AttendanceStatus;
   icon: string;
   label: string;
   bgColor: string;
   iconColor: string;
   textColor: string;
-}> = [
+}[] = [
   { status: 'present', icon: 'checkmark-circle', label: 'Present', bgColor: '#D1FAE5', iconColor: '#10B981', textColor: '#059669' },
   { status: 'absent', icon: 'close-circle', label: 'Absent', bgColor: '#FEE2E2', iconColor: '#EF4444', textColor: '#DC2626' },
   { status: 'cancelled', icon: 'alert-circle', label: 'Cancelled', bgColor: '#FEF08A', iconColor: '#CA8A04', textColor: '#A16207' },

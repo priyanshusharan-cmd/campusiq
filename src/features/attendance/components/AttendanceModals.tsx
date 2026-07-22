@@ -13,7 +13,7 @@ import { styles } from '../styles/attendanceDetailStyles';
 interface ClassPickerModalProps {
   visible: boolean;
   onClose: () => void;
-  classes: Array<{ id: string; startTime: string; endTime: string; type: string; room?: string }>;
+  classes: { id: string; startTime: string; endTime: string; type: string; room?: string }[];
   subjectId: string;
   selectedDayStr: string | null;
   onSelectClass: (classId: string) => void;

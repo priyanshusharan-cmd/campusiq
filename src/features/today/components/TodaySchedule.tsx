@@ -2,7 +2,7 @@
 // Renders today's schedule inside a single card
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet , Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/theme';
@@ -10,7 +10,6 @@ import { Card } from '@/components/ui/Card';
 import type { TimetableEntryWithSubject } from '@/types';
 import { formatTime } from '@/lib';
 import { useRouter } from 'expo-router';
-import { Pressable } from 'react-native';
 import { getSubjectTheme } from '@/utils/subjectTheme';
 
 interface TodayScheduleProps {

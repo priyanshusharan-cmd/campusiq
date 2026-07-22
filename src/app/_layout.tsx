@@ -2,14 +2,13 @@
 
 import React, { useEffect } from 'react';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
-import { Stack } from 'expo-router';
+import { Stack , usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ThemeProvider, useTheme } from '@/theme';
 import { Drawer } from 'react-native-drawer-layout';
-import { usePathname } from 'expo-router';
 import { useDrawerStore, useSettingsStore } from '@/stores';
 import MoreScreen from '@/features/more/MoreScreen';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -168,10 +167,10 @@ function AppLockWrapper({ children }: { children: React.ReactNode }) {
           Please authenticate to view your academic data.
         </Text>
         <TouchableOpacity 
-          style={{ backgroundColor: colors.primary, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderRadius: radius.round }}
+          style={{ backgroundColor: colors.primary, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderRadius: radius.full }}
           onPress={authenticate}
         >
-          <Text style={[textStyles.button, { color: colors.white }]}>Unlock</Text>
+          <Text style={[textStyles.bodySemiBold, { color: colors.white }]}>Unlock</Text>
         </TouchableOpacity>
       </View>
     );

@@ -8,12 +8,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { useRouter } from 'expo-router';
 
+import { useDrawerStore } from '@/stores/useDrawerStore';
+
 interface TopNavBarProps {
   firstName: string;
   avatarUri?: string;
 }
-
-import { useDrawerStore } from '@/stores/useDrawerStore';
 
 export function TopNavBar({ firstName, avatarUri }: TopNavBarProps) {
   const { colors, spacing, textStyles, isDark } = useTheme();

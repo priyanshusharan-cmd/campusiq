@@ -46,7 +46,7 @@ export default function AboutScreen() {
           CampusIQ is your all-in-one smart college companion, designed to keep you organized and focused on your studies.
         </Text>
 
-        <View style={{ alignItems: 'center', marginTop: spacing['2xl'], padding: spacing.xl, backgroundColor: colors.card, borderRadius: 16, width: '100%', borderWidth: 1, borderColor: colors.border }}>
+        <View style={{ alignItems: 'center', marginTop: spacing['2xl'], padding: spacing.xl, backgroundColor: colors.surfaceElevated, borderRadius: 16, width: '100%', borderWidth: 1, borderColor: colors.border }}>
           <Text style={[textStyles.body, { color: colors.textSecondary }]}>
             Crafted with ❤️ by Priyanshu Sharan
           </Text>

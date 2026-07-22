@@ -1,6 +1,7 @@
 // CampusIQ — GPA Calculation Utilities
 
-import type { GradeEntry, GradeLetter } from '@/types';
+import type { GradeEntry, GradeLetter , Subject } from '@/types';
+
 
 // Calculate SGPA from grade entries
 export function calcSGPA(entries: GradeEntry[]): number {
@@ -51,8 +52,6 @@ export function getGPALabel(gpa: number): string {
   if (gpa >= 4.0) return 'Below Average';
   return 'Needs Improvement';
 }
-
-import type { Subject } from '@/types';
 
 // ─── Grading Settings Interface ─────────────────────────────────────────────────
 // This is the shape of settings that the calculation functions expect.
