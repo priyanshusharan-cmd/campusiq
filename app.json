@@ -6,6 +6,11 @@
     "icon": "./assets/images/campusiq-icon.png",
     "orientation": "portrait",
     "scheme": "campusiq",
+    "splash": {
+      "image": "./assets/images/campusiq-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#181424"
+    },
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
@@ -31,7 +36,13 @@
         }
       ],
       "expo-sqlite",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow CampusIQ to use Face ID to unlock your app."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

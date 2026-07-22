@@ -2,11 +2,10 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { useSettingsStore, useProfileStore, useSubjectStore } from '@/stores';
+import { useSettingsStore } from '@/stores';
 import { View, ActivityIndicator } from 'react-native';
 
 export default function Index() {
-  const onboarded = useSettingsStore((s) => s.onboardingCompleted);
   const [isReady, setIsReady] = useState(false);
   const router = useRouter();
 
@@ -20,13 +19,15 @@ export default function Index() {
         // Fetch the latest state directly from the store to avoid hydration race conditions
         const currentOnboarded = useSettingsStore.getState().onboardingCompleted;
 
-        if (currentOnboarded) {
-          router.replace('/(tabs)');
-        } else {
-          router.replace('/(onboarding)/welcome');
-        }
+        setTimeout(() => {
+          if (currentOnboarded) {
+            router.replace('/(tabs)');
+          } else {
+            router.replace('/(onboarding)/welcome');
+          }
+        }, 100);
       }
-    }, [isReady])
+    }, [isReady, router])
   );
 
   return (

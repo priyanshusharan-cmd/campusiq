@@ -129,14 +129,13 @@ export default function WelcomeScreen() {
             </Pressable>
           )}
           <Animated.View entering={FadeInDown.delay(20).duration(80)} style={styles.brandingWrap}>
-            <View style={[styles.appIconContainer, { backgroundColor: colors.surface, overflow: 'hidden' }]}>
+            <View style={[styles.appIconContainer, { backgroundColor: 'transparent', overflow: 'hidden' }]}>
               <Image 
                 source={require('@/assets/images/campusiq-icon.png')} 
-                style={{ width: '100%', height: '100%' }}
+                style={{ width: '104%', height: '104%' }}
                 contentFit="cover"
               />
             </View>
-            <Text style={[textStyles.h1, { color: colors.white, marginTop: spacing.md }]}>CampusIQ</Text>
           </Animated.View>
         </LinearGradient>
 
@@ -260,7 +259,7 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   headerArea: { height: 280, width: '100%', alignItems: 'center', justifyContent: 'center' },
   brandingWrap: { alignItems: 'center', marginTop: -20 },
-  appIconContainer: { width: 80, height: 80, borderRadius: 24, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20, elevation: 10 },
+  appIconContainer: { width: 120, height: 120, borderRadius: 36, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20, elevation: 10 },
   formContainer: { flex: 1, marginTop: -32, paddingHorizontal: 24, paddingTop: 32, shadowColor: '#000', shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.05, shadowRadius: 15, elevation: 20 },
   inputWrapper: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderRadius: 16, height: 56, paddingHorizontal: 16 },
   submitButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 56, borderRadius: 16, shadowColor: '#7C5CFC', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 5 },

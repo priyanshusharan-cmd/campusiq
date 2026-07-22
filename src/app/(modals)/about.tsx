@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable, Linking, Image } from 'react-native';
+import { View, Text, ScrollView, Pressable, Linking } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,17 +24,9 @@ export default function AboutScreen() {
       </View>
       
       <ScrollView contentContainerStyle={{ padding: spacing.xl, alignItems: 'center' }}>
-        <Image
-          source={require('@/assets/images/campusiq-icon.png')}
-          style={{
-            width: 120, 
-            height: 120, 
-            borderRadius: 30, 
-            marginBottom: spacing.lg,
-            borderWidth: 1,
-            borderColor: colors.border,
-          }}
-        />
+        <View style={{ width: 120, height: 120, borderRadius: 36, backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center', marginBottom: spacing.lg, overflow: 'hidden' }}>
+          <Image source={require('@/assets/images/campusiq-icon.png')} style={{ width: '104%', height: '104%' }} contentFit="cover" />
+        </View>
         
         <Text style={[textStyles.h2, { color: colors.textPrimary, marginBottom: spacing.xs }]}>
           Campus<Text style={{ color: colors.primary }}>IQ</Text>
