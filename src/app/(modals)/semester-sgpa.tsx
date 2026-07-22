@@ -429,6 +429,7 @@ const styles = StyleSheet.create({
   statBoxGradient: { padding: 20, borderRadius: 24, justifyContent: 'center', shadowColor: '#7C5CFC', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 6 },
   statBox: { flex: 1, padding: 20, borderRadius: 24, borderWidth: 1, justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
   badge: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, marginBottom: 6 },
+  badgeText: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
   subjectCard: { padding: 20, borderRadius: 28, borderWidth: 1, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 12, elevation: 2 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   subjectAvatar: { width: 32, height: 32, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
