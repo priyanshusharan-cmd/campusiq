@@ -22,7 +22,7 @@ interface DaySelectorProps {
 }
 
 export function DaySelector({ days, selectedDay, onSelectDay }: DaySelectorProps) {
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
 
   return (
     <Animated.View entering={FadeInDown.delay(20).duration(100)}>
@@ -60,7 +60,7 @@ export function DaySelector({ days, selectedDay, onSelectDay }: DaySelectorProps
                   style={[
                     textStyles.small,
                     { 
-                      color: isSelected ? colors.primaryLight : colors.textSecondary,
+                      color: isSelected ? colors.primaryLight : (isDark ? '#D1D5DB' : colors.textSecondary),
                       marginTop: 2 
                     },
                   ]}

@@ -6,6 +6,7 @@ import { useAcademicStore } from '@/stores/useAcademicStore';
 import { useActiveSubjects } from '@/stores/useSubjectStore';
 import { SubjectPredictorCard } from '../components/SubjectPredictorCard';
 import { generatePDFReport } from '@/lib/pdfGenerator';
+import { calculateSubjectBounds, getGradeBoundary } from '@/lib/gradingEngine';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -40,6 +41,26 @@ export function ForecasterScreen() {
   }, [currentSemester, profile?.currentSemester, semesters, setCurrentSemester, addSemester]);
   
   // Subjects are automatically filtered for the current semester via useActiveSubjects
+  
+  let maxAchievableSgpa = 0;
+  if (semesterSubjects.length > 0) {
+    let totalMaxGradePoints = 0;
+    let totalCredits = 0;
+    
+    semesterSubjects.forEach(sub => {
+      const bounds = calculateSubjectBounds(sub.components || [], {});
+      const maxPossible = sub.components?.reduce((sum, c) => sum + (c.type === 'grouped' ? c.weight : c.maxMarks), 0) || 100;
+      const percentage = maxPossible > 0 ? Math.round((bounds.ceiling / maxPossible) * 100) : 0;
+      const boundary = getGradeBoundary(gradeScheme, percentage);
+      
+      totalMaxGradePoints += (boundary.gradePoints * sub.credits);
+      totalCredits += sub.credits;
+    });
+    
+    if (totalCredits > 0) {
+      maxAchievableSgpa = totalMaxGradePoints / totalCredits;
+    }
+  }
 
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -82,34 +103,36 @@ export function ForecasterScreen() {
       >
 
         {/* GPA Tuner Card */}
-        <LinearGradient
-          colors={['#8A73FF', '#6B58F5']}
-          style={styles.tunerCard}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <View style={styles.tunerControls}>
-            <Pressable 
-              style={styles.tunerButton} 
-              onPress={() => setDreamSgpa(prev => Math.max(0, prev - 0.1))}
-            >
-              <Ionicons name="remove" size={24} color="#8A73FF" />
-            </Pressable>
-            <Text style={styles.dreamSgpaText}>{dreamSgpa.toFixed(1)}</Text>
-            <Pressable 
-              style={styles.tunerButton}
-              onPress={() => setDreamSgpa(prev => Math.min(10, prev + 0.1))}
-            >
-              <Ionicons name="add" size={24} color="#8A73FF" />
-            </Pressable>
-          </View>
-          <Text style={styles.tunerDescription}>
-            Tune your dream SGPA to calculate exactly what you need in the final exams.
-          </Text>
-          <View style={styles.maxAchievablePill}>
-            <Text style={styles.maxAchievableText}>Max Achievable: 8.52 SGPA</Text>
-          </View>
-        </LinearGradient>
+        {semesterSubjects.length > 0 && (
+          <LinearGradient
+            colors={['#8A73FF', '#6B58F5']}
+            style={styles.tunerCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.tunerControls}>
+              <Pressable 
+                style={styles.tunerButton} 
+                onPress={() => setDreamSgpa(prev => Math.max(0, prev - 0.1))}
+              >
+                <Ionicons name="remove" size={24} color="#8A73FF" />
+              </Pressable>
+              <Text style={styles.dreamSgpaText}>{dreamSgpa.toFixed(1)}</Text>
+              <Pressable 
+                style={styles.tunerButton}
+                onPress={() => setDreamSgpa(prev => Math.min(10, prev + 0.1))}
+              >
+                <Ionicons name="add" size={24} color="#8A73FF" />
+              </Pressable>
+            </View>
+            <Text style={styles.tunerDescription}>
+              Tune your dream SGPA to calculate exactly what you need in the final exams.
+            </Text>
+            <View style={styles.maxAchievablePill}>
+              <Text style={styles.maxAchievableText}>Max Achievable: {maxAchievableSgpa.toFixed(2)} SGPA</Text>
+            </View>
+          </LinearGradient>
+        )}
 
 
 

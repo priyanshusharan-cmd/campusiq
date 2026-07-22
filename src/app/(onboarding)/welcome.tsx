@@ -131,7 +131,7 @@ export default function WelcomeScreen() {
           <Animated.View entering={FadeInDown.delay(20).duration(80)} style={styles.brandingWrap}>
             <View style={[styles.appIconContainer, { backgroundColor: colors.surface, overflow: 'hidden' }]}>
               <Image 
-                source={require('@/assets/images/icon.png')} 
+                source={require('@/assets/images/campusiq-icon.png')} 
                 style={{ width: '100%', height: '100%' }}
                 contentFit="cover"
               />

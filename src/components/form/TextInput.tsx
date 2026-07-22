@@ -98,3 +98,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
+TextInput.displayName = 'TextInput';

@@ -92,7 +92,7 @@ export default function SemesterSGPAScreen() {
 
     if (savedSubjects.length === 0 && semSubjects.length === 0) {
       // No data at all — show one blank row
-      return [{ id: Date.now().toString(), name: '', code: '', credits: '', totalMarks: '', gradePoint: '' }];
+      return [{ id: 'temp_sub_1', name: '', code: '', credits: '', totalMarks: '', gradePoint: '' }];
     }
 
     if (savedSubjects.length === 0 && semSubjects.length > 0) {

@@ -24,7 +24,7 @@ export default function AboutScreen() {
       
       <ScrollView contentContainerStyle={{ padding: spacing.xl, alignItems: 'center' }}>
         <Image
-          source={require('@/assets/images/icon.png')}
+          source={require('@/assets/images/campusiq-icon.png')}
           style={{
             width: 120, 
             height: 120, 

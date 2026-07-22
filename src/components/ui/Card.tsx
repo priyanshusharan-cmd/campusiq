@@ -24,12 +24,10 @@ export function Card({ children, style, onPress, variant = 'elevated', padding }
   }));
 
   const handlePressIn = () => {
-    // eslint-disable-next-line
     if (onPress) scale.value = withSpring(0.97, { damping: 12, stiffness: 400 });
   };
 
   const handlePressOut = () => {
-    // eslint-disable-next-line
     scale.value = withSpring(1, { damping: 12, stiffness: 400 });
   };
 
