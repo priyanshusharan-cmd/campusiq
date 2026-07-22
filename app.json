@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.campusiq"
+      "bundleIdentifier": "com.priyanshusharan.campusiq"
     },
     "android": {
       "predictiveBackGestureEnabled": false,
@@ -20,6 +20,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "./strip-push-plugin.js",
       "expo-router",
       [
         "expo-splash-screen",

@@ -18,7 +18,7 @@ import { PersonalInfoStep } from '@/features/onboarding/components/PersonalInfoS
 import { AcademicInfoStep, SemesterDatesStep } from '@/features/onboarding/components/AcademicInfoStep';
 
 export default function WelcomeScreen() {
-  const { colors, spacing, textStyles, radius } = useTheme();
+  const { colors, spacing, textStyles, radius, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   
@@ -129,8 +129,12 @@ export default function WelcomeScreen() {
             </Pressable>
           )}
           <Animated.View entering={FadeInDown.delay(20).duration(80)} style={styles.brandingWrap}>
-            <View style={[styles.appIconContainer, { backgroundColor: colors.surface }]}>
-              <Ionicons name="school" size={40} color={colors.primary} />
+            <View style={[styles.appIconContainer, { backgroundColor: colors.surface, overflow: 'hidden' }]}>
+              <Image 
+                source={require('@/assets/images/icon.png')} 
+                style={{ width: '100%', height: '100%' }}
+                contentFit="cover"
+              />
             </View>
             <Text style={[textStyles.h1, { color: colors.white, marginTop: spacing.md }]}>CampusIQ</Text>
           </Animated.View>
@@ -210,7 +214,7 @@ export default function WelcomeScreen() {
                 value={tempDate}
                 mode="date"
                 display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                themeVariant="light"
+                themeVariant={isDark ? 'dark' : 'light'}
                 onValueChange={(event: any, date: Date) => {
                   setTempDate(date);
                   if (Platform.OS === 'android') {

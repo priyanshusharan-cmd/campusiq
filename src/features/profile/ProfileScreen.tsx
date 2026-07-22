@@ -80,7 +80,7 @@ function SectionTitle({ title }: { title: string }) {
 }
 
 export default function ProfileScreen() {
-  const { colors, spacing, textStyles } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
   const { profile, updateProfile } = useProfileStore();
   
@@ -467,6 +467,7 @@ export default function ProfileScreen() {
               value={form[showDatePicker as keyof typeof form] ? new Date(form[showDatePicker as keyof typeof form] as string) : new Date()}
               mode="date"
               display="inline"
+              themeVariant={isDark ? 'dark' : 'light'}
               onValueChange={(event, date) => {
                 if (Platform.OS === 'android') setShowDatePicker(null);
                 setForm(f => ({ ...f, [showDatePicker]: date.toISOString().split('T')[0] }));
