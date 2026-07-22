@@ -12,7 +12,14 @@ import { Drawer } from 'react-native-drawer-layout';
 import { useDrawerStore, useSettingsStore } from '@/stores';
 import MoreScreen from '@/features/more/MoreScreen';
 import * as LocalAuthentication from 'expo-local-authentication';
-import { AppState, View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { AppState, View, Text, TouchableOpacity, StyleSheet, Image, LogBox } from 'react-native';
+import AnimatedSplashScreen from '@/components/ui/AnimatedSplashScreen';
+
+// Suppress known Expo Go warnings for remote push notifications
+LogBox.ignoreLogs([
+  'expo-notifications: Android Push notifications',
+  '`expo-notifications` functionality is not fully supported in Expo Go',
+]);
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
@@ -25,6 +32,7 @@ export default function RootLayout() {
   });
 
   const [storesHydrated, setStoresHydrated] = React.useState(false);
+  const [splashAnimationFinished, setSplashAnimationFinished] = React.useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -68,7 +76,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     if ((loaded || error) && storesHydrated) {
-      SplashScreen.hideAsync();
       const { setupNotificationListeners } = require('@/utils/notificationListeners');
       setupNotificationListeners();
     }
@@ -86,7 +93,14 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
         <BottomSheetModalProvider>
-          <RootLayoutNav />
+          <View style={{ flex: 1 }}>
+            <RootLayoutNav />
+            {!splashAnimationFinished && (
+              <AnimatedSplashScreen 
+                onAnimationComplete={() => setSplashAnimationFinished(true)} 
+              />
+            )}
+          </View>
         </BottomSheetModalProvider>
       </ThemeProvider>
     </GestureHandlerRootView>

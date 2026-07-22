@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { lightColors, darkColors, type ThemeColors, type ThemeMode } from './colors';
-import { useSettingsStore } from '@/stores';
+import { useSettingsStore } from '@/stores/useSettingsStore';
 import { spacing, radius, iconSize, componentHeight } from './spacing';
 import { textStyles, fontFamily, fontSize } from './typography';
 import { shadows, getShadow, getGlowShadow } from './shadows';

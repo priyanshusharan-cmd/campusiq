@@ -87,10 +87,7 @@ export function TodaySchedule({ classes }: TodayScheduleProps) {
           })}
         </View>
 
-        {/* Bottom handle indicator (aesthetic) */}
-        <View style={styles.handleContainer}>
-          <View style={[styles.handle, isDark ? styles.handleDark : styles.handleLight]} />
-        </View>
+
       </View>
     </Animated.View>
   );

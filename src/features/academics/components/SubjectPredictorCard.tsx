@@ -11,10 +11,11 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 interface SubjectPredictorCardProps {
   subject: Subject;
   scheme: GradeScheme;
+  requiredPercentage?: number;
   onPress: () => void;
 }
 
-export function SubjectPredictorCard({ subject, scheme, onPress }: SubjectPredictorCardProps) {
+export function SubjectPredictorCard({ subject, scheme, requiredPercentage, onPress }: SubjectPredictorCardProps) {
   const { colors, isDark, fontFamily } = useTheme();
   const settings = useSettingsStore();
 
@@ -23,9 +24,23 @@ export function SubjectPredictorCard({ subject, scheme, onPress }: SubjectPredic
   
   const currentScore = calculateTotalSubjectScore(components, false);
   const maxScore = calculateTotalSubjectScore(components, true);
+  const maxPossible = components.reduce((sum, c) => sum + (c.type === 'grouped' ? c.weight : c.maxMarks), 0) || 100;
   
-  const currentBoundary = getGradeBoundary(scheme, currentScore);
-  const maxBoundary = getGradeBoundary(scheme, maxScore);
+  // Calculate target score based on uniform percentage of remaining marks
+  let targetScore = currentScore;
+  let hasTarget = false;
+  if (requiredPercentage !== undefined && maxScore > currentScore) {
+    targetScore = Math.ceil(currentScore + (maxScore - currentScore) * requiredPercentage);
+    hasTarget = true;
+  }
+  
+  const currentPercentage = maxPossible > 0 ? Math.round((currentScore / maxPossible) * 100) : 0;
+  const maxPercentage = maxPossible > 0 ? Math.round((maxScore / maxPossible) * 100) : 0;
+  const targetPercentage = maxPossible > 0 ? Math.round((targetScore / maxPossible) * 100) : 0;
+
+  const currentBoundary = getGradeBoundary(scheme, currentPercentage);
+  const maxBoundary = getGradeBoundary(scheme, maxPercentage);
+  const targetBoundary = getGradeBoundary(scheme, targetPercentage);
 
   const subjectTheme = getSubjectTheme(subject.name, subject.code, isDark, subject.color, subject.icon);
 
@@ -83,6 +98,15 @@ export function SubjectPredictorCard({ subject, scheme, onPress }: SubjectPredic
             </Text>
           </View>
         </View>
+
+        {hasTarget && (
+          <View style={[styles.targetRow, { backgroundColor: isDark ? 'rgba(138, 115, 255, 0.1)' : 'rgba(138, 115, 255, 0.05)', borderColor: isDark ? 'rgba(138, 115, 255, 0.2)' : 'rgba(138, 115, 255, 0.1)' }]}>
+            <Ionicons name="flag" size={16} color="#8A73FF" />
+            <Text style={[styles.targetText, { color: colors.textPrimary, fontFamily: fontFamily.medium }]}>
+              Target to hit Goal: <Text style={{ fontFamily: fontFamily.bold, color: '#8A73FF' }}>{targetScore}</Text> marks ({targetBoundary.gradeLetter})
+            </Text>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -155,4 +179,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     fontWeight: '600',
   },
+  targetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  targetText: {
+    fontSize: 13,
+    marginLeft: 8,
+  }
 });

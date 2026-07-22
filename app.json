@@ -6,11 +6,6 @@
     "icon": "./assets/images/campusiq-icon.png",
     "orientation": "portrait",
     "scheme": "campusiq",
-    "splash": {
-      "image": "./assets/images/campusiq-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#181424"
-    },
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,

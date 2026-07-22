@@ -6,6 +6,7 @@ import { View, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withDelay, Easing } from 'react-native-reanimated';
+import { useTheme } from '@/theme';
 import { styles } from '../styles/attendanceDetailStyles';
 
 interface AttendanceGaugeProps {
@@ -18,6 +19,8 @@ interface AttendanceGaugeProps {
 }
 
 export function AttendanceGauge({ title = 'Overall Attendance', percentage, present, totalClasses, canMiss, target = 75 }: AttendanceGaugeProps) {
+  const { isDark } = useTheme();
+
   const getStatus = (perc: number) => {
     if (perc >= target + 10) return { label: 'Excellent', color: '#10B981' };
     if (perc >= target + 5) return { label: 'Good', color: '#10B981' };
@@ -68,7 +71,7 @@ export function AttendanceGauge({ title = 'Overall Attendance', percentage, pres
   return (
     <View>
       <LinearGradient
-        colors={['#4338CA', '#312E81']}
+        colors={isDark ? ['#302796', '#211F61'] : ['#4338CA', '#312E81']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.statsCard}

@@ -91,7 +91,7 @@ export default function AcademicsScreen() {
                       );
                     }}
                   >
-                    <LinearGradient colors={['#8B5CF6', '#6366F1']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.gradientCard}>
+                    <LinearGradient colors={isDark ? ['#5339C6', '#3D289B'] : ['#8B5CF6', '#6366F1']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.gradientCard}>
                       <View style={styles.semesterSelector}>
                         <Text style={[textStyles.smallMedium, { color: 'rgba(255,255,255,0.8)' }]}>Semester {sem.number}</Text>
                         {sem.isCurrent && (

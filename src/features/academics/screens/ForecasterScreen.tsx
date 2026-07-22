@@ -6,7 +6,7 @@ import { useAcademicStore } from '@/stores/useAcademicStore';
 import { useActiveSubjects } from '@/stores/useSubjectStore';
 import { SubjectPredictorCard } from '../components/SubjectPredictorCard';
 import { generatePDFReport } from '@/lib/pdfGenerator';
-import { calculateSubjectBounds, getGradeBoundary } from '@/lib/gradingEngine';
+import { calculateSubjectBounds, getGradeBoundary, convertLegacyToComponents } from '@/lib/gradingEngine';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -23,7 +23,7 @@ export function ForecasterScreen() {
   const profile = useProfileStore(s => s.profile);
   const firstName = profile?.name?.split(' ')[0] || 'Student';
 
-  const [dreamSgpa, setDreamSgpa] = useState(8.5);
+  const [dreamSgpa, setDreamSgpa] = useState(-1); // -1 indicates uninitialized
 
   useEffect(() => {
     if (!currentSemester && profile?.currentSemester) {
@@ -48,8 +48,9 @@ export function ForecasterScreen() {
     let totalCredits = 0;
     
     semesterSubjects.forEach(sub => {
-      const bounds = calculateSubjectBounds(sub.components || [], {});
-      const maxPossible = sub.components?.reduce((sum, c) => sum + (c.type === 'grouped' ? c.weight : c.maxMarks), 0) || 100;
+      const components = sub.components || convertLegacyToComponents(sub.cieMarks, sub.aatMarks, sub.labInternalMarks, undefined, sub.type === 'lab');
+      const bounds = calculateSubjectBounds(components, {});
+      const maxPossible = components.reduce((sum, c) => sum + (c.type === 'grouped' ? c.weight : c.maxMarks), 0) || 100;
       const percentage = maxPossible > 0 ? Math.round((bounds.ceiling / maxPossible) * 100) : 0;
       const boundary = getGradeBoundary(gradeScheme, percentage);
       
@@ -61,6 +62,71 @@ export function ForecasterScreen() {
       maxAchievableSgpa = totalMaxGradePoints / totalCredits;
     }
   }
+
+  // Calculate required uniform percentage to hit dreamSgpa
+  let requiredPercentage = 0;
+  if (dreamSgpa > 0 && maxAchievableSgpa > 0 && semesterSubjects.length > 0) {
+    let low = 0;
+    let high = 1;
+    let bestP = 0;
+    
+    let floorSgpa = 0;
+    let totalCredits = 0;
+    const subjectData = semesterSubjects.map(sub => {
+      const components = sub.components || convertLegacyToComponents(sub.cieMarks, sub.aatMarks, sub.labInternalMarks, undefined, sub.type === 'lab');
+      const bounds = calculateSubjectBounds(components, {});
+      const maxPossible = components.reduce((sum, c) => sum + (c.type === 'grouped' ? c.weight : c.maxMarks), 0) || 100;
+      totalCredits += sub.credits;
+      return { bounds, maxPossible, credits: sub.credits };
+    });
+    
+    if (totalCredits > 0) {
+      let floorPoints = 0;
+      subjectData.forEach(d => {
+        const percentage = d.maxPossible > 0 ? Math.round((d.bounds.floor / d.maxPossible) * 100) : 0;
+        floorPoints += getGradeBoundary(gradeScheme, percentage).gradePoints * d.credits;
+      });
+      floorSgpa = floorPoints / totalCredits;
+    }
+    
+    if (floorSgpa >= dreamSgpa) {
+      requiredPercentage = 0;
+    } else if (maxAchievableSgpa < dreamSgpa) {
+      requiredPercentage = 1;
+    } else {
+      for (let i = 0; i < 20; i++) {
+        let mid = (low + high) / 2;
+        let testPoints = 0;
+        subjectData.forEach(d => {
+          const targetScore = d.bounds.floor + (d.bounds.ceiling - d.bounds.floor) * mid;
+          const percentage = d.maxPossible > 0 ? Math.round((targetScore / d.maxPossible) * 100) : 0;
+          testPoints += getGradeBoundary(gradeScheme, percentage).gradePoints * d.credits;
+        });
+        const testSgpa = testPoints / totalCredits;
+        if (testSgpa >= dreamSgpa) {
+          bestP = mid;
+          high = mid; // Try to find a lower percentage that still achieves it
+        } else {
+          low = mid;
+        }
+      }
+      requiredPercentage = bestP;
+    }
+  }
+
+  // Effect to initialize or cap dreamSgpa
+  useEffect(() => {
+    if (maxAchievableSgpa > 0) {
+      const maxFloor = Math.floor(maxAchievableSgpa * 10) / 10;
+      if (dreamSgpa === -1) {
+        // First load: set to max achievable
+        setDreamSgpa(maxFloor);
+      } else if (dreamSgpa > maxFloor) {
+        // Cap if it somehow exceeds (e.g. subject removed)
+        setDreamSgpa(maxFloor);
+      }
+    }
+  }, [maxAchievableSgpa, dreamSgpa]);
 
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -105,7 +171,7 @@ export function ForecasterScreen() {
         {/* GPA Tuner Card */}
         {semesterSubjects.length > 0 && (
           <LinearGradient
-            colors={['#8A73FF', '#6B58F5']}
+            colors={isDark ? ['#5339C6', '#3D289B'] : ['#8A73FF', '#6B58F5']}
             style={styles.tunerCard}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -115,14 +181,18 @@ export function ForecasterScreen() {
                 style={styles.tunerButton} 
                 onPress={() => setDreamSgpa(prev => Math.max(0, prev - 0.1))}
               >
-                <Ionicons name="remove" size={24} color="#8A73FF" />
+                <Ionicons name="remove" size={24} color={isDark ? "#5339C6" : "#8A73FF"} />
               </Pressable>
-              <Text style={styles.dreamSgpaText}>{dreamSgpa.toFixed(1)}</Text>
+              <Text style={styles.dreamSgpaText}>{dreamSgpa === -1 ? '0.0' : dreamSgpa.toFixed(1)}</Text>
               <Pressable 
                 style={styles.tunerButton}
-                onPress={() => setDreamSgpa(prev => Math.min(10, prev + 0.1))}
+                onPress={() => setDreamSgpa(prev => {
+                  const next = prev + 0.1;
+                  // Don't allow setting target above max achievable
+                  return next > maxAchievableSgpa ? prev : next;
+                })}
               >
-                <Ionicons name="add" size={24} color="#8A73FF" />
+                <Ionicons name="add" size={24} color={isDark ? "#5339C6" : "#8A73FF"} />
               </Pressable>
             </View>
             <Text style={styles.tunerDescription}>
@@ -147,6 +217,7 @@ export function ForecasterScreen() {
             key={subject.id} 
             subject={subject} 
             scheme={gradeScheme} 
+            requiredPercentage={requiredPercentage}
             onPress={() => {
               router.push(`/(modals)/subject-detail?id=${subject.id}` as any);
             }} 
