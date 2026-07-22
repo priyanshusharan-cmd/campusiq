@@ -12,6 +12,8 @@ import { TopNavBar } from '@/components/ui/TopNavBar';
 import { useProfileStore } from '@/stores/useProfileStore';
 import { useLocalSearchParams } from 'expo-router';
 
+import { SwipeBackWrapper } from '@/components/navigation/SwipeBackWrapper';
+
 export default function GPARoute() {
   const params = useLocalSearchParams<{ tab?: string }>();
   const [activeTab, setActiveTab] = useState<'goals' | 'tracker'>(params.tab === 'tracker' ? 'tracker' : 'goals');
@@ -27,43 +29,45 @@ export default function GPARoute() {
   const firstName = profile?.name?.split(' ')[0] || 'Student';
 
   return (
-    <LinearGradient 
-      colors={isDark ? ['#0F1016', '#1A162D', '#0F1016'] : ['#F8FAFC', '#EEF2FF', '#E0E7FF']} 
-      style={{ flex: 1 }}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-    >
-      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
-        <TopNavBar firstName={firstName} avatarUri={profile?.avatarUri} />
-        
-        <View style={{ alignItems: 'center', marginBottom: 12, marginTop: 12 }}>
-          <View style={[styles.segmentContainer, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F3F4F6' }]}>
-            <Pressable 
-              style={[styles.segmentButton, activeTab === 'goals' && styles.segmentActive, activeTab === 'goals' && { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#FFFFFF' }]}
-              onPress={() => setActiveTab('goals')}
-            >
-              <Ionicons name="flag-outline" size={16} color={activeTab === 'goals' ? colors.primary : colors.textSecondary} style={{ marginRight: 6 }} />
-              <Text style={[styles.segmentText, { color: activeTab === 'goals' ? (isDark ? '#FFF' : colors.textPrimary) : colors.textSecondary, fontWeight: activeTab === 'goals' ? '600' : '500' }]}>
-                Goals
-              </Text>
-            </Pressable>
-            <Pressable 
-              style={[styles.segmentButton, activeTab === 'tracker' && styles.segmentActive, activeTab === 'tracker' && { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#FFFFFF' }]}
-              onPress={() => setActiveTab('tracker')}
-            >
-              <Ionicons name="trending-up" size={16} color={activeTab === 'tracker' ? colors.primary : colors.textSecondary} style={{ marginRight: 6 }} />
-              <Text style={[styles.segmentText, { color: activeTab === 'tracker' ? (isDark ? '#FFF' : colors.textPrimary) : colors.textSecondary, fontWeight: activeTab === 'tracker' ? '600' : '500' }]}>
-                Tracker
-              </Text>
-            </Pressable>
+    <SwipeBackWrapper>
+      <LinearGradient 
+        colors={isDark ? ['#0F1016', '#1A162D', '#0F1016'] : ['#F8FAFC', '#EEF2FF', '#E0E7FF']} 
+        style={{ flex: 1 }}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+      >
+        <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+          <TopNavBar firstName={firstName} avatarUri={profile?.avatarUri} />
+          
+          <View style={{ alignItems: 'center', marginBottom: 12, marginTop: 12 }}>
+            <View style={[styles.segmentContainer, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F3F4F6' }]}>
+              <Pressable 
+                style={[styles.segmentButton, activeTab === 'goals' && styles.segmentActive, activeTab === 'goals' && { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#FFFFFF' }]}
+                onPress={() => setActiveTab('goals')}
+              >
+                <Ionicons name="flag-outline" size={16} color={activeTab === 'goals' ? colors.primary : colors.textSecondary} style={{ marginRight: 6 }} />
+                <Text style={[styles.segmentText, { color: activeTab === 'goals' ? (isDark ? '#FFF' : colors.textPrimary) : colors.textSecondary, fontWeight: activeTab === 'goals' ? '600' : '500' }]}>
+                  Goals
+                </Text>
+              </Pressable>
+              <Pressable 
+                style={[styles.segmentButton, activeTab === 'tracker' && styles.segmentActive, activeTab === 'tracker' && { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#FFFFFF' }]}
+                onPress={() => setActiveTab('tracker')}
+              >
+                <Ionicons name="trending-up" size={16} color={activeTab === 'tracker' ? colors.primary : colors.textSecondary} style={{ marginRight: 6 }} />
+                <Text style={[styles.segmentText, { color: activeTab === 'tracker' ? (isDark ? '#FFF' : colors.textPrimary) : colors.textSecondary, fontWeight: activeTab === 'tracker' ? '600' : '500' }]}>
+                  Tracker
+                </Text>
+              </Pressable>
+            </View>
           </View>
-        </View>
 
-        <View style={{ flex: 1 }}>
-          {activeTab === 'goals' ? <ForecasterScreen /> : <AcademicsScreen />}
-        </View>
-      </SafeAreaView>
-    </LinearGradient>
+          <View style={{ flex: 1 }}>
+            {activeTab === 'goals' ? <ForecasterScreen /> : <AcademicsScreen />}
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+    </SwipeBackWrapper>
   );
 }
 

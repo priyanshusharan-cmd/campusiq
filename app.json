@@ -17,7 +17,7 @@
     },
     "android": {
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.campusiq"
+      "package": "com.priyanshusharan.campusiq"
     },
     "web": {
       "output": "static",
@@ -46,6 +46,14 @@
         "expo-document-picker",
         {
           "iCloudContainerEnvironment": "Production"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "2.1.20"
+          }
         }
       ]
     ],

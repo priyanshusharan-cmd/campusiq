@@ -8,24 +8,32 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme';
+import { useDrawerStore } from '@/stores';
 
 interface QuickStatsStripProps {
   cgpa: number;
   expectedSGPA: number;
   attendancePercentage: number;
   attendanceTotal: number;
+  isBackground?: boolean;
 }
 
-export function QuickStatsStrip({ cgpa, expectedSGPA, attendancePercentage, attendanceTotal }: QuickStatsStripProps) {
+export function QuickStatsStrip({ cgpa, expectedSGPA, attendancePercentage, attendanceTotal, isBackground = false }: QuickStatsStripProps) {
   const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
+  const homeStatsScrollX = useDrawerStore(s => s.homeStatsScrollX);
+  const setHomeStatsScrollX = useDrawerStore(s => s.setHomeStatsScrollX);
 
   return (
-    <Animated.View entering={FadeInDown.delay(20).duration(100)}>
+    <Animated.View entering={isBackground ? undefined : FadeInDown.delay(20).duration(100)}>
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 12, paddingBottom: spacing.md }}
+        contentOffset={{ x: isBackground ? homeStatsScrollX : 0, y: 0 }}
+        onScroll={isBackground ? undefined : (e) => setHomeStatsScrollX(e.nativeEvent.contentOffset.x)}
+        scrollEventThrottle={16}
+        scrollEnabled={!isBackground}
       >
         {/* CGPA Card */}
         <Pressable 

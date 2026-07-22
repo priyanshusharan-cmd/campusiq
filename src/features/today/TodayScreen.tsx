@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { useTodayData } from './hooks/useTodayData';
-import { useProfileStore, useSubjectStore, useActiveSubjects } from '@/stores';
+import { useProfileStore, useSubjectStore, useActiveSubjects, useDrawerStore } from '@/stores';
 import { useRouter } from 'expo-router';
 
 // Components
@@ -20,12 +20,14 @@ import { SubjectsList } from './components/SubjectsList';
 
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function TodayScreen() {
+export default function TodayScreen({ isBackground = false }: { isBackground?: boolean } = {}) {
   const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
   
   const profile = useProfileStore(s => s.profile);
   const subjects = useSubjectStore(s => s.subjects);
+  const homeScrollY = useDrawerStore(s => s.homeScrollY);
+  const setHomeScrollY = useDrawerStore(s => s.setHomeScrollY);
   const isSetupComplete = profile?.semesterStartDate && profile?.semesterEndDate;
   const hasSubjects = subjects.length > 0;
   // Custom hook containing all business logic for this screen
@@ -37,6 +39,9 @@ export default function TodayScreen() {
     todayClasses, 
   } = useTodayData();
 
+  const Wrapper = isBackground ? View : SafeAreaView;
+  const wrapperProps = isBackground ? { style: [styles.container, { paddingTop: 60 }] } : { style: styles.container, edges: ['top'] };
+
   return (
     <LinearGradient 
       colors={isDark ? ['#0F1016', '#1A162D', '#0F1016'] : ['#F8FAFC', '#EEF2FF', '#E0E7FF']} 
@@ -44,7 +49,7 @@ export default function TodayScreen() {
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
     >
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <Wrapper {...wrapperProps as any}>
         
         {/* Top App Bar */}
         <TopNavBar firstName={firstName} avatarUri={profile?.avatarUri} />
@@ -70,6 +75,10 @@ export default function TodayScreen() {
           <ScrollView 
             contentContainerStyle={styles.scrollContent} 
             showsVerticalScrollIndicator={false}
+            contentOffset={{ x: 0, y: isBackground ? homeScrollY : 0 }}
+            onScroll={isBackground ? undefined : (e) => setHomeScrollY(e.nativeEvent.contentOffset.y)}
+            scrollEventThrottle={16}
+            scrollEnabled={!isBackground}
           >
             {/* Greeting */}
             <GreetingHeader firstName={firstName} />
@@ -97,6 +106,7 @@ export default function TodayScreen() {
                 expectedSGPA={expectedSGPA}
                 attendancePercentage={overallAttendance.percentage}
                 attendanceTotal={overallAttendance.total}
+                isBackground={isBackground}
               />
 
               {/* Today's Schedule Card */}
@@ -108,7 +118,7 @@ export default function TodayScreen() {
 
         </ScrollView>
         )}
-      </SafeAreaView>
+      </Wrapper>
     </LinearGradient>
   );
 }

@@ -21,7 +21,6 @@ export function SmartInsight({ message }: SmartInsightProps) {
       <Text style={[textStyles.small, { color: colors.textSecondary, flex: 1, lineHeight: 18 }]}>
         {message}
       </Text>
-      <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
     </View>
   );
 }

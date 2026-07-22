@@ -1,7 +1,7 @@
 // Campora — Profile Screen
 
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert, Platform } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert, Platform, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -20,14 +20,16 @@ function ProfileField({
   value, 
   renderEdit,
   isEditing,
-  onPress
+  onPress,
+  isFocused
 }: { 
   icon: keyof typeof Ionicons.glyphMap, 
   label: string, 
   value?: string,
   renderEdit?: React.ReactNode,
   isEditing?: boolean,
-  onPress?: () => void
+  onPress?: () => void,
+  isFocused?: boolean
 }) {
   const { colors, textStyles, isDark } = useTheme();
   
@@ -36,7 +38,7 @@ function ProfileField({
       onPress={onPress}
       style={{ 
         borderWidth: 1.5, 
-        borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
+        borderColor: isFocused ? colors.primary : (isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0'),
         borderRadius: 16, 
         paddingHorizontal: 16, 
         paddingVertical: 14, 
@@ -50,13 +52,13 @@ function ProfileField({
         backgroundColor: colors.surface, 
         paddingHorizontal: 6 
       }}>
-        <Text style={[textStyles.smallMedium, { color: colors.textSecondary, fontSize: 11, letterSpacing: 0.5 }]}>
+        <Text style={[textStyles.smallMedium, { color: isFocused ? colors.primary : colors.textSecondary, fontSize: 11, letterSpacing: 0.5 }]}>
           {label}
         </Text>
       </View>
       
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <Ionicons name={icon} size={22} color={colors.textSecondary} style={{ marginRight: 16 }} />
+        <Ionicons name={icon} size={22} color={isFocused ? colors.primary : colors.textSecondary} style={{ marginRight: 16 }} />
         {isEditing && renderEdit ? (
           <View style={{ flex: 1, minHeight: 24, justifyContent: 'center' }}>{renderEdit}</View>
         ) : (
@@ -137,6 +139,7 @@ export default function ProfileScreen() {
   }
 
   const [isEditing, setIsEditing] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: profile?.name || '', email: profile?.email || '', phone: profile?.phone || '',
     dob: profile?.dob || '', address: profile?.address || '', enrollmentNumber: profile?.enrollmentNumber || '',
@@ -145,6 +148,12 @@ export default function ProfileScreen() {
     semesterEndDate: profile?.semesterEndDate || '', college: profile?.college || '', section: profile?.section || '',
   });
   const [showDatePicker, setShowDatePicker] = useState<string | null>(null);
+
+  const handleOpenDatePicker = (key: string) => {
+    Keyboard.dismiss();
+    setFocusedField(null);
+    setShowDatePicker(key);
+  };
 
   const toggleEdit = () => {
     if (isEditing) {
@@ -192,7 +201,9 @@ export default function ProfileScreen() {
             }
           });
         }
-        
+        setFocusedField(null);
+        setShowDatePicker(null);
+        Keyboard.dismiss();
         setIsEditing(false);
       };
 
@@ -272,6 +283,11 @@ export default function ProfileScreen() {
         <TextInput
           value={form[key]}
           onChangeText={(text) => setForm((f) => ({ ...f, [key]: text }))}
+          onFocus={() => {
+            setFocusedField(key as string);
+            setShowDatePicker(null);
+          }}
+          onBlur={() => setFocusedField(null)}
           placeholder={placeholder}
           placeholderTextColor={colors.textTertiary}
           keyboardType={keyboardType}
@@ -424,10 +440,10 @@ export default function ProfileScreen() {
           <View style={{ paddingHorizontal: spacing.xl }}>
             <Card variant="flat" padding={20} style={{ borderRadius: 24 }}>
               <View style={{ gap: 20 }}>
-                <ProfileField icon="person-outline" label="Full Name" value={getRightText('name')} isEditing={isEditing} renderEdit={renderRight('name', 'Enter Full Name')} />
-                <ProfileField icon="mail-outline" label="Email" value={getRightText('email')} isEditing={isEditing} renderEdit={renderRight('email', 'Enter Email Address', 'email-address')} />
-                <ProfileField icon="calendar-outline" label="Date of Birth" value={getRightText('dob')} isEditing={isEditing} renderEdit={renderRight('dob', 'Select Date of Birth')} onPress={isEditing ? () => setShowDatePicker('dob') : undefined} />
-                <ProfileField icon="card-outline" label="Roll Number" value={getRightText('enrollmentNumber')} isEditing={isEditing} renderEdit={renderRight('enrollmentNumber', 'Enter Roll Number')} />
+                <ProfileField icon="person-outline" label="Full Name" value={getRightText('name')} isEditing={isEditing} isFocused={focusedField === 'name'} renderEdit={renderRight('name', 'Enter Full Name')} />
+                <ProfileField icon="mail-outline" label="Email" value={getRightText('email')} isEditing={isEditing} isFocused={focusedField === 'email'} renderEdit={renderRight('email', 'Enter Email Address', 'email-address')} />
+                <ProfileField icon="calendar-outline" label="Date of Birth" value={getRightText('dob')} isEditing={isEditing} isFocused={showDatePicker === 'dob'} renderEdit={renderRight('dob', 'Select Date of Birth')} onPress={isEditing ? () => handleOpenDatePicker('dob') : undefined} />
+                <ProfileField icon="card-outline" label="Roll Number" value={getRightText('enrollmentNumber')} isEditing={isEditing} isFocused={focusedField === 'enrollmentNumber'} renderEdit={renderRight('enrollmentNumber', 'Enter Roll Number')} />
               </View>
             </Card>
           </View>
@@ -439,12 +455,12 @@ export default function ProfileScreen() {
           <View style={{ paddingHorizontal: spacing.xl }}>
             <Card variant="flat" padding={20} style={{ borderRadius: 24 }}>
               <View style={{ gap: 20 }}>
-                <ProfileField icon="business-outline" label="College Name" value={getRightText('college')} isEditing={isEditing} renderEdit={renderRight('college', 'Enter College Name')} />
-                <ProfileField icon="git-branch-outline" label="Branch" value={getRightText('branch')} isEditing={isEditing} renderEdit={renderRight('branch', 'Enter Branch')} />
-                <ProfileField icon="people-outline" label="Section" value={getRightText('section')} isEditing={isEditing} renderEdit={renderRight('section', 'Enter Section')} />
-                <ProfileField icon="school-outline" label="Current Semester" value={getRightText('currentSemester')} isEditing={isEditing} renderEdit={renderRight('currentSemester', 'Enter Semester', 'numeric')} />
-                <ProfileField icon="time-outline" label="Semester Start" value={getRightText('semesterStartDate')} isEditing={isEditing} renderEdit={renderRight('semesterStartDate', 'Select Start Date')} onPress={isEditing ? () => setShowDatePicker('semesterStartDate') : undefined} />
-                <ProfileField icon="time-outline" label="Semester End" value={getRightText('semesterEndDate')} isEditing={isEditing} renderEdit={renderRight('semesterEndDate', 'Select End Date')} onPress={isEditing ? () => setShowDatePicker('semesterEndDate') : undefined} />
+                <ProfileField icon="business-outline" label="College Name" value={getRightText('college')} isEditing={isEditing} isFocused={focusedField === 'college'} renderEdit={renderRight('college', 'Enter College Name')} />
+                <ProfileField icon="git-branch-outline" label="Branch" value={getRightText('branch')} isEditing={isEditing} isFocused={focusedField === 'branch'} renderEdit={renderRight('branch', 'Enter Branch')} />
+                <ProfileField icon="people-outline" label="Section" value={getRightText('section')} isEditing={isEditing} isFocused={focusedField === 'section'} renderEdit={renderRight('section', 'Enter Section')} />
+                <ProfileField icon="school-outline" label="Current Semester" value={getRightText('currentSemester')} isEditing={isEditing} isFocused={focusedField === 'currentSemester'} renderEdit={renderRight('currentSemester', 'Enter Semester', 'numeric')} />
+                <ProfileField icon="time-outline" label="Semester Start" value={getRightText('semesterStartDate')} isEditing={isEditing} isFocused={showDatePicker === 'semesterStartDate'} renderEdit={renderRight('semesterStartDate', 'Select Start Date')} onPress={isEditing ? () => handleOpenDatePicker('semesterStartDate') : undefined} />
+                <ProfileField icon="time-outline" label="Semester End" value={getRightText('semesterEndDate')} isEditing={isEditing} isFocused={showDatePicker === 'semesterEndDate'} renderEdit={renderRight('semesterEndDate', 'Select End Date')} onPress={isEditing ? () => handleOpenDatePicker('semesterEndDate') : undefined} />
               </View>
             </Card>
           </View>

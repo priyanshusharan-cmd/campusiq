@@ -1,14 +1,34 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, ScrollView, Pressable, Linking } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
 import { useTheme } from '@/theme';
 
 export default function AboutScreen() {
   const { colors, spacing, textStyles } = useTheme();
   const router = useRouter();
+
+  const translateY = useSharedValue(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      translateY.value = withRepeat(
+        withSequence(
+          withTiming(-8, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: 1500, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        true
+      );
+    }, [])
+  );
+
+  const floatingStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }]
+  }));
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -24,9 +44,9 @@ export default function AboutScreen() {
       </View>
       
       <ScrollView contentContainerStyle={{ padding: spacing.xl, alignItems: 'center' }}>
-        <View style={{ width: 120, height: 120, borderRadius: 36, backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center', marginBottom: spacing.lg, overflow: 'hidden' }}>
+        <Animated.View style={[{ width: 120, height: 120, borderRadius: 36, backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center', marginBottom: spacing.lg, overflow: 'hidden' }, floatingStyle]}>
           <Image source={require('@/assets/images/campusiq-icon-transparent.png')} style={{ width: '104%', height: '104%' }} contentFit="cover" />
-        </View>
+        </Animated.View>
         
         <Text style={[textStyles.h2, { color: colors.textPrimary, marginBottom: spacing.xs }]}>
           Campus<Text style={{ color: colors.primary }}>IQ</Text>
