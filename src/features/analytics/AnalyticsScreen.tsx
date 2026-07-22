@@ -33,10 +33,21 @@ export default function AnalyticsScreen() {
 
   // CGPA Trend Data
   const cgpaTrendData = useMemo(() => {
-    const data = semesters
+    const sortedSemesters = [...semesters].sort((a, b) => a.number - b.number);
+    const data = sortedSemesters
       .map(sem => {
-        const sgpa = getSGPA(sem.id);
-        if (sgpa === 0) return null;
+        // First check gradeEntries, then fall back to manual entry
+        const entries = gradeEntries.filter(e => e.semesterId === sem.id);
+        let sgpa = 0;
+        if (entries.length > 0) {
+          const totalCredits = entries.reduce((sum, e) => sum + e.credits, 0);
+          const totalPoints = entries.reduce((sum, e) => sum + e.gradePoint * e.credits, 0);
+          sgpa = totalCredits > 0 ? totalPoints / totalCredits : 0;
+        } else if (sem.sgpa && sem.sgpa > 0) {
+          sgpa = sem.sgpa;
+        }
+        
+        if (sgpa <= 0) return null;
         return {
           value: parseFloat(sgpa.toFixed(2)),
           label: `Sem ${sem.number}`,
@@ -48,7 +59,7 @@ export default function AnalyticsScreen() {
       return [{ value: 0, label: 'Start' }];
     }
     return data;
-  }, [semesters, getSGPA]);
+  }, [semesters, gradeEntries]);
 
   // Subject Attendance Bars
   const attendanceBarsData = useMemo(() => {

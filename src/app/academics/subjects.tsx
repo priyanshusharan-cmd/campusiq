@@ -45,7 +45,7 @@ export default function SubjectsListScreen() {
       const branchStr = profile?.branch ? profile.branch.replace(/[^a-zA-Z0-9]/g, '') : 'Branch';
       const collegeStr = profile?.college ? profile.college.replace(/[^a-zA-Z0-9]/g, '') : 'College';
       
-      const fileName = `subjects_semester${semesterStr}_${branchStr}_${collegeStr}.campusiq`;
+      const fileName = `subjects_semester${semesterStr}_${branchStr}_${collegeStr}.json`;
       const fileUri = `${cacheDirectory}${fileName}`;
       
       const exportData = {

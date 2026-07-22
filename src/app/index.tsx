@@ -3,7 +3,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSettingsStore } from '@/stores';
-import { View, ActivityIndicator } from 'react-native';
+import { useTheme } from '@/theme';
+import { View } from 'react-native';
 
 export default function Index() {
   const [isReady, setIsReady] = useState(false);
@@ -16,23 +17,27 @@ export default function Index() {
   useFocusEffect(
     useCallback(() => {
       if (isReady) {
-        // Fetch the latest state directly from the store to avoid hydration race conditions
-        const currentOnboarded = useSettingsStore.getState().onboardingCompleted;
-
-        setTimeout(() => {
-          if (currentOnboarded) {
-            router.replace('/(tabs)');
+        // Wait for Zustand hydration to complete before redirecting
+        const checkHydration = () => {
+          if (useSettingsStore.persist.hasHydrated()) {
+            const currentOnboarded = useSettingsStore.getState().onboardingCompleted;
+            if (currentOnboarded) {
+              router.replace('/(tabs)');
+            } else {
+              router.replace('/(onboarding)/welcome');
+            }
           } else {
-            router.replace('/(onboarding)/welcome');
+            setTimeout(checkHydration, 50);
           }
-        }, 100);
+        };
+        checkHydration();
       }
     }, [isReady, router])
   );
 
+  const { colors } = useTheme();
+
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <ActivityIndicator size="large" color="#7C5CFC" />
-    </View>
+    <View style={{ flex: 1, backgroundColor: colors.bg }} />
   );
 }

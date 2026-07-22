@@ -21,7 +21,9 @@ export async function generatePDFReport({ semester, subjects, scheme }: PDFRepor
     // For a true "predictor", we might want to show both or max achievable. 
     // We will show current projected grade.
     const score = calculateTotalSubjectScore(components, false);
-    const boundary = getGradeBoundary(scheme, score);
+    const maxPossible = components.reduce((sum, c) => sum + c.weight, 0) || 100;
+    const percentage = maxPossible > 0 ? Math.round((score / maxPossible) * 100) : 0;
+    const boundary = getGradeBoundary(scheme, percentage);
     
     totalCredits += subject.credits;
     totalPoints += (boundary.gradePoints * subject.credits);

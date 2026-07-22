@@ -17,6 +17,7 @@ export interface Subject {
   semesterId: ID;
   attendanceTarget?: number;
   components?: AssessmentComponent[]; // New dynamic components
+  targetMarks?: Record<string, number>; // User's target simulated marks for expected SGPA calculation
   internalMarks?: number; // Legacy, keep for backward compatibility
   cieMarks?: number[]; // Array of scores for each CIE
   aatMarks?: number;

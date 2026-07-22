@@ -904,6 +904,8 @@ export default function ImportSubjectsScreen() {
                 const theme = getSubjectTheme(sub.name, '', isDark);
                 const newSub = addSubject({
                   name: sub.name,
+                  code: sub.code,
+                  faculty: sub.faculty,
                   credits: sub.credits,
                   semesterId: currentSemesterId,
                   type: sub.type || (sub.name.toLowerCase().includes('lab') || sub.name.toLowerCase().includes('project') || sub.name.toLowerCase().includes('internship') ? 'lab' : 'theory'),
@@ -1014,7 +1016,7 @@ export default function ImportSubjectsScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[textStyles.bodySemiBold, { color: colors.primary, fontSize: 16 }]}>Import from File</Text>
-                <Text style={[textStyles.small, { color: colors.textSecondary, marginTop: 4 }]}>Select a .campusiq file</Text>
+                <Text style={[textStyles.small, { color: colors.textSecondary, marginTop: 4 }]}>Select a .json file</Text>
               </View>
               <Ionicons name="cloud-upload-outline" size={24} color={colors.primary} />
             </Pressable>

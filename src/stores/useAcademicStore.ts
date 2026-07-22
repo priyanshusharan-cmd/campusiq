@@ -87,28 +87,34 @@ export const useAcademicStore = create<AcademicState>()(
   setGradeScheme: (scheme) => set({ gradeScheme: scheme }),
 
   addGradeEntry: (data) => {
+    const gradeScheme = get().gradeScheme;
     const entry: GradeEntry = {
       id: generateId(),
       semesterId: data.semesterId,
       subjectId: data.subjectId,
       grade: data.grade,
-      gradePoint: gradeToPoint(data.grade),
+      gradePoint: gradeToPoint(data.grade, gradeScheme),
       credits: data.credits,
     };
     set((state) => ({ gradeEntries: [...state.gradeEntries, entry] }));
   },
 
   updateGradeEntry: (id, updates) => {
-    set((state) => ({
-      gradeEntries: state.gradeEntries.map((e) => {
-        if (e.id !== id) return e;
-        const updated = { ...e, ...updates };
-        if (updates.grade) {
-          updated.gradePoint = gradeToPoint(updates.grade);
-        }
-        return updated;
-      }),
-    }));
+    set((state) => {
+      const gradeScheme = state.gradeScheme;
+      return {
+        gradeEntries: state.gradeEntries.map((e) => {
+          if (e.id === id) {
+            const updated = { ...e, ...updates };
+            if (updates.grade) {
+              updated.gradePoint = gradeToPoint(updates.grade, gradeScheme);
+            }
+            return updated;
+          }
+          return e;
+        }),
+      };
+    });
   },
 
   removeGradeEntry: (id) => {
@@ -149,14 +155,15 @@ export const useAcademicStore = create<AcademicState>()(
         }
         
         // Otherwise use manual entry if it exists
-        if (sem.sgpa && sem.sgpa > 0) {
-          // If backlogs are recorded, subtract them from the completed credits
-          const credits = (sem.totalCredits || 0) - (sem.backlogCredits || 0);
-          return { sgpa: sem.sgpa, credits };
+        if (sem.totalCredits && sem.totalCredits > 0) {
+          // Weight for CGPA MUST be total registered credits.
+          // Do not subtract backlog credits here, otherwise CGPA inflates incorrectly.
+          const credits = sem.totalCredits;
+          return { sgpa: sem.sgpa || 0, credits };
         }
         return { sgpa: 0, credits: 0 };
       })
-      .filter((s) => s.sgpa > 0 && s.credits > 0);
+      .filter((s) => s.sgpa >= 0 && s.credits > 0);
     return calcCGPA(semesterData);
   },
 

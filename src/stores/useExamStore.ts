@@ -52,7 +52,8 @@ export const useExamStore = create<ExamState>()(
   },
 
   getUpcoming: () => {
-    const today = new Date().toISOString().split('T')[0];
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     return get()
       .exams.filter((e) => e.date >= today)
       .sort((a, b) => a.date.localeCompare(b.date));

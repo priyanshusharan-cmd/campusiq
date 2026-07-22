@@ -1,6 +1,6 @@
 // CampusIQ — GPA Calculation Utilities
 
-import type { GradeEntry, GradeLetter , Subject } from '@/types';
+import type { GradeEntry, GradeLetter, Subject, GradeScheme } from '@/types';
 
 
 // Calculate SGPA from grade entries
@@ -21,7 +21,7 @@ export function calcSGPA(entries: GradeEntry[]): number {
 
 // Calculate CGPA from array of SGPAs with credits
 export function calcCGPA(semesters: { sgpa: number; credits: number }[]): number {
-  const validSemesters = semesters.filter(s => s.sgpa > 0 && s.credits > 0);
+  const validSemesters = semesters.filter(s => s.sgpa >= 0 && s.credits > 0);
   if (validSemesters.length === 0) return 0;
 
   let totalCredits = 0;
@@ -164,32 +164,43 @@ export function calcTotalCredits(entries: GradeEntry[]): number {
 }
 
 // Get grade point from letter
-export function gradeToPoint(grade: GradeLetter): number {
-  const scale: Record<GradeLetter, number> = {
-    'O': 10, 'A+': 9, 'A': 8, 'B+': 7, 'B': 6, 'C': 5, 'P': 4, 'F': 0,
+export function gradeToPoint(grade: GradeLetter, scheme?: GradeScheme): number {
+  if (scheme) {
+    const boundary = scheme.boundaries.find(b => b.gradeLetter === grade);
+    if (boundary) return boundary.gradePoints;
+  }
+  
+  const scale: Record<string, number> = {
+    'S': 10, 'O': 10, 'A+': 9, 'A': 9, 'B+': 8, 'B': 8, 'C': 7, 'D': 6, 'E': 4, 'P': 4, 'F': 0,
   };
-  return scale[grade];
+  return scale[grade] ?? 0;
 }
 
-export function marksToGradePoint(marks: number): number {
+export function marksToGradePoint(marks: number, scheme?: GradeScheme): number {
+  if (scheme) {
+    const { getGradeBoundary } = require('./gradingEngine');
+    return getGradeBoundary(scheme, marks).gradePoints;
+  }
+  
   if (marks >= 90) return 10;
   if (marks >= 80) return 9;
   if (marks >= 70) return 8;
   if (marks >= 60) return 7;
   if (marks >= 50) return 6;
-  if (marks >= 45) return 5;
   if (marks >= 40) return 4;
   return 0;
 }
 
-export function gradePointToMinMarks(gp: number): number {
-  if (gp >= 10) return 90;
-  if (gp >= 9) return 80;
-  if (gp >= 8) return 70;
-  if (gp >= 7) return 60;
-  if (gp >= 6) return 50;
-  if (gp >= 5) return 45;
-  if (gp >= 4) return 40;
+export function getMinMarksForGradePoint(gp: number, scheme: GradeScheme): number {
+  const sorted = [...scheme.boundaries].sort((a, b) => b.gradePoints - a.gradePoints);
+  const exact = sorted.find(b => b.gradePoints === gp);
+  if (exact) return exact.minMarks;
+  
+  for (const b of sorted) {
+    if (gp >= b.gradePoints) {
+      return b.minMarks; // Approximation for gaps
+    }
+  }
   return 0;
 }
 
@@ -207,7 +218,8 @@ export interface SubjectGoalTarget {
 export function calculateRequiredExternals(
   subjects: { id: string; type: string; internalMarks: number; labMarks: number; credits: number }[],
   targetSGPA: number,
-  settings: GradingSettings
+  settings: GradingSettings,
+  gradeScheme: GradeScheme
 ): SubjectGoalTarget[] {
   if (subjects.length === 0) return [];
   
@@ -220,7 +232,7 @@ export function calculateRequiredExternals(
       ? (settings.labMaxInternalMarks + settings.labMaxExternalMarks) 
       : (settings.maxInternalMarks + settings.maxExternalMarks);
       
-    const minPercent = gradePointToMinMarks(4); // e.g. 40%
+    const minPercent = getMinMarksForGradePoint(4, gradeScheme); // Starting point (passing grade)
     const minRequiredTotalMarks = Math.ceil((minPercent / 100) * totalSubjectMax);
     
     // Note: s.labMarks is kept for legacy compatibility but is now handled within internalMarks
@@ -250,7 +262,7 @@ export function calculateRequiredExternals(
       if (t.targetGradePoint < 10) {
         const nextGradePoint = t.targetGradePoint + 1;
         
-        const nextMinPercent = gradePointToMinMarks(nextGradePoint);
+        const nextMinPercent = getMinMarksForGradePoint(nextGradePoint, gradeScheme);
         const nextMinTotalMarks = Math.ceil((nextMinPercent / 100) * t.totalSubjectMax);
         const existingMarks = t.internalMarks + t.labMarks;
         const requiredExtForNext = Math.max(0, nextMinTotalMarks - existingMarks);
@@ -282,7 +294,7 @@ export function calculateRequiredExternals(
     const best = targets[bestSubjectIndex];
     best.targetGradePoint += 1;
     
-    const nextMinPercent = gradePointToMinMarks(best.targetGradePoint);
+    const nextMinPercent = getMinMarksForGradePoint(best.targetGradePoint, gradeScheme);
     const nextMinTotalMarks = Math.ceil((nextMinPercent / 100) * best.totalSubjectMax);
     const existingMarks = best.internalMarks + best.labMarks;
     

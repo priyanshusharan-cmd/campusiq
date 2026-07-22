@@ -10,6 +10,7 @@ import { useTheme } from '@/theme';
 import { useAcademicStore, useSubjectStore } from '@/stores';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { getGPALabel } from '@/lib';
+import { getGradeBoundary } from '@/lib/gradingEngine';
 
 const { width } = Dimensions.get('window');
 
@@ -22,16 +23,7 @@ type SubjectEntry = {
   gradePoint: string;
 };
 
-function marksToGradePoint(marks: number): number {
-  if (marks >= 90) return 10;
-  if (marks >= 80) return 9;
-  if (marks >= 70) return 8;
-  if (marks >= 60) return 7;
-  if (marks >= 50) return 6;
-  if (marks >= 45) return 5;
-  if (marks >= 40) return 4;
-  return 0;
-}
+
 
 // Reusable beautifully styled Input with focus state
 const InputField = ({ label, style, containerStyle, highlight = false, onFocus, onBlur, ...props }: any) => {
@@ -74,6 +66,7 @@ export default function SemesterSGPAScreen() {
   const semesters = useAcademicStore(s => s.semesters);
   const updateSemester = useAcademicStore(s => s.updateSemester);
   const addSemester = useAcademicStore(s => s.addSemester);
+  const gradeScheme = useAcademicStore(s => s.gradeScheme);
   
   const passingMarks = useSettingsStore(s => s.passingMarks);
 
@@ -150,7 +143,8 @@ export default function SemesterSGPAScreen() {
         let marks = parseFloat(updated.totalMarks) || 0;
         
         if (marks > 0) {
-          updated.gradePoint = marksToGradePoint(marks).toString();
+          const boundary = getGradeBoundary(gradeScheme, marks);
+          updated.gradePoint = boundary.gradePoints.toString();
         } else if (updated.totalMarks === '') {
           updated.gradePoint = '';
         }
@@ -170,11 +164,16 @@ export default function SemesterSGPAScreen() {
       const gp = parseFloat(sub.gradePoint) || 0;
       const marks = parseFloat(sub.totalMarks) || 0;
       
-      if (c > 0 && gp > 0) {
+      const hasEnteredData = sub.totalMarks !== '' || sub.gradePoint !== '';
+      
+      if (c > 0 && hasEnteredData) {
         creds += c;
         pts += (gp * c);
         
-        if (marks > 0 && marks < passingMarks) {
+        const isBacklogByMarks = marks > 0 && marks < passingMarks;
+        const isBacklogByGrade = gp === 0; // F Grade
+        
+        if (isBacklogByMarks || isBacklogByGrade) {
           bCount++;
           bCreds += c;
         }
@@ -312,16 +311,20 @@ export default function SemesterSGPAScreen() {
                 
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                   {(() => {
-                     const marks = parseFloat(sub.totalMarks) || 0;
-                     if (marks > 0) {
-                       const isBacklog = marks < passingMarks;
-                       return (
-                         <View style={{ backgroundColor: isBacklog ? '#FEF2F2' : '#ECFDF5', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: isBacklog ? '#FCA5A5' : '#6EE7B7' }}>
-                           <Text style={[textStyles.smallMedium, { color: isBacklog ? '#DC2626' : '#059669', fontSize: 11 }]}>{isBacklog ? 'BACKLOG' : 'PASSED'}</Text>
-                         </View>
-                       );
-                     }
-                     return null;
+                    const marks = parseFloat(sub.totalMarks) || 0;
+                    const gp = parseFloat(sub.gradePoint) || 0;
+                    const hasData = sub.totalMarks !== '' || sub.gradePoint !== '';
+                    if (hasData) {
+                      const isBacklog = (marks > 0 && marks < passingMarks) || (gp === 0 && hasData);
+                      return (
+                        <View style={[styles.badge, { backgroundColor: isBacklog ? colors.danger + '20' : colors.success + '20' }]}>
+                          <Text style={[styles.badgeText, { color: isBacklog ? colors.danger : colors.success }]}>
+                            {isBacklog ? 'BACKLOG' : 'PASSED'}
+                          </Text>
+                        </View>
+                      );
+                    }
+                    return null;
                   })()}
                   {subjects.length > 1 && (
                     <Pressable onPress={() => removeSubject(sub.id)} hitSlop={15} style={styles.trashBtn}>

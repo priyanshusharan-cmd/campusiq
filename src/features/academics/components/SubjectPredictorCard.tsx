@@ -24,7 +24,7 @@ export function SubjectPredictorCard({ subject, scheme, requiredPercentage, onPr
   
   const currentScore = calculateTotalSubjectScore(components, false);
   const maxScore = calculateTotalSubjectScore(components, true);
-  const maxPossible = components.reduce((sum, c) => sum + (c.type === 'grouped' ? c.weight : c.maxMarks), 0) || 100;
+  const maxPossible = components.reduce((sum, c) => sum + c.weight, 0) || 100;
   
   // Calculate target score based on uniform percentage of remaining marks
   let targetScore = currentScore;
@@ -77,7 +77,7 @@ export function SubjectPredictorCard({ subject, scheme, requiredPercentage, onPr
               Current
             </Text>
             <Text style={[styles.metricValue, { color: colors.primary, fontFamily: fontFamily.bold }]}>
-              {currentScore.toFixed(1)} <Text style={styles.metricUnit}>/ 100</Text>
+              {currentScore.toFixed(1)} <Text style={styles.metricUnit}>/ {maxPossible}</Text>
             </Text>
             <Text style={[styles.gradeBadge, { backgroundColor: colors.surfaceHover, color: colors.textPrimary }]}>
               {currentBoundary.gradeLetter} ({currentBoundary.gradePoints} pt)
@@ -91,7 +91,7 @@ export function SubjectPredictorCard({ subject, scheme, requiredPercentage, onPr
               Max Possible
             </Text>
             <Text style={[styles.metricValue, { color: colors.success, fontFamily: fontFamily.bold }]}>
-              {maxScore.toFixed(1)} <Text style={styles.metricUnit}>/ 100</Text>
+              {maxScore.toFixed(1)} <Text style={styles.metricUnit}>/ {maxPossible}</Text>
             </Text>
             <Text style={[styles.gradeBadge, { backgroundColor: colors.success + '20', color: colors.success }]}>
               {maxBoundary.gradeLetter} ({maxBoundary.gradePoints} pt)

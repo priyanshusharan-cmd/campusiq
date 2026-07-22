@@ -31,7 +31,7 @@ export function SubjectDetailScreen() {
     subject.components || convertLegacyToComponents(subject.cieMarks, subject.aatMarks, subject.labInternalMarks, settings, subject.type === 'lab')
   );
 
-  const [simulatedMarks, setSimulatedMarks] = useState<Record<string, number>>({});
+  const [simulatedMarks, setSimulatedMarks] = useState<Record<string, number>>(subject.targetMarks || {});
 
   const theme = getSubjectTheme(subject.name, subject.code, isDark, subject.color, subject.icon);
   const themeColor = theme.color;
@@ -39,12 +39,12 @@ export function SubjectDetailScreen() {
 
   const bounds = useMemo(() => calculateSubjectBounds(components, simulatedMarks), [components, simulatedMarks]);
   
-  const predictedBoundary = getGradeBoundary(gradeScheme, Math.round(bounds.simulated));
+  const totalSubjectMarks = useMemo(() => components.reduce((sum, comp) => sum + (comp.type === 'grouped' ? comp.weight : comp.maxMarks), 0) || 100, [components]);
+  const predictedPercentage = totalSubjectMarks > 0 ? Math.round((bounds.simulated / totalSubjectMarks) * 100) : 0;
+  const predictedBoundary = getGradeBoundary(gradeScheme, predictedPercentage);
   const totalSemesterCredits = currentSemester?.totalCredits || 22; // fallback
-
+  
   const sgpaImpact = calculateSGPAImpact(subject.credits, totalSemesterCredits, predictedBoundary.gradePoints);
-
-  const totalSubjectMarks = useMemo(() => components.reduce((sum, comp) => sum + comp.weight, 0), [components]);
   
   const floorPct = Math.min(100, Math.max(0, totalSubjectMarks ? (bounds.floor / totalSubjectMarks) * 100 : 0));
   const simPct = Math.min(100, Math.max(0, totalSubjectMarks ? (bounds.simulated / totalSubjectMarks) * 100 : 0));
@@ -83,7 +83,7 @@ export function SubjectDetailScreen() {
   };
 
   const handleSave = () => {
-    updateSubject(subject.id, { components });
+    updateSubject(subject.id, { components, targetMarks: simulatedMarks });
     router.back();
   };
 

@@ -19,7 +19,10 @@ export default function CreateAssignmentModal() {
   
   const [title, setTitle] = useState('');
   const [subjectId, setSubjectId] = useState(subjects[0]?.id || '');
-  const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dueDate, setDueDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
   const [priority, setPriority] = useState<Priority>('medium');
   const [notes, setNotes] = useState('');
 

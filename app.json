@@ -3,13 +3,17 @@
     "name": "CampusIQ",
     "slug": "campusiq",
     "version": "1.0.0",
-    "icon": "./assets/images/campusiq-icon.png",
+    "icon": "./assets/images/campusiq-icon-transparent.png",
     "orientation": "portrait",
     "scheme": "campusiq",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.priyanshusharan.campusiq"
+      "bundleIdentifier": "com.priyanshusharan.campusiq",
+      "infoPlist": {
+        "UIFileSharingEnabled": true,
+        "LSSupportsOpeningDocumentsInPlace": true
+      }
     },
     "android": {
       "predictiveBackGestureEnabled": false,
@@ -17,7 +21,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/campusiq-icon.png"
+      "favicon": "./assets/images/campusiq-icon-transparent.png"
     },
     "plugins": [
       "./strip-push-plugin.js",
@@ -36,6 +40,12 @@
         "expo-local-authentication",
         {
           "faceIDPermission": "Allow CampusIQ to use Face ID to unlock your app."
+        }
+      ],
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
         }
       ]
     ],

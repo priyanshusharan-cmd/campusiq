@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { Card, EmptyState } from '@/components/ui';
 import { useExamStore, useActiveSubjects } from '@/stores';
-import { formatDateFull, getCountdown } from '@/lib';
+import { formatDateFull, getCountdown, getTodayString } from '@/lib';
 
 export default function ExamsScreen() {
   const { colors, spacing, textStyles } = useTheme();
@@ -20,7 +20,7 @@ export default function ExamsScreen() {
   const activeSubjectIds = useMemo(() => new Set(subjects.map(s => s.id)), [subjects]);
   
   const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayString();
 
   const filteredExams = exams.filter((e) => {
     const isUpcoming = e.date >= today;

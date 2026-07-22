@@ -81,9 +81,8 @@ export default function AnimatedSplashScreen({ onAnimationComplete }: Props) {
   }));
 
   const animatedGlowStyle = useAnimatedStyle(() => ({
-    opacity: logoOpacity.value, // Match entrance fade
-    transform: [{ scale: logoScale.value }],
-    shadowOpacity: glowOpacity.value, // Pulse the huge ambient shadow
+    opacity: logoOpacity.value * glowOpacity.value * 0.8, // Multiply to fade in/out smoothly and pulse
+    transform: [{ scale: logoScale.value }], // Match logo scale
   }));
 
   const animatedContainerStyle = useAnimatedStyle(() => ({
@@ -93,52 +92,50 @@ export default function AnimatedSplashScreen({ onAnimationComplete }: Props) {
   if (!isAppReady) return null;
 
   return (
-    <Modal visible transparent animationType="none">
-      <Animated.View style={[styles.container, animatedContainerStyle, { backgroundColor: colors.bg }]}>
-        {/* Ambient Glow layer (same shape as logo, casts massive shadow) */}
-        <Animated.Image
-          source={require('@/assets/images/campusiq-icon-transparent.png')}
-          style={[styles.ambientGlow, animatedGlowStyle]}
-          resizeMode="contain"
-        />
-        
-        {/* The Transparent Logo */}
-        <Animated.Image
-          source={require('@/assets/images/campusiq-icon-transparent.png')}
-          style={[styles.logo, animatedLogoStyle]}
-          resizeMode="contain"
-        />
-      </Animated.View>
-    </Modal>
+    <Animated.View style={[styles.container, animatedContainerStyle, { backgroundColor: '#181424' }]}>
+      {/* Ambient Glow layer: A tiny dot that casts a massive shadow to create a smooth glow without edges */}
+      <Animated.View style={[styles.ambientGlow, animatedGlowStyle]} />
+      
+      {/* The Transparent Logo */}
+      <Animated.Image
+        source={require('@/assets/images/campusiq-icon-transparent.png')}
+        style={[styles.logo, animatedLogoStyle]}
+        resizeMode="contain"
+      />
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     width: '100%',
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 9999,
+    zIndex: 999999,
   },
   logo: {
     width: width * 0.6,
     height: width * 0.6,
     zIndex: 2,
-    shadowColor: '#8b5cf6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 15,
-    shadowOpacity: 0.8,
+    // Removed shadow properties that cause the box artifact
   },
   ambientGlow: {
     position: 'absolute',
-    width: width * 0.6,
-    height: width * 0.6,
+    width: 20, // Tiny center point, completely hidden behind the logo
+    height: 20,
+    borderRadius: 10, 
+    backgroundColor: '#8b5cf6', // The neon purple color
     zIndex: 1,
-    shadowColor: '#a78bfa', // Brighter, softer purple
+    shadowColor: '#a78bfa',
     shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 50, // Massive blur
+    shadowRadius: 60, // Massive blur for the glow
+    shadowOpacity: 1,
     elevation: 20,
   },
 });

@@ -6,7 +6,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import Animated, { FadeInDown, FadeOutDown, FadeInRight } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOutDown, FadeInRight, useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -39,6 +39,9 @@ export default function WelcomeScreen() {
   const [tempDate, setTempDate] = useState<Date>(new Date());
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [step, setStep] = useState(1);
+
+  // Floating animation for the logo
+  const translateY = useSharedValue(0);
 
   // Date helpers
   const getLocalDate = (dateStr: string) => {
@@ -86,11 +89,24 @@ export default function WelcomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      translateY.value = withRepeat(
+        withSequence(
+          withTiming(-8, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: 1500, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1, // infinite
+        true // reverse
+      );
+
       setName(''); setEmail(''); setDob(''); setRollNo(''); setCollege(''); setMajor('');
       setSemester(''); setSemesterStart(''); setSemesterEnd('');
       setFocusedField(null); setErrorMsg(null); setStep(1);
     }, [])
   );
+
+  const floatingStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }]
+  }));
 
   const isStepValid = () => {
     if (step === 1) return name.trim() && email.trim() && rollNo.trim() && dob.trim();
@@ -122,18 +138,20 @@ export default function WelcomeScreen() {
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false} bounces={false}>
         {/* Top Header */}
-        <LinearGradient colors={[colors.primary, '#4C1D95']} style={[styles.headerArea, { paddingTop: insets.top }]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+        <LinearGradient colors={['#0F091A', '#231545']} style={[styles.headerArea, { paddingTop: insets.top }]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
           {step > 1 && (
             <Pressable onPress={() => setStep(step - 1)} style={{ position: 'absolute', top: insets.top + 16, left: 24, zIndex: 10, padding: 8 }}>
               <Ionicons name="arrow-back" size={24} color={colors.white} />
             </Pressable>
           )}
-          <Animated.View entering={FadeInDown.delay(20).duration(80)} style={styles.brandingWrap}>
-            <View style={[styles.appIconContainer, { backgroundColor: 'transparent', overflow: 'hidden' }]}>
+          <Animated.View entering={FadeInDown.delay(100).duration(800).springify()} style={[styles.brandingWrap, floatingStyle]}>
+            {/* Glowing Orb */}
+            <View style={styles.glowingOrb} />
+            <View style={styles.appIconContainer}>
               <Image 
-                source={require('@/assets/images/campusiq-icon.png')} 
-                style={{ width: '104%', height: '104%' }}
-                contentFit="cover"
+                source={require('@/assets/images/campusiq-icon-transparent.png')} 
+                style={{ width: '100%', height: '100%' }}
+                contentFit="contain"
               />
             </View>
           </Animated.View>
@@ -257,9 +275,10 @@ export default function WelcomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerArea: { height: 280, width: '100%', alignItems: 'center', justifyContent: 'center' },
-  brandingWrap: { alignItems: 'center', marginTop: -20 },
-  appIconContainer: { width: 120, height: 120, borderRadius: 36, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20, elevation: 10 },
+  headerArea: { height: 310, width: '100%', alignItems: 'center', justifyContent: 'center' },
+  brandingWrap: { alignItems: 'center', marginTop: -30, justifyContent: 'center' },
+  glowingOrb: { position: 'absolute', width: 130, height: 130, borderRadius: 65, backgroundColor: '#00E5FF', opacity: 0.15, shadowColor: '#00E5FF', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.6, shadowRadius: 60, elevation: 20 },
+  appIconContainer: { width: 150, height: 150, justifyContent: 'center', alignItems: 'center', zIndex: 2 },
   formContainer: { flex: 1, marginTop: -32, paddingHorizontal: 24, paddingTop: 32, shadowColor: '#000', shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.05, shadowRadius: 15, elevation: 20 },
   inputWrapper: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderRadius: 16, height: 56, paddingHorizontal: 16 },
   submitButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 56, borderRadius: 16, shadowColor: '#7C5CFC', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 5 },

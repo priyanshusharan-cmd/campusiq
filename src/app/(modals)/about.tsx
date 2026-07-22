@@ -25,7 +25,7 @@ export default function AboutScreen() {
       
       <ScrollView contentContainerStyle={{ padding: spacing.xl, alignItems: 'center' }}>
         <View style={{ width: 120, height: 120, borderRadius: 36, backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center', marginBottom: spacing.lg, overflow: 'hidden' }}>
-          <Image source={require('@/assets/images/campusiq-icon.png')} style={{ width: '104%', height: '104%' }} contentFit="cover" />
+          <Image source={require('@/assets/images/campusiq-icon-transparent.png')} style={{ width: '104%', height: '104%' }} contentFit="cover" />
         </View>
         
         <Text style={[textStyles.h2, { color: colors.textPrimary, marginBottom: spacing.xs }]}>

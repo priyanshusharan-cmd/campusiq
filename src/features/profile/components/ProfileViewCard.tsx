@@ -116,8 +116,8 @@ export function ProfileViewCard({
                   </Text>
                 </View>
                 <Text style={[textStyles.display, { color: colors.primary, fontSize: 32, lineHeight: 36 }]}>{(currentSGPA > 0 || isPredictedSGPA) ? currentSGPA.toFixed(2) : '--'}</Text>
-                <View style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : colors.bg, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginTop: 4 }}>
-                  <Text style={[textStyles.small, { color: colors.textPrimary, fontSize: 10, fontWeight: '600' }]}>{currentSGPA > 0 ? getGPALabel(currentSGPA) : 'No grades'}</Text>
+                <View style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : colors.bg, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginTop: 4, alignItems: 'center' }}>
+                  <Text style={[textStyles.small, { color: colors.textPrimary, fontSize: 10, fontWeight: '600', textAlign: 'center' }]}>{currentSGPA > 0 || isPredictedSGPA ? getGPALabel(currentSGPA) : 'No grades'}</Text>
                 </View>
               </View>
 
@@ -130,8 +130,8 @@ export function ProfileViewCard({
                   <Text style={[textStyles.smallMedium, { color: colors.textSecondary, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }]}>Current{'\n'}CGPA</Text>
                 </View>
                 <Text style={[textStyles.display, { color: '#0284C7', fontSize: 32, lineHeight: 36 }]}>{cgpa > 0 ? cgpa.toFixed(2) : '--'}</Text>
-                <View style={{ backgroundColor: isDark ? 'rgba(59, 130, 246, 0.1)' : '#EFF6FF', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginTop: 4 }}>
-                  <Text style={[textStyles.small, { color: '#3B82F6', fontSize: 10, fontWeight: '600' }]}>{cgpa > 0 ? getGPALabel(cgpa) : 'No grades'}</Text>
+                <View style={{ backgroundColor: isDark ? 'rgba(59, 130, 246, 0.1)' : '#EFF6FF', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginTop: 4, alignItems: 'center' }}>
+                  <Text style={[textStyles.small, { color: '#3B82F6', fontSize: 10, fontWeight: '600', textAlign: 'center' }]}>{cgpa > 0 ? getGPALabel(cgpa) : 'No grades'}</Text>
                 </View>
               </View>
 

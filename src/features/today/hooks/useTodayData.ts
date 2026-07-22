@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import { useProfileStore, useSubjectStore, useActiveSubjects, useTodayClasses, useOverallAttendance, useAssignmentStore, useExamStore, useAcademicStore, useSettingsStore, useAttendanceStore } from '@/stores';
 import { getTodayString, getDueUrgency } from '@/lib';
-import { calculateSubjectBounds } from '@/lib/gradingEngine';
+import { calculateSubjectBounds, convertLegacyToComponents, getGradeBoundary } from '@/lib/gradingEngine';
 import type { TimetableEntryWithSubject , AttendanceStatus } from '@/types';
 
 export interface TodayData {
@@ -60,25 +60,22 @@ export function useTodayData(): TodayData {
 
   const currentSemester = useAcademicStore(s => s.getCurrentSemester());
   const currentSGPA = useAcademicStore(s => currentSemester ? s.getSGPA(currentSemester.id) : 0);
+  const gradeScheme = useAcademicStore(s => s.gradeScheme);
+  const settings = useSettingsStore();
   
   let expectedSGPA = currentSGPA;
-  if (currentSGPA === 0 && activeSubjects.length > 0) {
+  if (activeSubjects.length > 0) {
     let totalPoints = 0;
     let totalCredits = 0;
     activeSubjects.forEach(sub => {
-      const bounds = calculateSubjectBounds(sub.components || [], {});
-      const maxPossible = sub.components?.reduce((sum, c) => sum + (c.type === 'grouped' ? c.weight : c.maxMarks), 0) || 100;
-      const percentage = Math.round((bounds.ceiling / maxPossible) * 100);
-      let gradePoints = 0;
-      if (percentage >= 90) gradePoints = 10;
-      else if (percentage >= 80) gradePoints = 9;
-      else if (percentage >= 70) gradePoints = 8;
-      else if (percentage >= 60) gradePoints = 7;
-      else if (percentage >= 50) gradePoints = 6;
-      else if (percentage >= 40) gradePoints = 5;
-      else if (percentage >= 35) gradePoints = 4;
+      const components = sub.components || convertLegacyToComponents(sub.cieMarks, sub.aatMarks, sub.labInternalMarks, settings, sub.type === 'lab');
+      const bounds = calculateSubjectBounds(components, sub.targetMarks || {});
+      const maxPossible = components.reduce((sum, c) => sum + c.weight, 0) || 100;
+      const percentage = maxPossible > 0 ? Math.round((bounds.simulated / maxPossible) * 100) : 0;
       
-      totalPoints += gradePoints * sub.credits;
+      const boundary = getGradeBoundary(gradeScheme, percentage);
+      
+      totalPoints += boundary.gradePoints * sub.credits;
       totalCredits += sub.credits;
     });
     if (totalCredits > 0) {

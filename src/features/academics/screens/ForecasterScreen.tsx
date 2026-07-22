@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useProfileStore } from '@/stores/useProfileStore';
+import { useSettingsStore } from '@/stores/useSettingsStore';
 
 export function ForecasterScreen() {
   const insets = useSafeAreaInsets();
@@ -21,6 +22,7 @@ export function ForecasterScreen() {
   const currentSemester = getCurrentSemester();
   const semesterSubjects = useActiveSubjects();
   const profile = useProfileStore(s => s.profile);
+  const settings = useSettingsStore();
   const firstName = profile?.name?.split(' ')[0] || 'Student';
 
   const [dreamSgpa, setDreamSgpa] = useState(-1); // -1 indicates uninitialized
@@ -48,9 +50,9 @@ export function ForecasterScreen() {
     let totalCredits = 0;
     
     semesterSubjects.forEach(sub => {
-      const components = sub.components || convertLegacyToComponents(sub.cieMarks, sub.aatMarks, sub.labInternalMarks, undefined, sub.type === 'lab');
+      const components = sub.components || convertLegacyToComponents(sub.cieMarks, sub.aatMarks, sub.labInternalMarks, settings, sub.type === 'lab');
       const bounds = calculateSubjectBounds(components, {});
-      const maxPossible = components.reduce((sum, c) => sum + (c.type === 'grouped' ? c.weight : c.maxMarks), 0) || 100;
+      const maxPossible = components.reduce((sum, c) => sum + c.weight, 0) || 100;
       const percentage = maxPossible > 0 ? Math.round((bounds.ceiling / maxPossible) * 100) : 0;
       const boundary = getGradeBoundary(gradeScheme, percentage);
       
@@ -73,9 +75,9 @@ export function ForecasterScreen() {
     let floorSgpa = 0;
     let totalCredits = 0;
     const subjectData = semesterSubjects.map(sub => {
-      const components = sub.components || convertLegacyToComponents(sub.cieMarks, sub.aatMarks, sub.labInternalMarks, undefined, sub.type === 'lab');
+      const components = sub.components || convertLegacyToComponents(sub.cieMarks, sub.aatMarks, sub.labInternalMarks, settings, sub.type === 'lab');
       const bounds = calculateSubjectBounds(components, {});
-      const maxPossible = components.reduce((sum, c) => sum + (c.type === 'grouped' ? c.weight : c.maxMarks), 0) || 100;
+      const maxPossible = components.reduce((sum, c) => sum + c.weight, 0) || 100;
       totalCredits += sub.credits;
       return { bounds, maxPossible, credits: sub.credits };
     });

@@ -10,9 +10,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/theme';
 import { Card, ListRow } from '@/components/ui';
-import { useProfileStore, useAcademicStore, useSubjectStore, useActiveSubjects } from '@/stores';
-import { calculateSubjectBounds } from '@/lib/gradingEngine';
-import { gradeToPoint } from '@/lib';
+import { useProfileStore, useAcademicStore, useSubjectStore, useActiveSubjects, useSettingsStore } from '@/stores';
+import { calculateSubjectBounds, getGradeBoundary, convertLegacyToComponents } from '@/lib/gradingEngine';
 import { ProfileViewCard } from './components/ProfileViewCard';
 
 function ProfileField({ 
@@ -89,31 +88,46 @@ export default function ProfileScreen() {
   const semesters = useAcademicStore(s => s.semesters);
   const cgpa = useAcademicStore(s => s.getCGPA());
   const gradeEntries = useAcademicStore(s => s.gradeEntries);
-  const completedCredits = gradeEntries.reduce((sum, e) => sum + e.credits, 0);
+  
+  // Calculate completed credits and backlogs by aggregating from both detailed grade entries and manual semester entries
+  const { completedCredits, totalBacklogs } = useMemo(() => {
+    let credits = 0;
+    let backlogs = 0;
+    semesters.forEach(sem => {
+      const semEntries = gradeEntries.filter(e => e.semesterId === sem.id);
+      if (semEntries.length > 0) {
+        semEntries.forEach(entry => {
+          if (entry.gradePoint > 0) credits += entry.credits;
+          else backlogs += 1;
+        });
+      } else if (sem.sgpa && sem.sgpa > 0) {
+        credits += (sem.totalCredits || 0) - (sem.backlogCredits || 0);
+        backlogs += (sem.backlogCount || 0);
+      }
+    });
+    return { completedCredits: credits, totalBacklogs: backlogs };
+  }, [semesters, gradeEntries]);
 
   // Current SGPA Calculation
   const currentSemesterSubjects = useActiveSubjects();
+  const settings = useSettingsStore();
+  const gradeScheme = useAcademicStore(s => s.gradeScheme);
+  
   let displayedSGPA = currentSGPA;
   let isPredictedSGPA = false;
 
-  if (currentSGPA === 0 && currentSemesterSubjects.length > 0) {
+  if (currentSemesterSubjects.length > 0) {
     let totalPoints = 0;
     let totalCredits = 0;
     currentSemesterSubjects.forEach(sub => {
-      const bounds = calculateSubjectBounds(sub.components || [], {});
-      // Compute percentage (ceiling out of total max)
-      const maxPossible = sub.components?.reduce((sum, c) => sum + (c.type === 'grouped' ? c.weight : c.maxMarks), 0) || 100;
-      const percentage = Math.round((bounds.ceiling / maxPossible) * 100);
-      let gradePoints = 0;
-      if (percentage >= 90) gradePoints = 10;
-      else if (percentage >= 80) gradePoints = 9;
-      else if (percentage >= 70) gradePoints = 8;
-      else if (percentage >= 60) gradePoints = 7;
-      else if (percentage >= 50) gradePoints = 6;
-      else if (percentage >= 40) gradePoints = 5;
-      else if (percentage >= 35) gradePoints = 4;
+      const components = sub.components || convertLegacyToComponents(sub.cieMarks, sub.aatMarks, sub.labInternalMarks, settings, sub.type === 'lab');
+      const bounds = calculateSubjectBounds(components, sub.targetMarks || {});
+      const maxPossible = components.reduce((sum, c) => sum + c.weight, 0) || 100;
+      const percentage = maxPossible > 0 ? Math.round((bounds.simulated / maxPossible) * 100) : 0;
       
-      totalPoints += gradePoints * sub.credits;
+      const boundary = getGradeBoundary(gradeScheme, percentage);
+      
+      totalPoints += boundary.gradePoints * sub.credits;
       totalCredits += sub.credits;
     });
     if (totalCredits > 0) {
@@ -320,7 +334,7 @@ export default function ProfileScreen() {
     const incompleteSubjects = sgpaSubjects.filter(sub => {
       const hasName = sub.name && sub.name.trim() !== '';
       const hasCredits = parseFloat(sub.credits) > 0;
-      const hasGradePoint = parseFloat(sub.gradePoint) > 0;
+      const hasGradePoint = sub.gradePoint !== undefined && sub.gradePoint !== '';
       return hasName && (!hasCredits || !hasGradePoint);
     });
     
@@ -397,6 +411,7 @@ export default function ProfileScreen() {
           currentSGPA={displayedSGPA}
           cgpa={cgpa}
           completedCredits={completedCredits}
+          totalBacklogs={totalBacklogs}
           avatarUri={profile?.avatarUri}
           isPredictedSGPA={isPredictedSGPA}
           onAvatarPress={handlePickAvatar}
@@ -470,7 +485,8 @@ export default function ProfileScreen() {
               themeVariant={isDark ? 'dark' : 'light'}
               onValueChange={(event, date) => {
                 if (Platform.OS === 'android') setShowDatePicker(null);
-                setForm(f => ({ ...f, [showDatePicker]: date.toISOString().split('T')[0] }));
+                const localDateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                setForm(f => ({ ...f, [showDatePicker]: localDateStr }));
               }}
               onDismiss={() => {
                 if (Platform.OS === 'android') setShowDatePicker(null);

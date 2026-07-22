@@ -35,7 +35,7 @@ export default function GoalScreen() {
       totalCredits += s.credits;
       const comps = s.components && s.components.length > 0 ? s.components : convertLegacyToComponents(s.cieMarks, s.aatMarks, s.labInternalMarks, settings, s.type === 'lab');
       const bounds = calculateSubjectBounds(comps, {});
-      const maxPossible = comps.reduce((sum, c) => sum + (c.type === 'grouped' ? c.weight : c.maxMarks), 0) || 100;
+      const maxPossible = comps.reduce((sum, c) => sum + c.weight, 0) || 100;
       const percentage = Math.round((bounds.ceiling / maxPossible) * 100);
       const boundary = getGradeBoundary(gradeScheme, percentage);
       totalPoints += boundary.gradePoints * s.credits;
@@ -63,8 +63,8 @@ export default function GoalScreen() {
         credits: s.credits
       };
     });
-    return calculateRequiredExternals(inputData, targetSGPA, settings);
-  }, [currentSubjects, targetSGPA, settings]);
+    return calculateRequiredExternals(inputData, targetSGPA, settings, gradeScheme);
+  }, [currentSubjects, targetSGPA, settings, gradeScheme]);
 
 
 

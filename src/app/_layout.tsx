@@ -174,7 +174,7 @@ function AppLockWrapper({ children }: { children: React.ReactNode }) {
       <View style={{ flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center', padding: spacing.xl }}>
         <StatusBar style={useTheme().isDark ? 'light' : 'dark'} />
         <View style={{ width: 120, height: 120, borderRadius: 36, backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center', marginBottom: spacing.xl, overflow: 'hidden' }}>
-          <Image source={require('@/assets/images/campusiq-icon.png')} style={{ width: '104%', height: '104%' }} resizeMode="cover" />
+          <Image source={require('@/assets/images/campusiq-icon-transparent.png')} style={{ width: '104%', height: '104%' }} resizeMode="cover" />
         </View>
         <Text style={[textStyles.h2, { color: colors.textPrimary, marginBottom: spacing.sm }]}>CampusIQ is Locked</Text>
         <Text style={[textStyles.body, { color: colors.textSecondary, textAlign: 'center', marginBottom: spacing['3xl'] }]}>
