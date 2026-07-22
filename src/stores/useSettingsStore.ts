@@ -89,14 +89,19 @@ interface SettingsState {
   // ── Legacy (kept for backward compat, not used in new UI) ──
   maxLabMarks: number;
 
+  appLockEnabled: boolean;
+
   // Actions
   setTheme: (theme: ThemeMode) => void;
+  setAccentColor: (color: string) => void;
+  setWeekStartsOn: (day: 0 | 1) => void;
   setAttendanceTarget: (target: number) => void;
   setCollegeTimings: (start: string, end: string) => void;
   setOnboardingCompleted: (completed: boolean) => void;
   toggleHapticFeedback: () => void;
   toggleClassReminders: () => void;
   toggleWeeklyDigest: () => void;
+  toggleAppLock: () => void;
   updateStreak: (todayStr: string) => void;
   setReminderMinutes: (minutes: number) => void;
   setTargetCGPA: (target: number) => void;
@@ -151,6 +156,8 @@ const initialState = {
 
   // Legacy
   maxLabMarks: 0,
+  
+  appLockEnabled: false,
 };
 
 // ─── Store ──────────────────────────────────────────────────────────────────────
@@ -161,6 +168,10 @@ export const useSettingsStore = create<SettingsState>()(
       ...initialState,
 
       setTheme: (theme) => set({ theme }),
+      
+      setAccentColor: (color) => set({ accentColor: color }),
+      
+      setWeekStartsOn: (day) => set({ weekStartsOn: day }),
 
       setAttendanceTarget: (target) => set({ attendanceTarget: Math.max(0, Math.min(100, target)) }),
 
@@ -173,6 +184,8 @@ export const useSettingsStore = create<SettingsState>()(
       toggleClassReminders: () => set((s) => ({ classReminders: !s.classReminders })),
 
       toggleWeeklyDigest: () => set((s) => ({ weeklyDigest: !s.weeklyDigest })),
+      
+      toggleAppLock: () => set((s) => ({ appLockEnabled: !s.appLockEnabled })),
 
       setReminderMinutes: (minutes) => set({ reminderMinutesBefore: minutes }),
 

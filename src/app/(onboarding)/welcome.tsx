@@ -5,6 +5,7 @@ import { View, Text, KeyboardAvoidingView, Platform, StyleSheet, Pressable, Moda
 import { ScrollView } from 'react-native-gesture-handler';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import Animated, { FadeInDown, FadeOutDown, FadeInRight } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

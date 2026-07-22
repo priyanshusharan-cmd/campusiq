@@ -19,7 +19,7 @@ export function calculateComponentScore(component: AssessmentComponent, useMaxPo
       return (overrideEarned / component.maxMarks) * component.weight;
     }
     if (component.earnedMarks !== undefined) {
-      return (component.earnedMarks / component.maxMarks) * component.weight;
+      return component.maxMarks ? (component.earnedMarks / component.maxMarks) * component.weight : 0;
     }
     // If we use max possible for ungraded components
     if (useMaxPossible) {
@@ -75,7 +75,7 @@ export function calculateSimulatedComponentScore(
 ): number {
   if (component.type === 'standalone') {
     if (component.earnedMarks !== undefined) {
-      return (component.earnedMarks / component.maxMarks) * component.weight; // Completed
+      return component.maxMarks ? (component.earnedMarks / component.maxMarks) * component.weight : 0; // Completed
     }
     
     // Pending
@@ -85,7 +85,7 @@ export function calculateSimulatedComponentScore(
     
     if (mode === 'simulated') {
       const simVal = simulatedMarks[component.id] !== undefined ? simulatedMarks[component.id] : component.maxMarks;
-      return (simVal / component.maxMarks) * component.weight;
+      return component.maxMarks ? (simVal / component.maxMarks) * component.weight : 0;
     }
     
     // Floor mode (assume 0 for pending)

@@ -2,25 +2,28 @@
 // Weekly timetable redesigned to match UI reference
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Share, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import { useTheme } from '@/theme';
 import { EmptyState } from '@/components/ui';
 import { TopNavBar } from '@/components/ui/TopNavBar';
 import { Card } from '@/components/ui/Card';
 import { useTimetableData } from './hooks';
+import { timeToMinutes } from './utils/timeUtils';
 import { DaySelector } from './components/DaySelector';
 import { TimelineView } from './components/TimelineView';
 import { MonthCalendarView } from './components/MonthCalendarView';
 import { AttendanceStatusModal } from '@/components/ui/AttendanceStatusModal';
 import { useSettingsStore, useTimetableStore, useProfileStore, useSubjectStore, useAttendanceStore } from '@/stores';
 import { TextInput } from '@/components/form';
-import { KeyboardAvoidingView, Platform, Modal } from 'react-native';
 
 export default function TimetableScreen() {
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
@@ -41,9 +44,14 @@ export default function TimetableScreen() {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
+  const [showFabMenu, setShowFabMenu] = useState(false);
 
   const { collegeStartTime, collegeEndTime } = useSettingsStore();
   const timetableEntries = useTimetableStore(s => s.entries);
+  const addEntry = useTimetableStore(s => s.addEntry);
+  const addSubject = useSubjectStore(s => s.addSubject);
+  const removeSubject = useSubjectStore(s => s.removeSubject);
+  const activeSubjects = subjects.filter(s => s.semesterId === (profile?.currentSemester?.toString() || '1'));
 
   useFocusEffect(
     React.useCallback(() => {
@@ -115,6 +123,172 @@ export default function TimetableScreen() {
     );
   };
 
+  const handleExport = async () => {
+    if (activeSubjects.length === 0) {
+      Alert.alert('No Subjects', 'You have no subjects in the current semester to export.');
+      return;
+    }
+
+    try {
+      const semesterStr = profile?.currentSemester || 1;
+      const branchStr = profile?.branch ? profile.branch.replace(/[^a-zA-Z0-9]/g, '') : 'Branch';
+      const collegeStr = profile?.college ? profile.college.replace(/[^a-zA-Z0-9]/g, '') : 'College';
+      const sectionStr = profile?.section ? profile.section.replace(/[^a-zA-Z0-9]/g, '') : 'A';
+      
+      const fileName = `timetable_section${sectionStr}_semester${semesterStr}_${branchStr}_${collegeStr}.campusiq`;
+      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+      
+      const activeSubjectIds = new Set(activeSubjects.map(s => s.id));
+      const activeEntries = timetableEntries.filter(e => activeSubjectIds.has(e.subjectId));
+
+      const exportData = {
+        type: 'campusiq_timetable',
+        version: '1.0',
+        semester: semesterStr,
+        branch: profile?.branch,
+        college: profile?.college,
+        section: profile?.section,
+        subjects: activeSubjects.map(s => ({
+          id: s.id,
+          name: s.name,
+          code: s.code,
+          credits: s.credits,
+          type: s.type,
+          faculty: s.faculty,
+          color: s.color,
+          icon: s.icon,
+        })),
+        entries: activeEntries.map(e => ({
+          subjectId: e.subjectId,
+          dayOfWeek: e.dayOfWeek,
+          date: e.date,
+          startTime: e.startTime,
+          endTime: e.endTime,
+          room: e.room,
+          type: e.type,
+          color: e.color,
+        }))
+      };
+
+      await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(exportData, null, 2), {
+        encoding: FileSystem.EncodingType.UTF8
+      });
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'application/json',
+          dialogTitle: 'Export CampusIQ Timetable',
+        });
+      } else {
+        Alert.alert('Sharing Unavailable', 'Sharing is not available on this device.');
+      }
+    } catch (error) {
+      console.error('Error exporting timetable:', error);
+      Alert.alert('Export Error', 'Failed to export timetable.');
+    }
+  };
+
+  const handleFileImport = async () => {
+    setShowFabMenu(false);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled || !result.assets || result.assets.length === 0) return;
+
+      const fileUri = result.assets[0].uri;
+      const fileString = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.UTF8 });
+      
+      let parsedData;
+      try {
+        parsedData = JSON.parse(fileString);
+      } catch (e) {
+        Alert.alert('Invalid File', 'The selected file is not a valid JSON.');
+        return;
+      }
+
+      if (parsedData.type === 'campusiq_subjects') {
+        Alert.alert('Wrong File Type', 'You selected a subjects file. Please select a timetable file.');
+        return;
+      }
+
+      if (parsedData.type !== 'campusiq_timetable') {
+        Alert.alert('Invalid File', 'The selected file does not appear to be a CampusIQ timetable file.');
+        return;
+      }
+
+      if (!parsedData.subjects || !Array.isArray(parsedData.subjects) || !parsedData.entries || !Array.isArray(parsedData.entries)) {
+        Alert.alert('Invalid File', 'The file is missing subjects or timetable entries data.');
+        return;
+      }
+
+      if (parsedData.semester && parsedData.semester !== (profile?.currentSemester || 1)) {
+        Alert.alert(
+          'Semester Mismatch', 
+          `This timetable is for Semester ${parsedData.semester}, but you are currently in Semester ${profile?.currentSemester || 1}.`
+        );
+        return;
+      }
+
+      Alert.alert(
+        'Import Timetable',
+        `Are you sure you want to import this timetable? This will ERASE all existing subjects and classes for your current semester.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Import & Replace',
+            style: 'destructive',
+            onPress: () => {
+              const currentSemesterId = profile?.currentSemester?.toString() || '1';
+              
+              const existingSubjects = subjects.filter(s => s.semesterId === currentSemesterId);
+              existingSubjects.forEach(s => removeSubject(s.id));
+
+              const subjectIdMap: Record<string, string> = {};
+
+              parsedData.subjects.forEach((sub: any) => {
+                const newSub = addSubject({
+                  name: sub.name,
+                  code: sub.code,
+                  credits: sub.credits,
+                  semesterId: currentSemesterId,
+                  type: sub.type || 'theory',
+                  color: sub.color,
+                  icon: sub.icon,
+                  faculty: sub.faculty,
+                });
+                subjectIdMap[sub.id] = newSub.id;
+              });
+
+              parsedData.entries.forEach((entry: any) => {
+                if (subjectIdMap[entry.subjectId]) {
+                  addEntry({
+                    subjectId: subjectIdMap[entry.subjectId],
+                    dayOfWeek: entry.dayOfWeek,
+                    date: entry.date,
+                    startTime: entry.startTime,
+                    endTime: entry.endTime,
+                    room: entry.room,
+                    type: entry.type || 'lecture',
+                    color: entry.color,
+                  });
+                }
+              });
+
+              Alert.alert('Success', 'Timetable imported successfully!');
+            }
+          }
+        ]
+      );
+
+    } catch (err) {
+      console.error('File import error:', err);
+      Alert.alert('Error', 'An error occurred while importing the file.');
+    }
+  };
+
   return (
     <LinearGradient 
       colors={isDark ? ['#0F1016', '#1A162D', '#0F1016'] : ['#F8FAFC', '#EEF2FF', '#E0E7FF']} 
@@ -136,6 +310,13 @@ export default function TimetableScreen() {
         <View style={[styles.headerRow, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={[textStyles.h1, { color: colors.textPrimary }]}>Timetable</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            
+            <Pressable 
+              style={[styles.dropdown, { backgroundColor: colors.surface, borderColor: colors.borderLight, paddingHorizontal: 10, justifyContent: 'center' }]}
+              onPress={handleExport}
+            >
+              <Ionicons name="share-outline" size={18} color={colors.primary} />
+            </Pressable>
             
             <Pressable 
               style={[styles.dropdown, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
@@ -212,32 +393,75 @@ export default function TimetableScreen() {
       />
 
       
-      {/* Add Extra Class FAB */}
+      {/* Add Extra Class FAB & Menu */}
       {viewMode === 'week' && hasSubjects && (
-        <Pressable 
-          style={{
-            position: 'absolute',
-            bottom: 24,
-            right: 24,
-            width: 56,
-            height: 56,
-            borderRadius: 28,
-            backgroundColor: colors.primary,
-            justifyContent: 'center',
-            alignItems: 'center',
-            shadowColor: '#000',
-            shadowOpacity: 0.3,
-            shadowOffset: { width: 0, height: 4 },
-            shadowRadius: 8,
-            elevation: 8,
-          }}
-          onPress={() => {
-            const dateStr = days[selectedDay].dateString;
-            router.push(`/(modals)/create-extra-class?date=${dateStr}`);
-          }}
-        >
-          <Ionicons name="add" size={32} color="#FFF" />
-        </Pressable>
+        <>
+          <Pressable 
+            style={{
+              position: 'absolute',
+              bottom: 24,
+              right: 24,
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              backgroundColor: colors.primary,
+              justifyContent: 'center',
+              alignItems: 'center',
+              shadowColor: '#000',
+              shadowOpacity: 0.3,
+              shadowOffset: { width: 0, height: 4 },
+              shadowRadius: 8,
+              elevation: 8,
+            }}
+            onPress={() => setShowFabMenu(true)}
+          >
+            <Ionicons name={showFabMenu ? "close" : "add"} size={32} color="#FFF" />
+          </Pressable>
+
+          {/* Action Menu Modal */}
+          <Modal visible={showFabMenu} animationType="fade" transparent={true}>
+            <Pressable 
+              style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
+              onPress={() => setShowFabMenu(false)}
+            >
+              <Pressable style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 48 }} onPress={e => e.stopPropagation()}>
+                <View style={{ width: 40, height: 4, backgroundColor: colors.borderLight, borderRadius: 2, alignSelf: 'center', marginBottom: 20 }} />
+                
+                <Text style={[textStyles.h3, { color: colors.textPrimary, marginBottom: 16 }]}>Timetable Options</Text>
+                
+                <Pressable 
+                  style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.borderLight }}
+                  onPress={() => {
+                    setShowFabMenu(false);
+                    const dateStr = days[selectedDay].dateString;
+                    router.push(`/(modals)/create-extra-class?date=${dateStr}` as any);
+                  }}
+                >
+                  <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '15', justifyContent: 'center', alignItems: 'center', marginRight: 12 }}>
+                    <Ionicons name="add" size={24} color={colors.primary} />
+                  </View>
+                  <View>
+                    <Text style={[textStyles.body, { color: colors.textPrimary, fontWeight: '600' }]}>Add Extra Class</Text>
+                    <Text style={[textStyles.small, { color: colors.textSecondary }]}>Schedule a one-off class or event</Text>
+                  </View>
+                </Pressable>
+
+                <Pressable 
+                  style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 16 }}
+                  onPress={handleFileImport}
+                >
+                  <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '15', justifyContent: 'center', alignItems: 'center', marginRight: 12 }}>
+                    <Ionicons name="download-outline" size={20} color={colors.primary} />
+                  </View>
+                  <View>
+                    <Text style={[textStyles.body, { color: colors.textPrimary, fontWeight: '600' }]}>Import Timetable</Text>
+                    <Text style={[textStyles.small, { color: colors.textSecondary }]}>Import a .campusiq timetable file</Text>
+                  </View>
+                </Pressable>
+              </Pressable>
+            </Pressable>
+          </Modal>
+        </>
       )}
 
       </SafeAreaView>

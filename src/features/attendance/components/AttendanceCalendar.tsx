@@ -11,6 +11,7 @@ import { Card } from '@/components/ui';
 import { useAttendanceStore } from '@/stores/useAttendanceStore';
 import { useTimetableStore } from '@/stores/useTimetableStore';
 import { useProfileStore } from '@/stores/useProfileStore';
+import { useSettingsStore } from '@/stores/useSettingsStore';
 import { DayOfWeek } from '@/types';
 import { getPastScheduledClasses } from '@/lib/attendanceUtils';
 import { styles } from '../styles/attendanceDetailStyles';
@@ -26,6 +27,7 @@ export function AttendanceCalendar({ subjectId, onDayPress }: AttendanceCalendar
   const timetableEntries = useTimetableStore(s => s.entries);
   const events = useTimetableStore(s => s.events);
   const { profile } = useProfileStore();
+  const weekStartsOn = useSettingsStore(s => s.weekStartsOn);
 
   const subjectRecords = useMemo(() => {
     return allRecords
@@ -124,6 +126,7 @@ export function AttendanceCalendar({ subjectId, onDayPress }: AttendanceCalendar
       <Text style={[textStyles.h3, { marginBottom: spacing.md, color: colors.textPrimary }]}>Class Calendar</Text>
       <Card variant="elevated" padding={20}>
         <Calendar
+          firstDay={weekStartsOn === 0 ? 1 : 0}
           onDayPress={onDayPress}
           markingType={'custom'}
           markedDates={markedDates}

@@ -4,12 +4,14 @@ import { ScrollView, Swipeable } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { cacheDirectory, writeAsStringAsync, EncodingType } from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/theme';
-import { useSubjectStore, useTimetableStore, useActiveSubjects } from '@/stores';
+import { useSubjectStore, useTimetableStore, useActiveSubjects, useProfileStore } from '@/stores';
 
 export default function SubjectsListScreen() {
-  const { colors, spacing, textStyles, radius } = useTheme();
+  const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
   const subjects = useActiveSubjects();
   const removeSubject = useSubjectStore(s => s.removeSubject);
@@ -31,6 +33,56 @@ export default function SubjectsListScreen() {
     );
   };
 
+  const handleExport = async () => {
+    if (subjects.length === 0) {
+      Alert.alert('No Subjects', 'There are no subjects to export.');
+      return;
+    }
+
+    try {
+      const profile = useProfileStore.getState().profile;
+      const semesterStr = profile?.currentSemester || 1;
+      const branchStr = profile?.branch ? profile.branch.replace(/[^a-zA-Z0-9]/g, '') : 'Branch';
+      const collegeStr = profile?.college ? profile.college.replace(/[^a-zA-Z0-9]/g, '') : 'College';
+      
+      const fileName = `subjects_semester${semesterStr}_${branchStr}_${collegeStr}.campusiq`;
+      const fileUri = `${cacheDirectory}${fileName}`;
+      
+      const exportData = {
+        type: 'campusiq_subjects',
+        version: '1.0',
+        semester: profile?.currentSemester || 1,
+        branch: profile?.branch,
+        college: profile?.college,
+        subjects: subjects.map(s => ({
+          name: s.name,
+          code: s.code,
+          credits: s.credits,
+          type: s.type,
+          faculty: s.faculty,
+          color: s.color,
+          icon: s.icon,
+        }))
+      };
+
+      await writeAsStringAsync(fileUri, JSON.stringify(exportData, null, 2), {
+        encoding: EncodingType.UTF8
+      });
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'application/json',
+          dialogTitle: 'Export CampusIQ Subjects',
+        });
+      } else {
+        Alert.alert('Sharing Unavailable', 'Sharing is not available on this device.');
+      }
+    } catch (error) {
+      console.error('Error exporting subjects:', error);
+      Alert.alert('Export Error', 'Failed to export subjects.');
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bgSecondary }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: colors.surface }]}>
@@ -38,7 +90,13 @@ export default function SubjectsListScreen() {
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </Pressable>
         <Text style={[textStyles.h2, { color: colors.textPrimary, flex: 1, textAlign: 'center' }]}>Subjects</Text>
-        <View style={{ width: 40 }} />
+        <Pressable 
+          onPress={handleExport}
+          style={[styles.iconBtn, { backgroundColor: colors.surfaceHover }]}
+          hitSlop={12}
+        >
+          <Ionicons name="share-outline" size={24} color={colors.primary} />
+        </Pressable>
       </View>
 
       <ScrollView 
@@ -94,21 +152,20 @@ export default function SubjectsListScreen() {
             );
 
             const subjectEntries = timetableEntries.filter(e => e.subjectId === subject.id);
-            const hasTheory = subjectEntries.some(e => e.type === 'lecture');
             const hasLab = subjectEntries.some(e => e.type === 'lab');
 
             let displayType = 'Theory';
-            let bgColor = '#E0E7FF';
-            let textColor = '#4338CA';
+            let bgColor = isDark ? '#4338CA40' : '#E0E7FF';
+            let textColor = isDark ? '#A5B4FC' : '#4338CA';
 
             if (hasLab) {
               displayType = 'Theory & Lab';
-              bgColor = '#F3E8FF'; // Purple bg
-              textColor = '#7E22CE'; // Purple text
+              bgColor = isDark ? '#7E22CE40' : '#F3E8FF'; // Purple bg
+              textColor = isDark ? '#D8B4FE' : '#7E22CE'; // Purple text
             } else if (subject.type === 'elective') {
               displayType = 'Elective';
-              bgColor = '#FEF3C7';
-              textColor = '#B45309';
+              bgColor = isDark ? '#B4530940' : '#FEF3C7';
+              textColor = isDark ? '#FCD34D' : '#B45309';
             } else {
               displayType = 'Theory';
             }

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, StyleSheet, Alert, Text } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 import { useTheme } from '@/theme';
-import { useTimetableStore, useAttendanceStore } from '@/stores';
+import { useTimetableStore, useAttendanceStore, useSettingsStore } from '@/stores';
 
 export function MonthCalendarView() {
   const { colors, fontFamily, textStyles, spacing } = useTheme();
@@ -14,6 +14,7 @@ export function MonthCalendarView() {
   const markDayAsHoliday = useAttendanceStore((s) => s.markDayAsHoliday);
   const markDayAsExam = useAttendanceStore((s) => s.markDayAsExam);
   const removeRecordsByDate = useAttendanceStore((s) => s.removeRecordsByDate);
+  const weekStartsOn = useSettingsStore((s) => s.weekStartsOn);
 
   const handleDayPress = (day: DateData) => {
     const dateString = day.dateString;
@@ -184,6 +185,7 @@ export function MonthCalendarView() {
   return (
     <View style={styles.container}>
       <Calendar
+        firstDay={weekStartsOn === 0 ? 1 : 0}
         onDayPress={handleDayPress}
         markingType="custom"
         markedDates={markedDates}

@@ -44,6 +44,12 @@ export function SubjectDetailScreen() {
 
   const sgpaImpact = calculateSGPAImpact(subject.credits, totalSemesterCredits, predictedBoundary.gradePoints);
 
+  const totalSubjectMarks = useMemo(() => components.reduce((sum, comp) => sum + comp.weight, 0), [components]);
+  
+  const floorPct = Math.min(100, Math.max(0, totalSubjectMarks ? (bounds.floor / totalSubjectMarks) * 100 : 0));
+  const simPct = Math.min(100, Math.max(0, totalSubjectMarks ? (bounds.simulated / totalSubjectMarks) * 100 : 0));
+  const ceilPct = Math.min(100, Math.max(0, totalSubjectMarks ? (bounds.ceiling / totalSubjectMarks) * 100 : 0));
+
   const getGradeColor = (letterStr: string) => {
     const letter = letterStr.toUpperCase();
     if (letter === 'S' || letter === 'O') return '#8B5CF6'; // Purple
@@ -197,7 +203,7 @@ export function SubjectDetailScreen() {
           </View>
         </View>
         <Text style={[styles.earnedPts, { color: colors.textSecondary, fontFamily: fontFamily.regular }]}>
-          {((currentVal / comp.maxMarks) * comp.weight).toFixed(2)} pts
+          {comp.maxMarks ? ((currentVal / comp.maxMarks) * comp.weight).toFixed(2) : 0} pts
         </Text>
       </View>
     );
@@ -224,7 +230,7 @@ export function SubjectDetailScreen() {
           <View style={styles.bubbleRow}>
             <View>
               <Text style={[styles.bubbleScore, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>
-                {bounds.simulated.toFixed(1)} <Text style={{ fontSize: 18, color: colors.textSecondary }}>/ 100</Text>
+                {bounds.simulated.toFixed(1)} <Text style={{ fontSize: 18, color: colors.textSecondary }}>/ {totalSubjectMarks}</Text>
               </Text>
               <Text style={[styles.bubbleCredits, { color: colors.textSecondary, fontFamily: fontFamily.regular }]}>
                 Credits: {subject.credits}
@@ -241,29 +247,49 @@ export function SubjectDetailScreen() {
           </View>
         </View>
 
-        {/* Bounds Slider */}
-        <View style={[styles.boundsCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
-          <Text style={[styles.boundsLabel, { color: colors.textSecondary, fontFamily: fontFamily.semiBold }]}>
-            Performance Bounds
-          </Text>
-          <View style={[styles.boundsTrack, { backgroundColor: colors.primary + '30' }]}>
-            <View style={[styles.boundsFill, { left: `${bounds.floor}%`, width: `${bounds.simulated - bounds.floor}%`, backgroundColor: colors.primary }]} />
-            <View style={[styles.boundsMarker, { left: `${bounds.floor}%`, backgroundColor: '#8AB4F8' }]} />
-            <View style={[styles.boundsMarker, { left: `${bounds.simulated}%`, backgroundColor: '#1A73E8' }]} />
-            <View style={[styles.boundsMarker, { left: `${bounds.ceiling}%`, backgroundColor: '#1A73E8' }]} />
+        {/* Score Projection */}
+        <View style={[styles.boundsCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : colors.surface, borderColor: colors.borderLight }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+            <Ionicons name="analytics" size={18} color={themeColor} style={{ marginRight: 8 }} />
+            <Text style={{ fontSize: 16, color: colors.textPrimary, fontFamily: fontFamily.bold }}>
+              Score Projection
+            </Text>
+          </View>
+          
+          <View style={[styles.boundsTrack, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', height: 12, borderRadius: 6, overflow: 'hidden', marginBottom: 20 }]}>
+            {/* Best Case (Max Possible) background */}
+            <View style={{ position: 'absolute', left: 0, height: '100%', width: `${ceilPct}%`, backgroundColor: themeColor, opacity: 0.15 }} />
+            
+            {/* Target/Simulated background */}
+            <View style={{ position: 'absolute', left: 0, height: '100%', width: `${simPct}%`, backgroundColor: themeColor, opacity: 0.4 }} />
+            
+            {/* Guaranteed background */}
+            <View style={{ position: 'absolute', left: 0, height: '100%', width: `${floorPct}%`, backgroundColor: themeColor }} />
+            
+            {/* Target Marker */}
+            <View style={{ position: 'absolute', left: `${simPct}%`, height: '100%', width: 2, backgroundColor: isDark ? '#FFF' : '#000', marginLeft: -1, borderRadius: 1, opacity: 0.5 }} />
           </View>
           
           <View style={styles.boundsLegendRow}>
-            <View>
-              <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: '#8AB4F8' }]} /><Text style={[styles.legendText, { color: colors.textSecondary }]}>Floor (Min)</Text></View>
+            <View style={{ flex: 1 }}>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: themeColor }]} />
+                <Text style={[styles.legendText, { color: colors.textSecondary }]}>Guaranteed</Text>
+              </View>
               <Text style={[styles.legendValue, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>{bounds.floor.toFixed(1)}</Text>
             </View>
-            <View style={{ alignItems: 'center' }}>
-              <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: '#1A73E8' }]} /><Text style={[styles.legendText, { color: colors.textSecondary }]}>Simulated</Text></View>
-              <Text style={[styles.legendValue, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>{bounds.simulated.toFixed(1)}</Text>
+            <View style={{ flex: 1, alignItems: 'center' }}>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: themeColor, opacity: 0.6 }]} />
+                <Text style={[styles.legendText, { color: colors.textSecondary }]}>Target</Text>
+              </View>
+              <Text style={[styles.legendValue, { color: themeColor, fontFamily: fontFamily.bold }]}>{bounds.simulated.toFixed(1)}</Text>
             </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: '#1A73E8' }]} /><Text style={[styles.legendText, { color: colors.textSecondary }]}>Ceiling (Max)</Text></View>
+            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: themeColor, opacity: 0.25 }]} />
+                <Text style={[styles.legendText, { color: colors.textSecondary }]}>Best Case</Text>
+              </View>
               <Text style={[styles.legendValue, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>{bounds.ceiling.toFixed(1)}</Text>
             </View>
           </View>
@@ -309,7 +335,7 @@ export function SubjectDetailScreen() {
             <View style={styles.impactGridCol}>
               <Text style={[styles.impactLabel, { color: colors.textSecondary, fontFamily: fontFamily.semiBold }]}>SGPA Points Lost</Text>
               <Text style={[styles.impactValLost, { color: colors.textPrimary, fontFamily: fontFamily.bold }]}>-{sgpaImpact.lostPoints.toFixed(2)} SGPA</Text>
-              <Text style={[styles.impactSub, { color: colors.textSecondary }]}>({(100 - bounds.simulated).toFixed(1)} marks lost)</Text>
+              <Text style={[styles.impactSub, { color: colors.textSecondary }]}>({(totalSubjectMarks - bounds.simulated).toFixed(1)} marks lost)</Text>
             </View>
             <View style={styles.impactGridCol}>
               <Text style={[styles.impactLabel, { color: colors.textSecondary, fontFamily: fontFamily.semiBold }]}>Max SGPA Contribution</Text>

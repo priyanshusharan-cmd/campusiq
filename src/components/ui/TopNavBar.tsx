@@ -28,28 +28,10 @@ export function TopNavBar({ firstName, avatarUri }: TopNavBarProps) {
       </Pressable>
 
       {/* Native Designer Logo */}
-      <View style={styles.logoContainer}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-          <View style={{
-            width: 30,
-            height: 30,
-            borderRadius: 8,
-            backgroundColor: isDark ? '#818CF8' : colors.primary, // Vibrant Indigo
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginRight: 6,
-            shadowColor: isDark ? '#818CF8' : colors.primary,
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.5,
-            shadowRadius: 6,
-            elevation: 4,
-          }}>
-            <Ionicons name="school" size={18} color="#fff" style={{ marginLeft: 2 }} />
-          </View>
-          <Text style={{ fontFamily: 'Inter-Bold', fontSize: 22, color: isDark ? '#FFFFFF' : colors.textPrimary, letterSpacing: -0.5 }}>
-            Campus<Text style={{ color: isDark ? '#818CF8' : colors.primary }}>IQ</Text>
-          </Text>
-        </View>
+      <View style={[styles.logoContainer, { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', pointerEvents: 'none' }]}>
+        <Text style={{ fontFamily: 'Inter-Bold', fontSize: 22, color: isDark ? '#FFFFFF' : colors.textPrimary, letterSpacing: -0.5 }}>
+          Campus<Text style={{ color: isDark ? '#818CF8' : colors.primary }}>IQ</Text>
+        </Text>
       </View>
 
       <View style={styles.rightSection}>

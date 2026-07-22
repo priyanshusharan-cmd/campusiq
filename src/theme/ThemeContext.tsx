@@ -37,6 +37,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme();
   const mode = useSettingsStore((s) => s.theme);
+  const accentColor = useSettingsStore((s) => s.accentColor);
   const setMode = useSettingsStore((s) => s.setTheme);
 
   const isDark = useMemo(() => {
@@ -48,9 +49,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setMode(isDark ? 'light' : 'dark');
   }, [isDark, setMode]);
 
-  const theme: Theme = useMemo(
-    () => ({
-      colors: isDark ? darkColors : lightColors,
+  const theme: Theme = useMemo(() => {
+    const baseColors = isDark ? darkColors : lightColors;
+    
+    // We only need to override if it's different from the default primary
+    const activeColors = { ...baseColors };
+    
+    if (accentColor && accentColor !== '#7C5CFC') {
+      activeColors.primary = accentColor;
+    }
+    
+    return {
+      colors: activeColors,
       spacing,
       radius,
       iconSize,
@@ -63,9 +73,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       getGlowShadow,
       isDark,
       toggleTheme,
-    }),
-    [isDark, toggleTheme]
-  );
+    };
+  }, [isDark, toggleTheme, accentColor]);
 
   const contextValue = useMemo(
     () => ({ theme, mode, setMode, toggleTheme }),

@@ -426,6 +426,7 @@ export default function ProfileScreen() {
               <View style={{ gap: 20 }}>
                 <ProfileField icon="business-outline" label="College Name" value={getRightText('college')} isEditing={isEditing} renderEdit={renderRight('college', 'Enter College Name')} />
                 <ProfileField icon="git-branch-outline" label="Branch" value={getRightText('branch')} isEditing={isEditing} renderEdit={renderRight('branch', 'Enter Branch')} />
+                <ProfileField icon="people-outline" label="Section" value={getRightText('section')} isEditing={isEditing} renderEdit={renderRight('section', 'Enter Section')} />
                 <ProfileField icon="school-outline" label="Current Semester" value={getRightText('currentSemester')} isEditing={isEditing} renderEdit={renderRight('currentSemester', 'Enter Semester', 'numeric')} />
                 <ProfileField icon="time-outline" label="Semester Start" value={getRightText('semesterStartDate')} isEditing={isEditing} renderEdit={renderRight('semesterStartDate', 'Select Start Date')} onPress={isEditing ? () => setShowDatePicker('semesterStartDate') : undefined} />
                 <ProfileField icon="time-outline" label="Semester End" value={getRightText('semesterEndDate')} isEditing={isEditing} renderEdit={renderRight('semesterEndDate', 'Select End Date')} onPress={isEditing ? () => setShowDatePicker('semesterEndDate') : undefined} />

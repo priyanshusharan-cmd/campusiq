@@ -25,7 +25,15 @@ export function TimelineView({ classes, onLongPressClass, onEmptySlotLongPress }
   const router = useRouter();
 
   const parseTimeToMinutes = (timeStr: string) => {
-    const [h, m] = timeStr.split(':').map(Number);
+    if (!timeStr) return 0;
+    const match = timeStr.match(/(\d+):(\d+)/);
+    if (!match) return 0;
+    let h = parseInt(match[1], 10);
+    let m = parseInt(match[2], 10);
+    
+    if (timeStr.toLowerCase().includes('pm') && h < 12) h += 12;
+    if (timeStr.toLowerCase().includes('am') && h === 12) h = 0;
+    
     return h * 60 + m;
   };
 
@@ -38,14 +46,18 @@ export function TimelineView({ classes, onLongPressClass, onEmptySlotLongPress }
   let maxHour = isNightShift ? cMaxHour + 24 : cMaxHour;
 
   classes.forEach(c => {
-    let sH = parseInt(c.startTime.split(':')[0], 10);
-    let eH = parseInt(c.endTime.split(':')[0], 10);
-    const m = parseInt(c.endTime.split(':')[1], 10);
-    if (m > 0) eH += 1;
+    const sMins = parseTimeToMinutes(c.startTime);
+    const eMins = parseTimeToMinutes(c.endTime);
+    
+    let sH = Math.floor(sMins / 60);
+    let eH = Math.ceil(eMins / 60);
 
     if (isNightShift && sH < cMinHour) sH += 24;
     if (isNightShift && eH < cMinHour) eH += 24;
     if (eH < sH) eH += 24;
+    
+    if (sH < minHour) minHour = sH;
+    if (eH > maxHour) maxHour = eH;
   });
     
   const length = Math.max(1, maxHour - minHour + 1);
@@ -68,10 +80,13 @@ export function TimelineView({ classes, onLongPressClass, onEmptySlotLongPress }
         return (
           <View key={`grid-${hour}`} style={[styles.row, { height: HOUR_HEIGHT }]}>
             <View style={styles.timeColumn}>
-              <Text style={[textStyles.body, { color: colors.textSecondary }]}>{h}:00</Text>
+              <Text style={[textStyles.bodyMedium, { color: colors.textSecondary }]}>{h}:00</Text>
               <Text style={[textStyles.small, { color: colors.textTertiary, marginTop: -2 }]}>{ampm}</Text>
             </View>
-            <View style={[styles.contentColumn, { borderBottomColor: isLast ? 'transparent' : colors.borderLight }]} />
+            <View style={styles.gridLinesContainer}>
+              <View style={[styles.hourLine, { borderTopColor: colors.borderLight }]} />
+              {!isLast && <View style={[styles.halfHourLine, { borderTopColor: colors.borderLight }]} />}
+            </View>
           </View>
         );
       })}
@@ -182,12 +197,28 @@ const styles = StyleSheet.create({
   timeColumn: {
     width: 60,
     alignItems: 'center',
-    paddingTop: 12,
   },
-  contentColumn: {
+  gridLinesContainer: {
     flex: 1,
-    borderBottomWidth: 1,
+    position: 'relative',
+  },
+  hourLine: {
+    position: 'absolute',
+    top: 12,
+    left: 0,
+    right: 0,
+    borderTopWidth: 1,
+    borderStyle: 'solid',
+    opacity: 0.8,
+  },
+  halfHourLine: {
+    position: 'absolute',
+    top: 12 + HOUR_HEIGHT / 2,
+    left: 0,
+    right: 0,
+    borderTopWidth: 1,
     borderStyle: 'dashed',
+    opacity: 0.4,
   },
   cardsOverlay: {
     position: 'absolute',

@@ -8,7 +8,12 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ThemeProvider, useTheme } from '@/theme';
-
+import { Drawer } from 'react-native-drawer-layout';
+import { usePathname } from 'expo-router';
+import { useDrawerStore, useSettingsStore } from '@/stores';
+import MoreScreen from '@/features/more/MoreScreen';
+import * as LocalAuthentication from 'expo-local-authentication';
+import { AppState, View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
@@ -65,6 +70,8 @@ export default function RootLayout() {
   useEffect(() => {
     if ((loaded || error) && storesHydrated) {
       SplashScreen.hideAsync();
+      const { setupNotificationListeners } = require('@/utils/notificationListeners');
+      setupNotificationListeners();
     }
   }, [loaded, error, storesHydrated]);
 
@@ -87,10 +94,91 @@ export default function RootLayout() {
   );
 }
 
-import { Drawer } from 'react-native-drawer-layout';
-import { usePathname } from 'expo-router';
-import { useDrawerStore } from '@/stores/useDrawerStore';
-import MoreScreen from '@/features/more/MoreScreen';
+
+function AppLockWrapper({ children }: { children: React.ReactNode }) {
+  const { colors, textStyles, spacing, radius } = useTheme();
+  const appLockEnabled = useSettingsStore((s) => s.appLockEnabled);
+  const [isUnlocked, setIsUnlocked] = React.useState(!appLockEnabled);
+
+  const authenticate = React.useCallback(async () => {
+    if (!appLockEnabled) return;
+    
+    const hasHardware = await LocalAuthentication.hasHardwareAsync();
+    const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+    
+    if (!hasHardware || !isEnrolled) {
+      setIsUnlocked(true);
+      return;
+    }
+
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Unlock CampusIQ',
+        fallbackLabel: 'Use Passcode',
+      });
+      
+      if (result.success) {
+        setIsUnlocked(true);
+      }
+    } catch (e) {
+      console.warn('Auth error', e);
+    }
+  }, [appLockEnabled]);
+
+  React.useEffect(() => {
+    if (appLockEnabled) {
+      setIsUnlocked(false);
+      authenticate();
+    } else {
+      setIsUnlocked(true);
+    }
+  }, [appLockEnabled, authenticate]);
+
+  React.useEffect(() => {
+    let appState = AppState.currentState;
+    
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'background') {
+        // Only lock when fully in background. 'inactive' is triggered by the FaceID prompt itself!
+        if (appLockEnabled) {
+          setIsUnlocked(false);
+        }
+      } else if (nextAppState === 'active' && appState.match(/inactive|background/)) {
+        if (appLockEnabled && !isUnlocked) {
+          authenticate();
+        }
+      }
+      appState = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [appLockEnabled, isUnlocked, authenticate]);
+
+  if (!isUnlocked) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center', padding: spacing.xl }}>
+        <StatusBar style={useTheme().isDark ? 'light' : 'dark'} />
+        <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: colors.primaryLight, justifyContent: 'center', alignItems: 'center', marginBottom: spacing.xl, overflow: 'hidden' }}>
+          <Image source={require('@/assets/images/icon.png')} style={{ width: 80, height: 80 }} resizeMode="contain" />
+        </View>
+        <Text style={[textStyles.h2, { color: colors.textPrimary, marginBottom: spacing.sm }]}>CampusIQ is Locked</Text>
+        <Text style={[textStyles.body, { color: colors.textSecondary, textAlign: 'center', marginBottom: spacing['3xl'] }]}>
+          Please authenticate to view your academic data.
+        </Text>
+        <TouchableOpacity 
+          style={{ backgroundColor: colors.primary, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderRadius: radius.round }}
+          onPress={authenticate}
+        >
+          <Text style={[textStyles.button, { color: colors.white }]}>Unlock</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return <>{children}</>;
+}
 
 function RootLayoutNav() {
   const { isDark } = useTheme();
@@ -101,7 +189,7 @@ function RootLayoutNav() {
   const isHome = pathname === '/' || pathname === '';
 
   return (
-    <>
+    <AppLockWrapper>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Drawer
         open={isOpen}
@@ -124,6 +212,6 @@ function RootLayoutNav() {
           <Stack.Screen name="settings" />
         </Stack>
       </Drawer>
-    </>
+    </AppLockWrapper>
   );
 }
