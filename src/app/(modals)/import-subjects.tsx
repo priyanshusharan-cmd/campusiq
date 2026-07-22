@@ -789,6 +789,19 @@ export default function ImportSubjectsScreen() {
   const currentBranchData = currentCollegeData?.branches.find(b => b.branch === selectedBranch);
 
   const handleImport = (semesterData: any) => {
+    if (profile?.branch && profile.branch.trim() !== '' && currentBranchData) {
+      const pb = profile.branch.toLowerCase().trim();
+      const bb = currentBranchData.branch.toLowerCase();
+      const aliases = (currentBranchData as any).aliases || [];
+      
+      const isMatch = pb.includes(bb) || bb.includes(pb) || aliases.some((alias: string) => pb === alias || pb.includes(alias) || alias.includes(pb));
+      
+      if (!isMatch) {
+        Alert.alert('Branch Mismatch', `You can only import subjects for your branch (${profile.branch}).`);
+        return;
+      }
+    }
+
     if (!semesterData.targetSemesters.includes(profile?.currentSemester || 1)) {
       Alert.alert(
         'Semester Mismatch',
@@ -1033,18 +1046,6 @@ export default function ImportSubjectsScreen() {
                   { backgroundColor: pressed ? colors.surfaceHover : colors.surface, borderColor: colors.borderLight }
                 ]}
                 onPress={() => {
-                  if (profile?.branch && profile.branch.trim() !== '') {
-                    const pb = profile.branch.toLowerCase().trim();
-                    const bb = b.branch.toLowerCase();
-                    const aliases = (b as any).aliases || [];
-                    
-                    const isMatch = pb.includes(bb) || bb.includes(pb) || aliases.some((alias: string) => pb === alias || pb.includes(alias) || alias.includes(pb));
-                    
-                    if (!isMatch) {
-                      Alert.alert('Branch Mismatch', `You can only import subjects for your branch (${profile.branch}).`);
-                      return;
-                    }
-                  }
                   setSelectedBranch(b.branch);
                   setStep('semester');
                 }}
