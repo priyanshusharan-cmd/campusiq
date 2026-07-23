@@ -192,16 +192,16 @@ export function marksToGradePoint(marks: number, scheme?: GradeScheme): number {
 }
 
 export function getMinMarksForGradePoint(gp: number, scheme: GradeScheme): number {
-  const sorted = [...scheme.boundaries].sort((a, b) => b.gradePoints - a.gradePoints);
+  const sorted = [...scheme.boundaries].sort((a, b) => a.gradePoints - b.gradePoints); // ascending
   const exact = sorted.find(b => b.gradePoints === gp);
   if (exact) return exact.minMarks;
-  
-  for (const b of sorted) {
-    if (gp >= b.gradePoints) {
-      return b.minMarks; // Approximation for gaps
-    }
-  }
-  return 0;
+
+  // Find the smallest real grade point that is still >= the requested one
+  const nextReal = sorted.find(b => b.gradePoints >= gp);
+  if (nextReal) return nextReal.minMarks;
+
+  // Requested grade point is above the highest grade in the scheme
+  return sorted[sorted.length - 1]?.minMarks ?? 100;
 }
 
 export interface SubjectGoalTarget {
@@ -252,6 +252,8 @@ export function calculateRequiredExternals(
   
   let currentTotalPoints = targets.reduce((sum, t) => sum + (t.targetGradePoint * t.credits), 0);
   
+  const realGradePointsAsc = [...new Set(gradeScheme.boundaries.map(b => b.gradePoints))].sort((a, b) => a - b);
+  
   // Greedy approach: upgrade the subject that requires the least additional marks
   while (currentTotalPoints < requiredTotalPoints) {
     let bestSubjectIndex = -1;
@@ -259,8 +261,8 @@ export function calculateRequiredExternals(
     
     for (let i = 0; i < targets.length; i++) {
       const t = targets[i];
-      if (t.targetGradePoint < 10) {
-        const nextGradePoint = t.targetGradePoint + 1;
+      const nextGradePoint = realGradePointsAsc.find(gp => gp > t.targetGradePoint);
+      if (nextGradePoint !== undefined) {
         
         const nextMinPercent = getMinMarksForGradePoint(nextGradePoint, gradeScheme);
         const nextMinTotalMarks = Math.ceil((nextMinPercent / 100) * t.totalSubjectMax);
@@ -292,7 +294,8 @@ export function calculateRequiredExternals(
     
     // Upgrade the best subject
     const best = targets[bestSubjectIndex];
-    best.targetGradePoint += 1;
+    const bestNextGP = realGradePointsAsc.find(gp => gp > best.targetGradePoint);
+    if (bestNextGP !== undefined) best.targetGradePoint = bestNextGP;
     
     const nextMinPercent = getMinMarksForGradePoint(best.targetGradePoint, gradeScheme);
     const nextMinTotalMarks = Math.ceil((nextMinPercent / 100) * best.totalSubjectMax);

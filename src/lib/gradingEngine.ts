@@ -16,7 +16,7 @@ export function getGradeBoundary(scheme: GradeScheme, score: number): GradeBound
 export function calculateComponentScore(component: AssessmentComponent, useMaxPossible: boolean = false, overrideEarned?: number): number {
   if (component.type === 'standalone') {
     if (overrideEarned !== undefined) {
-      return (overrideEarned / component.maxMarks) * component.weight;
+      return component.maxMarks ? (overrideEarned / component.maxMarks) * component.weight : 0;
     }
     if (component.earnedMarks !== undefined) {
       return component.maxMarks ? (component.earnedMarks / component.maxMarks) * component.weight : 0;

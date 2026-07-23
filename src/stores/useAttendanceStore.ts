@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { useMemo } from 'react';
 import type { AttendanceRecord, AttendanceStatus, SubjectAttendance, ID } from '@/types';
 import { generateId, getAttendanceStatus } from '@/types';
 import { calcAttendancePercentage, calcCanMiss, calcNeedToAttend, getPastScheduledClasses } from '@/lib/attendanceUtils';
@@ -102,7 +103,8 @@ export const useAttendanceStore = create<AttendanceState>()(
     // Determine day of week from the date string
     const d = new Date(date + 'T12:00:00');
     const jsDay = d.getDay(); // 0=Sun
-    const dayOfWeek = jsDay === 0 ? 6 : jsDay - 1; // Convert to 0=Mon format
+    if (jsDay === 0) return; // Skip Sundays
+    const dayOfWeek = jsDay - 1; // Convert to 0=Mon format
 
     // Find all timetable entries for this day of week
     const dayEntries = entries.filter((e: any) => e.dayOfWeek === dayOfWeek);
@@ -127,7 +129,8 @@ export const useAttendanceStore = create<AttendanceState>()(
     // Determine day of week from the date string
     const d = new Date(date + 'T12:00:00');
     const jsDay = d.getDay();
-    const dayOfWeek = jsDay === 0 ? 6 : jsDay - 1;
+    if (jsDay === 0) return; // Skip Sundays
+    const dayOfWeek = jsDay - 1;
 
     // Find all timetable entries for this day of week
     const dayEntries = entries.filter((e: any) => e.dayOfWeek === dayOfWeek);
@@ -149,7 +152,8 @@ export const useAttendanceStore = create<AttendanceState>()(
     // Determine day of week from the date string
     const d = new Date(date + 'T12:00:00');
     const jsDay = d.getDay();
-    const dayOfWeek = jsDay === 0 ? 6 : jsDay - 1;
+    if (jsDay === 0) return; // Skip Sundays
+    const dayOfWeek = jsDay - 1;
 
     // Find all timetable entries for this day of week
     const dayEntries = entries.filter((e: any) => e.dayOfWeek === dayOfWeek);
@@ -180,49 +184,51 @@ export function useSubjectAttendance(): SubjectAttendance[] {
   const events = useTimetableStore((s) => s.events);
   const profile = useProfileStore((s) => s.profile);
 
-  return subjects.map((subject) => {
-    const subjectRecords = records.filter((r) => r.subjectId === subject.id);
-    const explicitPresent = subjectRecords.filter((r) => r.status === 'present').length;
-    const absent = subjectRecords.filter((r) => r.status === 'absent').length;
-    const cancelled = subjectRecords.filter((r) => r.status === 'cancelled').length;
-    const holiday = subjectRecords.filter((r) => r.status === 'holiday').length;
+  return useMemo(() => {
+    return subjects.map((subject) => {
+      const subjectRecords = records.filter((r) => r.subjectId === subject.id);
+      const explicitPresent = subjectRecords.filter((r) => r.status === 'present').length;
+      const absent = subjectRecords.filter((r) => r.status === 'absent').length;
+      const cancelled = subjectRecords.filter((r) => r.status === 'cancelled').length;
+      const holiday = subjectRecords.filter((r) => r.status === 'holiday').length;
 
-    // Calculate Assumed Present
-    const pastScheduled = getPastScheduledClasses(subject.id, timetableEntries, events, profile?.semesterStartDate);
-    let assumedPresent = 0;
-    
-    for (const scheduled of pastScheduled) {
-      const hasRecord = subjectRecords.some(r => r.date === scheduled.dateStr && r.timetableEntryId === scheduled.entryId);
-      if (!hasRecord) assumedPresent++;
-    }
+      // Calculate Assumed Present
+      const pastScheduled = getPastScheduledClasses(subject.id, timetableEntries, events, profile?.semesterStartDate);
+      let assumedPresent = 0;
+      
+      for (const scheduled of pastScheduled) {
+        const hasRecord = subjectRecords.some(r => r.date === scheduled.dateStr && r.timetableEntryId === scheduled.entryId);
+        if (!hasRecord) assumedPresent++;
+      }
 
-    const present = explicitPresent + assumedPresent;
-    const totalClasses = present + absent; // Only count present + absent for percentage
-    const percentage = calcAttendancePercentage(present, totalClasses);
-    
-    // Subject specific target falls back to global target
-    const effectiveTarget = subject.attendanceTarget ?? target;
-    
-    const canMiss = calcCanMiss(present, totalClasses, effectiveTarget);
-    const needToAttend = calcNeedToAttend(present, totalClasses, effectiveTarget);
+      const present = explicitPresent + assumedPresent;
+      const totalClasses = present + absent; // Only count present + absent for percentage
+      const percentage = calcAttendancePercentage(present, totalClasses);
+      
+      // Subject specific target falls back to global target
+      const effectiveTarget = subject.attendanceTarget ?? target;
+      
+      const canMiss = calcCanMiss(present, totalClasses, effectiveTarget);
+      const needToAttend = calcNeedToAttend(present, totalClasses, effectiveTarget);
 
-    return {
-      subjectId: subject.id,
-      subjectName: subject.name,
-      subjectShortName: subject.shortName,
-      subjectColor: subject.color,
-      totalClasses,
-      present,
-      absent,
-      cancelled,
-      holiday,
-      percentage,
-      canMiss,
-      needToAttend,
-      target: effectiveTarget,
-      status: getAttendanceStatus(percentage, effectiveTarget),
-    };
-  });
+      return {
+        subjectId: subject.id,
+        subjectName: subject.name,
+        subjectShortName: subject.shortName,
+        subjectColor: subject.color,
+        totalClasses,
+        present,
+        absent,
+        cancelled,
+        holiday,
+        percentage,
+        canMiss,
+        needToAttend,
+        target: effectiveTarget,
+        status: getAttendanceStatus(percentage, effectiveTarget),
+      };
+    });
+  }, [records, subjects, timetableEntries, events, profile?.semesterStartDate, target]);
 }
 
 // Get overall attendance

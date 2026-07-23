@@ -12,7 +12,7 @@ import { Drawer } from 'react-native-drawer-layout';
 import { useDrawerStore, useSettingsStore } from '@/stores';
 import MoreScreen from '@/features/more/MoreScreen';
 import * as LocalAuthentication from 'expo-local-authentication';
-import { AppState, View, Text, TouchableOpacity, StyleSheet, Image, LogBox } from 'react-native';
+import { AppState, View, Text, TouchableOpacity, StyleSheet, Image, LogBox, Alert } from 'react-native';
 import AnimatedSplashScreen from '@/components/ui/AnimatedSplashScreen';
 
 // Suppress known Expo Go warnings for remote push notifications
@@ -33,6 +33,20 @@ export default function RootLayout() {
 
   const [storesHydrated, setStoresHydrated] = React.useState(false);
   const [splashAnimationFinished, setSplashAnimationFinished] = React.useState(false);
+
+  useEffect(() => {
+    let hasWarnedThisSession = false;
+    const { setStorageErrorListener } = require('@/stores/storage');
+    setStorageErrorListener((operation: 'get' | 'set' | 'remove', name: string, error: unknown) => {
+      if (operation === 'set' && !hasWarnedThisSession) {
+        hasWarnedThisSession = true;
+        Alert.alert(
+          'Couldn\'t Save Your Data',
+          'CampusIQ couldn\'t save your latest changes to your device. Free up some storage space and try again.'
+        );
+      }
+    });
+  }, []);
 
   useEffect(() => {
     let isMounted = true;

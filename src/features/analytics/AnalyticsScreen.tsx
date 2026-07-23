@@ -511,7 +511,9 @@ export default function AnalyticsScreen() {
                           <Text style={[textStyles.smallMedium, { color: isSafe ? colors.success : colors.danger, textAlign: 'center' }]}>
                             {isSafe 
                               ? `You can safely miss ${stat.canMiss} more classes` 
-                              : `You need to attend ${stat.needToAttend} more classes to reach target`}
+                              : stat.needToAttend === Infinity
+                                ? `A 100% target means every remaining class counts`
+                                : `You need to attend ${stat.needToAttend} more classes to reach target`}
                           </Text>
                         </View>
                       </View>

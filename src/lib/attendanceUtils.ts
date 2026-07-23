@@ -12,7 +12,7 @@ export function calcAttendancePercentage(present: number, total: number): number
 
 // Calculate how many more classes can be missed while staying at/above target
 export function calcCanMiss(present: number, total: number, target: number = DEFAULTS.attendanceTarget): number {
-  if (total === 0) return 0;
+  if (total === 0 || target === 0) return total;
   const canMiss = Math.floor((present * 100 - target * total) / target);
   return Math.max(0, canMiss);
 }
@@ -22,6 +22,10 @@ export function calcNeedToAttend(present: number, total: number, target: number 
   if (total === 0) return 0;
   const current = (present / total) * 100;
   if (current >= target) return 0;
+
+  if (target >= 100) {
+    return Infinity;
+  }
 
   const needed = Math.ceil((target * total - present * 100) / (100 - target));
   return Math.max(0, needed);
@@ -59,6 +63,10 @@ export function getAttendanceInsight(
   const percentage = calcAttendancePercentage(present, total);
   const canMiss = calcCanMiss(present, total, target);
   const needToAttend = calcNeedToAttend(present, total, target);
+
+  if (needToAttend === Infinity) {
+    return `A 100% target means you can never miss a class from here on — every remaining class counts.`;
+  }
 
   if (percentage >= 95) {
     return `Outstanding! You can miss ${canMiss} more classes and still be well above ${target}%.`;
@@ -107,7 +115,8 @@ export function getPastScheduledClasses(
     if (events[dateStr] === 'holiday' || events[dateStr] === 'exam') return;
 
     const jsDay = d.getDay(); // 0=Sun
-    const dayOfWeek = (jsDay === 0 ? 6 : jsDay - 1) as DayOfWeek; // 0=Mon
+    if (jsDay === 0) return; // Skip Sundays
+    const dayOfWeek = (jsDay - 1) as DayOfWeek; // 0=Mon
 
     // Find all entries for this subject on this day of week
     const dayEntries = subjectEntries.filter(e => e.dayOfWeek === dayOfWeek);

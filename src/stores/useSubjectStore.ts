@@ -12,6 +12,17 @@ import type { AssessmentComponent } from '@/types/grading';
 
 import { useAcademicStore } from './useAcademicStore';
 
+function whenStoreHydrated(store: any, callback: () => void) {
+  if (store.persist.hasHydrated()) {
+    callback();
+    return;
+  }
+  const unsub = store.persist.onFinishHydration(() => {
+    unsub();
+    callback();
+  });
+}
+
 interface SubjectState {
   subjects: Subject[];
   addSubject: (data: { name: string; code?: string; faculty?: string; room?: string; type?: SubjectType; credits?: number; semesterId?: string; components?: AssessmentComponent[]; color?: string; icon?: string }) => Subject;
@@ -82,46 +93,52 @@ export const useSubjectStore = create<SubjectState>()(
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         
-        // Migrate: Normalize all semesterId values to just the number string
-        let needsUpdate = false;
-        const migrated = state.subjects.map(s => {
-          let normalizedId = s.semesterId;
-          
-          // Fix "sem-X" format → "X"
-          if (normalizedId && normalizedId.startsWith('sem-')) {
-            normalizedId = normalizedId.replace('sem-', '');
-            needsUpdate = true;
-          }
-          
-          // Fix empty semesterId → "4" (legacy subjects were created in semester 4)
-          if (!normalizedId || normalizedId.trim() === '') {
-            normalizedId = '4';
-            needsUpdate = true;
-          }
-          
-          // Fix UUID-style semesterIds — check if it's NOT a pure number
-          if (normalizedId && isNaN(parseInt(normalizedId))) {
-            const academicSemesters = useAcademicStore.getState().semesters;
-            const academicSem = academicSemesters.find(
-              (sem) => sem.id === normalizedId
-            );
-            normalizedId = academicSem ? academicSem.number.toString() : '1';
-            needsUpdate = true;
-          }
-          
-          return { ...s, semesterId: normalizedId };
-        });
-        
-        if (needsUpdate) {
-          // Use setTimeout to avoid setting state during rehydration
-          setTimeout(() => {
-            useSubjectStore.setState({ subjects: migrated });
-          }, 0);
-        }
+        whenStoreHydrated(useAcademicStore, () => {
+          // Migrate: Normalize all semesterId values to just the number string
+          let needsUpdate = false;
+          const migrated = state.subjects.map(s => {
+            let normalizedId = s.semesterId;
+            
+            // Fix "sem-X" format → "X"
+            if (normalizedId && normalizedId.startsWith('sem-')) {
+              normalizedId = normalizedId.replace('sem-', '');
+              needsUpdate = true;
+            }
+            
+            // Fix empty semesterId → "4" (legacy subjects were created in semester 4)
+            if (!normalizedId || normalizedId.trim() === '') {
+              normalizedId = '4';
+              needsUpdate = true;
+            }
+            
+            // Fix UUID-style semesterIds — check if it's NOT a pure number
+            if (normalizedId && isNaN(parseInt(normalizedId))) {
+              const academicSemesters = useAcademicStore.getState().semesters;
+              const academicSem = academicSemesters.find(
+                (sem) => sem.id === normalizedId
+              );
+              normalizedId = academicSem ? academicSem.number.toString() : '1';
+              needsUpdate = true;
+            }
+            
+            let updatedSubject = { ...s, semesterId: normalizedId };
+            
+            // Migrate legacy labMarks
+            if (updatedSubject.labMarks && updatedSubject.labMarks > 0 && updatedSubject.labInternalMarks && updatedSubject.labInternalMarks.length > 0) {
+              // labMarks is already accounted for in labInternalMarks, zero it out to avoid double counting
+              updatedSubject.labMarks = 0;
+              needsUpdate = true;
+            }
 
-        // Auto-populate: If grade tracker has subjects for the current semester but SubjectStore doesn't,
-        // create them in SubjectStore
-        setTimeout(() => {
+            return updatedSubject;
+          });
+          
+          if (needsUpdate) {
+            useSubjectStore.setState({ subjects: migrated });
+          }
+
+          // Auto-populate: If grade tracker has subjects for the current semester but SubjectStore doesn't,
+          // create them in SubjectStore
           const profile = useProfileStore.getState().profile;
           const currentSemNum = profile?.currentSemester || 1;
           const semStr = currentSemNum.toString();
@@ -133,10 +150,10 @@ export const useSubjectStore = create<SubjectState>()(
             const currentAcademicSem = academicSemesters.find((s: any) => s.number === currentSemNum);
             
             if (currentAcademicSem?.sgpaSubjects && currentAcademicSem.sgpaSubjects.length > 0) {
-              const state = useSubjectStore.getState();
+              const currentState = useSubjectStore.getState();
               currentAcademicSem.sgpaSubjects.forEach((sgpaSub: any) => {
                 if (!sgpaSub.name || !sgpaSub.name.trim()) return;
-                state.addSubject({
+                currentState.addSubject({
                   name: sgpaSub.name,
                   code: sgpaSub.code || '',
                   credits: parseFloat(sgpaSub.credits) || 3,
@@ -145,7 +162,7 @@ export const useSubjectStore = create<SubjectState>()(
               });
             }
           }
-        }, 100); // Slight delay to ensure all stores are rehydrated
+        });
       },
     }
   )

@@ -13,7 +13,7 @@ import { useTimetableStore } from '@/stores/useTimetableStore';
 import { DayOfWeek } from '@/types';
 import { useProfileStore } from '@/stores/useProfileStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
-import { getPastScheduledClasses } from '@/lib/attendanceUtils';
+import { getPastScheduledClasses, calcAttendancePercentage, calcCanMiss, calcNeedToAttend } from '@/lib/attendanceUtils';
 import { getSubjectTheme } from '@/utils/subjectTheme';
 // Modular components
 import { AttendanceGauge } from '@/features/attendance/components/AttendanceGauge';
@@ -48,6 +48,7 @@ export default function SubjectAttendanceDetailScreen() {
   const present = subjectStats?.present || 0;
   const totalClasses = subjectStats?.totalClasses || 0;
   const canMiss = subjectStats?.canMiss || 0;
+  const needToAttend = subjectStats?.needToAttend || 0;
 
   const [selectedDayStr, setSelectedDayStr] = useState<string | null>(null);
   const [dayClasses, setDayClasses] = useState<typeof timetableEntries>([]);
@@ -116,19 +117,13 @@ export default function SubjectAttendanceDetailScreen() {
 
     const present = explicitPresent + assumedPresent;
     const totalClasses = present + absent;
-    // We compute percentage and canMiss inline since calcAttendancePercentage is not imported
-    const calcPerc = (p: number, t: number) => t === 0 ? 100 : Math.round((p / t) * 10000) / 100;
-    const percentage = calcPerc(present, totalClasses);
+    const percentage = calcAttendancePercentage(present, totalClasses);
     
     const target = subject?.attendanceTarget ?? useSettingsStore.getState().attendanceTarget;
-    const calcMiss = (p: number, t: number, tgt: number) => {
-      if (t === 0) return 0;
-      const canMiss = Math.floor((p * 100 - tgt * t) / tgt);
-      return Math.max(0, canMiss);
-    };
-    const canMiss = calcMiss(present, totalClasses, target);
+    const canMiss = calcCanMiss(present, totalClasses, target);
+    const needToAttend = calcNeedToAttend(present, totalClasses, target);
 
-    return { present, totalClasses, percentage, canMiss };
+    return { present, totalClasses, percentage, canMiss, needToAttend };
   };
 
   const theoryStats = getStatsForType('theory');
@@ -311,11 +306,11 @@ export default function SubjectAttendanceDetailScreen() {
         {activeTab === 'attendance' ? (
           <>
             {(!hasTheory || !hasLab) ? (
-              <AttendanceGauge title="Overall Attendance" percentage={percentage} present={present} totalClasses={totalClasses} canMiss={canMiss} target={subject?.attendanceTarget ?? useSettingsStore.getState().attendanceTarget} />
+              <AttendanceGauge title="Overall Attendance" percentage={percentage} present={present} totalClasses={totalClasses} canMiss={canMiss} needToAttend={needToAttend} target={subject?.attendanceTarget ?? useSettingsStore.getState().attendanceTarget} />
             ) : (
               <View style={{ gap: 16 }}>
-                {theoryStats && <AttendanceGauge title="Theory Attendance" percentage={theoryStats.percentage} present={theoryStats.present} totalClasses={theoryStats.totalClasses} canMiss={theoryStats.canMiss} target={subject?.attendanceTarget ?? useSettingsStore.getState().attendanceTarget} />}
-                {labStats && <AttendanceGauge title="Lab Attendance" percentage={labStats.percentage} present={labStats.present} totalClasses={labStats.totalClasses} canMiss={labStats.canMiss} target={subject?.attendanceTarget ?? useSettingsStore.getState().attendanceTarget} />}
+                {theoryStats && <AttendanceGauge title="Theory Attendance" percentage={theoryStats.percentage} present={theoryStats.present} totalClasses={theoryStats.totalClasses} canMiss={theoryStats.canMiss} needToAttend={theoryStats.needToAttend} target={subject?.attendanceTarget ?? useSettingsStore.getState().attendanceTarget} />}
+                {labStats && <AttendanceGauge title="Lab Attendance" percentage={labStats.percentage} present={labStats.present} totalClasses={labStats.totalClasses} canMiss={labStats.canMiss} needToAttend={labStats.needToAttend} target={subject?.attendanceTarget ?? useSettingsStore.getState().attendanceTarget} />}
               </View>
             )}
             <AttendanceCalendar subjectId={id as string} onDayPress={handleDayPress} />

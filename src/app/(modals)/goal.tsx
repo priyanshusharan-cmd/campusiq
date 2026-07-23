@@ -59,7 +59,7 @@ export default function GoalScreen() {
         id: s.id,
         type: s.type,
         internalMarks: aggregatedInternal,
-        labMarks: s.labMarks || 0,
+        labMarks: 0,
         credits: s.credits
       };
     });

@@ -66,14 +66,13 @@ export async function scheduleClassReminders() {
 
   if (entries.length === 0) return;
 
-  const dayMap: Record<string, number> = {
-    sunday: 1,
-    monday: 2,
-    tuesday: 3,
-    wednesday: 4,
-    thursday: 5,
-    friday: 6,
-    saturday: 7,
+  const DAY_OF_WEEK_TO_EXPO_WEEKDAY: Record<number, number> = {
+    0: 2, // Monday
+    1: 3, // Tuesday
+    2: 4, // Wednesday
+    3: 5, // Thursday
+    4: 6, // Friday
+    5: 7, // Saturday
   };
 
   const reminderMinutesBefore = settings.reminderMinutesBefore || 15;
@@ -88,6 +87,7 @@ export async function scheduleClassReminders() {
     // Calculate reminder time
     let reminderHours = hours;
     let reminderMinutes = minutes - reminderMinutesBefore;
+    let dayOfWeek = entry.dayOfWeek;
 
     if (reminderMinutes < 0) {
       reminderMinutes += 60;
@@ -96,12 +96,12 @@ export async function scheduleClassReminders() {
     
     if (reminderHours < 0) {
         reminderHours += 24;
-        // In a real app we'd need to adjust the weekday back by 1 as well
+        dayOfWeek = ((dayOfWeek - 1) + 6) % 6; // step back one day, wrapping Mon(0) -> Sat(5)
     }
 
-    const weekday = dayMap[entry.dayOfWeek];
+    const weekday = DAY_OF_WEEK_TO_EXPO_WEEKDAY[dayOfWeek];
 
-    if (!weekday) continue;
+    if (weekday === undefined) continue;
 
     await Notifications.scheduleNotificationAsync({
       content: {

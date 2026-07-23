@@ -15,10 +15,11 @@ interface AttendanceGaugeProps {
   present: number;
   totalClasses: number;
   canMiss: number;
+  needToAttend?: number;
   target?: number; // Added target prop
 }
 
-export function AttendanceGauge({ title = 'Overall Attendance', percentage, present, totalClasses, canMiss, target = 75 }: AttendanceGaugeProps) {
+export function AttendanceGauge({ title = 'Overall Attendance', percentage, present, totalClasses, canMiss, needToAttend, target = 75 }: AttendanceGaugeProps) {
   const { isDark } = useTheme();
 
   const getStatus = (perc: number) => {
@@ -37,10 +38,13 @@ export function AttendanceGauge({ title = 'Overall Attendance', percentage, pres
   const unitPlural = unit === 'class' ? 'classes' : unit + 's';
   const totalUnitLabel = totalClasses === 1 ? unit : unitPlural;
 
-  let classesNeeded = 0;
-  if (percentage < target && target < 100) {
-     classesNeeded = Math.ceil((target * totalClasses - 100 * present) / (100 - target));
-     if (classesNeeded < 1) classesNeeded = 1; // Safeguard
+  let classesNeeded = needToAttend;
+  if (classesNeeded === undefined) {
+    classesNeeded = 0;
+    if (percentage < target && target < 100) {
+       classesNeeded = Math.ceil((target * totalClasses - 100 * present) / (100 - target));
+       if (classesNeeded < 1) classesNeeded = 1; // Safeguard
+    }
   }
 
   const rotation = useSharedValue(-90);
@@ -118,7 +122,11 @@ export function AttendanceGauge({ title = 'Overall Attendance', percentage, pres
             ) : (
               <>
                 <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 11, marginTop: 8 }}>You need to attend</Text>
-                <Text style={{ color: '#EF4444', fontSize: 14, fontWeight: '700' }}>{classesNeeded} more {classesNeeded === 1 ? unit : unitPlural}</Text>
+                {classesNeeded === Infinity ? (
+                  <Text style={{ color: '#EF4444', fontSize: 14, fontWeight: '700', textAlign: 'center' }}>Every remaining class</Text>
+                ) : (
+                  <Text style={{ color: '#EF4444', fontSize: 14, fontWeight: '700' }}>{classesNeeded} more {classesNeeded === 1 ? unit : unitPlural}</Text>
+                )}
                 <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10 }}>to reach {target}%</Text>
               </>
             )}
