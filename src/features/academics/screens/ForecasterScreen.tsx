@@ -234,20 +234,22 @@ export function ForecasterScreen() {
           </Text>
         </View>
 
-        {semesterSubjects.map((subject) => (
+        {(isSemesterComplete && currentSemester?.sgpaSubjects ? currentSemester.sgpaSubjects : semesterSubjects).map((subject: any) => (
           <SubjectPredictorCard 
             key={subject.id} 
-            subject={subject} 
+            subject={subject as any} 
             scheme={gradeScheme} 
             requiredPercentage={requiredPercentage}
             isCompleted={isSemesterComplete}
             onPress={() => {
-              router.push(`/(modals)/subject-detail?id=${subject.id}` as any);
+              if (!isSemesterComplete) {
+                router.push(`/(modals)/subject-detail?id=${subject.id}` as any);
+              }
             }} 
           />
         ))}
 
-        {semesterSubjects.length === 0 && (
+        {semesterSubjects.length === 0 && (!isSemesterComplete || !currentSemester?.sgpaSubjects || currentSemester.sgpaSubjects.length === 0) && (
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
             No subjects added to this semester yet.
           </Text>

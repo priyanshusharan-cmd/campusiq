@@ -2,11 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '@/theme';
+import { getGradeColor } from '@/types';
 import type { Subject, GradeScheme } from '@/types';
 import { calculateTotalSubjectScore, getGradeBoundary, convertLegacyToComponents } from '@/lib/gradingEngine';
 import { Ionicons } from '@expo/vector-icons';
 import { getSubjectTheme } from '@/utils/subjectTheme';
-import { useSettingsStore } from '@/stores/useSettingsStore';
+import { useSettingsStore, useAcademicStore } from '@/stores';
 
 interface SubjectPredictorCardProps {
   subject: Subject;
@@ -23,9 +24,9 @@ export function SubjectPredictorCard({ subject, scheme, requiredPercentage, isCo
   // Either use dynamic components or fallback to legacy calculation
   const components = subject.components || convertLegacyToComponents(subject.cieMarks, subject.aatMarks, subject.labInternalMarks, settings, subject.type === 'lab');
   
-  const currentScore = calculateTotalSubjectScore(components, false);
+  let currentScore = calculateTotalSubjectScore(components, false);
   const maxScore = calculateTotalSubjectScore(components, true);
-  const maxPossible = components.reduce((sum, c) => sum + c.weight, 0) || 100;
+  let maxPossible = components.reduce((sum, c) => sum + c.weight, 0) || 100;
   
   // Calculate target score based on uniform percentage of remaining marks
   let targetScore = currentScore;
@@ -39,14 +40,26 @@ export function SubjectPredictorCard({ subject, scheme, requiredPercentage, isCo
   const maxPercentage = maxPossible > 0 ? Math.round((maxScore / maxPossible) * 100) : 0;
   const targetPercentage = maxPossible > 0 ? Math.round((targetScore / maxPossible) * 100) : 0;
 
-  const currentBoundary = getGradeBoundary(scheme, currentPercentage);
+  let currentBoundary = getGradeBoundary(scheme, currentPercentage);
   const maxBoundary = getGradeBoundary(scheme, maxPercentage);
   const targetBoundary = getGradeBoundary(scheme, targetPercentage);
+
+  const currentSemester = useAcademicStore(s => s.getCurrentSemester());
+  if (isCompleted && currentSemester?.sgpaSubjects) {
+    const sgpaSub = currentSemester.sgpaSubjects.find(s => s.id === subject.id || s.name.trim().toLowerCase() === subject.name.trim().toLowerCase());
+    if (sgpaSub) {
+      currentScore = parseFloat(sgpaSub.totalMarks) || 0;
+      maxPossible = 100;
+      const gp = parseFloat(sgpaSub.gradePoint) || 0;
+      const foundBoundary = scheme.boundaries.find(g => g.gradePoints === gp);
+      currentBoundary = foundBoundary || { id: 'fallback', minMarks: 0, maxMarks: 0, gradeLetter: gp > 0 ? 'P' : 'F', gradePoints: gp };
+    }
+  }
 
   const subjectTheme = getSubjectTheme(subject.name, subject.code, isDark, subject.color, subject.icon);
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={styles.cardContainer}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={styles.cardContainer} disabled={isCompleted}>
       <View
         style={[
           styles.blurContainer,
@@ -69,7 +82,9 @@ export function SubjectPredictorCard({ subject, scheme, requiredPercentage, isCo
               {subject.code}
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+          {!isCompleted && (
+            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+          )}
         </View>
 
         <View style={styles.metricsRow}>
@@ -103,8 +118,8 @@ export function SubjectPredictorCard({ subject, scheme, requiredPercentage, isCo
                 </Text>
               </>
             ) : (
-              <Text style={[styles.metricValue, { color: colors.success, fontFamily: fontFamily.bold }]}>
-                {currentBoundary.gradeLetter} <Text style={[styles.metricUnit, { color: colors.success }]}>({currentBoundary.gradePoints} pt)</Text>
+              <Text style={[styles.metricValue, { color: getGradeColor(currentBoundary.gradeLetter as any) || colors.success, fontFamily: fontFamily.bold }]}>
+                {currentBoundary.gradeLetter} <Text style={[styles.metricUnit, { color: getGradeColor(currentBoundary.gradeLetter as any) || colors.success }]}>({currentBoundary.gradePoints} pt)</Text>
               </Text>
             )}
           </View>
