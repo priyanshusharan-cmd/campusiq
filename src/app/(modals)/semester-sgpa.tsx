@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, Dimensions, KeyboardAvoidingView, Platform, Alert, Switch } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, StyleSheet, Pressable, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -12,7 +12,6 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 import { getGPALabel } from '@/lib';
 import { getGradeBoundary } from '@/lib/gradingEngine';
 
-const { width } = Dimensions.get('window');
 
 type SubjectEntry = {
   id: string;
@@ -83,33 +82,18 @@ export default function SemesterSGPAScreen() {
 
     // Step 2: Get any saved SGPA subjects from the academic store
     const savedSubjects = existingSem?.sgpaSubjects || [];
-    const hiddenSaved = existingSem?.hiddenSgpaSubjects || [];
 
-    if (savedSubjects.length === 0 && semSubjects.length === 0) {
-      // No data at all — show one blank row
-      return [{ id: 'temp_sub_1', name: '', code: '', credits: '', totalMarks: '', gradePoint: '' }];
-    }
+    const validSavedSubjects = savedSubjects.filter(saved => 
+      semSubjects.some(sem => sem.id === saved.id || (sem.name.trim().toLowerCase() === saved.name.trim().toLowerCase() && sem.name.trim() !== ''))
+    );
 
-    if (savedSubjects.length === 0 && semSubjects.length > 0) {
-      // Subjects exist from "Create Subject" but no grade tracker data yet
-      return semSubjects.map(s => ({
-        id: s.id,
-        name: s.name,
-        code: s.code || '',
-        credits: (s.credits || 0).toString(),
-        totalMarks: '',
-        gradePoint: ''
-      }));
-    }
-
-    // savedSubjects has data — merge with any new subjects not already in saved
-    const merged = [...savedSubjects];
+    const merged = [...validSavedSubjects];
     semSubjects.forEach(s => {
       const existsById = merged.find(saved => saved.id === s.id);
       const existsByName = merged.find(saved => 
         saved.name.trim().toLowerCase() === s.name.trim().toLowerCase() && saved.name.trim() !== ''
       );
-      if (!existsById && !existsByName && !hiddenSaved.includes(s.id)) {
+      if (!existsById && !existsByName) {
         merged.push({
           id: s.id,
           name: s.name,
@@ -121,23 +105,17 @@ export default function SemesterSGPAScreen() {
       }
     });
 
+    if (merged.length === 0 && semSubjects.length === 0) {
+      return [];
+    }
+
     return merged;
   }, [allSubjects, existingSem, semesterNum]);
 
   const [subjects, setSubjects] = useState<SubjectEntry[]>(initialSubjects);
-  const [hiddenSubjects, setHiddenSubjects] = useState<string[]>(existingSem?.hiddenSgpaSubjects || []);
-
-  const addSubject = () => {
-    setSubjects([...subjects, { id: Date.now().toString(), name: '', code: '', credits: '', totalMarks: '', gradePoint: '' }]);
-  };
 
   const removeSubject = (id: string) => {
-    if (subjects.length > 1) {
-      setSubjects(subjects.filter(s => s.id !== id));
-      if (!hiddenSubjects.includes(id)) {
-        setHiddenSubjects([...hiddenSubjects, id]);
-      }
-    }
+    setSubjects(subjects.map(s => s.id === id ? { ...s, totalMarks: '', gradePoint: '' } : s));
   };
 
   const updateSubject = (id: string, field: keyof SubjectEntry, value: any) => {
@@ -201,41 +179,26 @@ export default function SemesterSGPAScreen() {
 
 
   const handleSave = () => {
+    if (subjects.length === 0) {
+      Alert.alert('No Subjects', 'There are no subjects for this semester in your Subject Tracker.');
+      return;
+    }
+
+    const hasUnfilled = subjects.some(sub => sub.totalMarks === '' && sub.gradePoint === '');
+    if (hasUnfilled) {
+      Alert.alert('Incomplete Data', 'You cannot save without entering marks or grades for all the subjects that are in this semester.');
+      return;
+    }
 
     // Save to academic store
     if (existingSem) {
-      updateSemester(existingSem.id, { sgpa, totalCredits: displayCredits, backlogCount, backlogCredits, sgpaSubjects: subjects, hiddenSgpaSubjects: hiddenSubjects });
+      updateSemester(existingSem.id, { sgpa, totalCredits: displayCredits, backlogCount, backlogCredits, sgpaSubjects: subjects, hiddenSgpaSubjects: [] });
     } else {
-      addSemester({ name: `Semester ${semesterNum}`, number: semesterNum, isCurrent: false, sgpa, totalCredits: displayCredits, backlogCount, backlogCredits, sgpaSubjects: subjects, hiddenSgpaSubjects: hiddenSubjects });
+      addSemester({ name: `Semester ${semesterNum}`, number: semesterNum, isCurrent: false, sgpa, totalCredits: displayCredits, backlogCount, backlogCredits, sgpaSubjects: subjects, hiddenSgpaSubjects: [] });
     }
 
-    // --- TWO-WAY SYNC: Create subjects in SubjectStore if they don't exist ---
-    const subjectStore = useSubjectStore.getState();
-    const semStr = semesterNum.toString();
-    const existingSubjectsForSem = subjectStore.subjects.filter(s => s.semesterId === semStr);
-
-    subjects.forEach(sub => {
-      if (!sub.name.trim()) return; // Skip blank entries
-
-      // Check if subject already exists by ID or name
-      const existsById = existingSubjectsForSem.find(s => s.id === sub.id);
-      const existsByName = existingSubjectsForSem.find(s => 
-        s.name.trim().toLowerCase() === sub.name.trim().toLowerCase()
-      );
-
-      if (!existsById && !existsByName) {
-        // Create subject in SubjectStore
-        subjectStore.addSubject({
-          name: sub.name,
-          code: sub.code || '',
-          credits: parseFloat(sub.credits) || 3,
-          semesterId: semStr,
-        });
-      }
-    });
-
-    Alert.alert('Success 🎉', 'Semester SGPA has been saved successfully.', [
-      { text: 'Awesome!', onPress: () => router.back() }
+    Alert.alert('Success', 'Semester GPA saved successfully.', [
+      { text: 'OK', onPress: () => router.back() }
     ]);
   };
 
@@ -251,38 +214,11 @@ export default function SemesterSGPAScreen() {
             const buttons: any[] = [
               { text: 'Cancel', style: 'cancel' }
             ];
-
-            if (hiddenSubjects.length > 0) {
-              buttons.push({
-                text: 'Recover Deleted',
-                onPress: () => {
-                  // Add hidden subjects back from SubjectStore
-                  const semStr = semesterNum.toString();
-                  const semSubjects = allSubjects.filter(s => s.semesterId === semStr);
-                  
-                  const recovered = semSubjects.filter(s => hiddenSubjects.includes(s.id)).map(s => ({
-                    id: s.id,
-                    name: s.name,
-                    code: s.code || '',
-                    credits: (s.credits || 0).toString(),
-                    totalMarks: '',
-                    gradePoint: ''
-                  }));
-
-                  if (recovered.length > 0) {
-                    setSubjects([...subjects, ...recovered]);
-                  }
-                  setHiddenSubjects([]);
-                }
-              });
-            }
-
             buttons.push({ 
               text: 'Clear All', 
               style: 'destructive', 
               onPress: () => {
-                setSubjects([{ id: Date.now().toString(), name: '', code: '', credits: '', totalMarks: '', gradePoint: '' }]);
-                setHiddenSubjects([]);
+                setSubjects(subjects.map(s => ({ ...s, totalMarks: '', gradePoint: '' })));
               }
             });
 
@@ -343,11 +279,9 @@ export default function SemesterSGPAScreen() {
                     }
                     return null;
                   })()}
-                  {subjects.length > 1 && (
-                    <Pressable onPress={() => removeSubject(sub.id)} hitSlop={15} style={styles.trashBtn}>
-                      <Ionicons name="trash-outline" size={18} color="#EF4444" />
-                    </Pressable>
-                  )}
+                  <Pressable onPress={() => removeSubject(sub.id)} hitSlop={15} style={styles.trashBtn}>
+                    <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                  </Pressable>
                 </View>
               </View>
 
@@ -357,6 +291,8 @@ export default function SemesterSGPAScreen() {
                   placeholder="Subject Name"
                   value={sub.name}
                   multiline={true}
+                  editable={false}
+                  containerStyle={{ opacity: 0.8 }}
                   onChangeText={(val: string) => updateSubject(sub.id, 'name', val)}
                 />
               </View>
@@ -366,6 +302,8 @@ export default function SemesterSGPAScreen() {
                   label="Code" 
                   placeholder="Subject Code"
                   value={sub.code}
+                  editable={false}
+                  containerStyle={{ opacity: 0.8 }}
                   onChangeText={(val: string) => updateSubject(sub.id, 'code', val)}
                 />
               </View>
@@ -376,6 +314,8 @@ export default function SemesterSGPAScreen() {
                   placeholder="0"
                   keyboardType="numeric"
                   value={sub.credits}
+                  editable={false}
+                  containerStyle={{ opacity: 0.8 }}
                   onChangeText={(val: string) => updateSubject(sub.id, 'credits', val)}
                 />
                 <InputField 
@@ -383,13 +323,15 @@ export default function SemesterSGPAScreen() {
                   placeholder="-"
                   keyboardType="numeric"
                   style={{ fontWeight: '700', fontSize: 16 }}
+                  containerStyle={{ opacity: 0.6 }}
+                  editable={false}
                   value={sub.gradePoint}
                   onChangeText={(val: string) => updateSubject(sub.id, 'gradePoint', val)}
                 />
                 
                 <InputField 
                   label="Marks" 
-                  placeholder="e.g. 85"
+                  placeholder="Auto-fills GP"
                   keyboardType="numeric"
                   value={sub.totalMarks}
                   onChangeText={(val: string) => updateSubject(sub.id, 'totalMarks', val)}
@@ -398,21 +340,6 @@ export default function SemesterSGPAScreen() {
               </View>
             </Animated.View>
           ))}
-
-          <Animated.View entering={FadeInUp.delay(300).duration(200)}>
-            <Pressable 
-              style={({ pressed }) => [
-                styles.addBtn, 
-                { borderColor: colors.primary + '30', backgroundColor: colors.primary + '08', opacity: pressed ? 0.7 : 1 }
-              ]}
-              onPress={addSubject}
-            >
-              <View style={[styles.addIconWrap, { backgroundColor: colors.primary + '15' }]}>
-                <Ionicons name="add" size={18} color={colors.primary} style={{ fontWeight: 'bold' }} />
-              </View>
-              <Text style={[textStyles.bodyMedium, { color: colors.primary, fontWeight: '700' }]}>Add Another Subject</Text>
-            </Pressable>
-          </Animated.View>
 
         </ScrollView>
       </KeyboardAvoidingView>
@@ -454,9 +381,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 12 },
   inputContainer: { borderRadius: 14, borderWidth: 1, paddingHorizontal: 16, paddingVertical: 12, justifyContent: 'center' },
   input: { flex: 1, fontSize: 15, fontWeight: '500' },
-
-  addBtn: { flexDirection: 'row', height: 60, borderRadius: 20, borderWidth: 1, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
-  addIconWrap: { width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginRight: 10 },
   bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingTop: 16, paddingBottom: Platform.OS === 'ios' ? 36 : 24, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)', backgroundColor: 'rgba(255,255,255,0.95)' },
   calculateBtnGradient: { borderRadius: 20, shadowColor: '#7C5CFC', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 12, elevation: 6 },
   calculateBtn: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: 60 },
