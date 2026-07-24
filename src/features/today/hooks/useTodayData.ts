@@ -12,6 +12,7 @@ export interface TodayData {
   todayClasses: TimetableEntryWithSubject[];
   cgpa: number;
   expectedSGPA: number;
+  isSemesterComplete: boolean;
   overallAttendance: { present: number; absent: number; total: number; percentage: number; canMiss: number };
   pendingAssignments: ReturnType<typeof useAssignmentStore.getState>['assignments'];
   upcomingExams: ReturnType<typeof useExamStore.getState>['exams'];
@@ -63,8 +64,12 @@ export function useTodayData(): TodayData {
   const gradeScheme = useAcademicStore(s => s.gradeScheme);
   const settings = useSettingsStore();
   
+  const isSemesterComplete = currentSemester?.sgpa !== undefined && currentSemester.sgpa > 0;
+  
   let expectedSGPA = currentSGPA;
-  if (activeSubjects.length > 0) {
+  if (isSemesterComplete) {
+    expectedSGPA = currentSemester?.sgpa || 0;
+  } else if (activeSubjects.length > 0) {
     let totalPoints = 0;
     let totalCredits = 0;
     activeSubjects.forEach(sub => {
@@ -88,6 +93,7 @@ export function useTodayData(): TodayData {
     todayClasses,
     cgpa,
     expectedSGPA,
+    isSemesterComplete,
     overallAttendance: overall,
     pendingAssignments,
     upcomingExams,

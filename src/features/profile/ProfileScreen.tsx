@@ -92,23 +92,19 @@ export default function ProfileScreen() {
   const gradeEntries = useAcademicStore(s => s.gradeEntries);
   
   // Calculate completed credits and backlogs by aggregating from both detailed grade entries and manual semester entries
-  const { completedCredits, totalBacklogs } = useMemo(() => {
+  const { completedCredits, registeredCredits, totalBacklogs } = useMemo(() => {
     let credits = 0;
     let backlogs = 0;
+    let registered = 0;
     semesters.forEach(sem => {
-      const semEntries = gradeEntries.filter(e => e.semesterId === sem.id);
-      if (semEntries.length > 0) {
-        semEntries.forEach(entry => {
-          if (entry.gradePoint > 0) credits += entry.credits;
-          else backlogs += 1;
-        });
-      } else if (sem.sgpa && sem.sgpa > 0) {
+      if (sem.sgpa && sem.sgpa > 0) {
+        registered += sem.totalCredits || 0;
         credits += (sem.totalCredits || 0) - (sem.backlogCredits || 0);
         backlogs += (sem.backlogCount || 0);
       }
     });
-    return { completedCredits: credits, totalBacklogs: backlogs };
-  }, [semesters, gradeEntries]);
+    return { completedCredits: credits, registeredCredits: registered, totalBacklogs: backlogs };
+  }, [semesters]);
 
   // Current SGPA Calculation
   const currentSemesterSubjects = useActiveSubjects();
@@ -118,7 +114,12 @@ export default function ProfileScreen() {
   let displayedSGPA = currentSGPA;
   let isPredictedSGPA = false;
 
-  if (currentSemesterSubjects.length > 0) {
+  const isSemesterComplete = currentSemester?.sgpa !== undefined && currentSemester.sgpa > 0;
+
+  if (isSemesterComplete) {
+    displayedSGPA = currentSemester?.sgpa || 0;
+    isPredictedSGPA = false;
+  } else if (currentSemesterSubjects.length > 0) {
     let totalPoints = 0;
     let totalCredits = 0;
     currentSemesterSubjects.forEach(sub => {
@@ -427,6 +428,7 @@ export default function ProfileScreen() {
           currentSGPA={displayedSGPA}
           cgpa={cgpa}
           completedCredits={completedCredits}
+          totalRegisteredCredits={registeredCredits}
           totalBacklogs={totalBacklogs}
           avatarUri={profile?.avatarUri}
           isPredictedSGPA={isPredictedSGPA}

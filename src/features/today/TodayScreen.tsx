@@ -35,6 +35,7 @@ export default function TodayScreen({ isBackground = false }: { isBackground?: b
     firstName, 
     cgpa,
     expectedSGPA,
+    isSemesterComplete,
     overallAttendance,
     todayClasses, 
   } = useTodayData();
@@ -104,6 +105,7 @@ export default function TodayScreen({ isBackground = false }: { isBackground?: b
               <QuickStatsStrip 
                 cgpa={cgpa} 
                 expectedSGPA={expectedSGPA}
+                isSemesterComplete={isSemesterComplete}
                 attendancePercentage={overallAttendance.percentage}
                 attendanceTotal={overallAttendance.total}
                 isBackground={isBackground}

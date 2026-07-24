@@ -12,18 +12,21 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useProfileStore } from '@/stores/useProfileStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
+import { useSubjectStore } from '@/stores/useSubjectStore';
 
 export function ForecasterScreen() {
   const insets = useSafeAreaInsets();
   const { colors, isDark, textStyles } = useTheme();
   const router = useRouter();
   
-  const { gradeScheme, getCurrentSemester, semesters, addSemester, setCurrentSemester } = useAcademicStore();
+  const { gradeScheme, getCurrentSemester, semesters, updateSemester, addSemester, setCurrentSemester } = useAcademicStore();
   const currentSemester = getCurrentSemester();
   const semesterSubjects = useActiveSubjects();
   const profile = useProfileStore(s => s.profile);
   const settings = useSettingsStore();
   const firstName = profile?.name?.split(' ')[0] || 'Student';
+
+  const isSemesterComplete = currentSemester?.sgpa !== undefined && currentSemester.sgpa > 0;
 
   const [dreamSgpa, setDreamSgpa] = useState(-1); // -1 indicates uninitialized
 
@@ -171,7 +174,7 @@ export function ForecasterScreen() {
       >
 
         {/* GPA Tuner Card */}
-        {semesterSubjects.length > 0 && (
+        {semesterSubjects.length > 0 && !isSemesterComplete && (
           <LinearGradient
             colors={isDark ? ['#5339C6', '#3D289B'] : ['#8A73FF', '#6B58F5']}
             style={styles.tunerCard}
@@ -206,11 +209,28 @@ export function ForecasterScreen() {
           </LinearGradient>
         )}
 
+        {/* Retrospective Card */}
+        {semesterSubjects.length > 0 && isSemesterComplete && (
+          <LinearGradient
+            colors={isDark ? ['#059669', '#047857'] : ['#10B981', '#059669']}
+            style={styles.tunerCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.tunerControls}>
+              <Text style={styles.dreamSgpaText}>{currentSemester?.sgpa?.toFixed(2)}</Text>
+            </View>
+            <Text style={[styles.tunerDescription, { fontSize: 16, fontWeight: '500' }]}>
+              Semester {currentSemester?.number} is complete! Here is how you performed.
+            </Text>
+          </LinearGradient>
+        )}
 
 
-        <View style={styles.listHeader}>
+
+        <View style={[styles.listHeader, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={[textStyles.h3, { color: isDark ? '#FFFFFF' : colors.textPrimary }]}>
-            Subject Goals
+            {isSemesterComplete ? 'Subject Final Marks' : 'Subject Goals'}
           </Text>
         </View>
 
@@ -220,6 +240,7 @@ export function ForecasterScreen() {
             subject={subject} 
             scheme={gradeScheme} 
             requiredPercentage={requiredPercentage}
+            isCompleted={isSemesterComplete}
             onPress={() => {
               router.push(`/(modals)/subject-detail?id=${subject.id}` as any);
             }} 

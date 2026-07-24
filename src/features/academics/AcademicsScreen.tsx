@@ -56,7 +56,7 @@ export default function AcademicsScreen() {
       <Animated.View entering={FadeInDown.delay(20).duration(100)} style={{ paddingHorizontal: spacing.xl }}>
         <Card style={{ alignItems: 'center', paddingVertical: spacing['3xl'] }}>
           <Text style={[textStyles.h3, { color: colors.textSecondary }]}>Cumulative GPA</Text>
-          <Text style={[textStyles.display, { color: colors.primary, fontSize: 48, marginTop: spacing.sm }]}>
+          <Text style={[textStyles.display, { color: colors.primary, fontSize: 48, lineHeight: 60, marginTop: spacing.sm }]}>
             {cgpa > 0 ? cgpa.toFixed(2) : '—'}
           </Text>
         </Card>
@@ -115,7 +115,7 @@ export default function AcademicsScreen() {
                         </View>
 
                         <View style={{ alignItems: 'flex-end', flex: 1, justifyContent: 'center' }}>
-                          <Text style={[textStyles.small, { color: 'rgba(255,255,255,0.8)', marginBottom: 4 }]}>Credits Evaluated</Text>
+                          <Text style={[textStyles.small, { color: 'rgba(255,255,255,0.8)', marginBottom: 4 }]}>Credits</Text>
                           <Text style={[textStyles.h3, { color: '#FFF', marginBottom: 8 }]}>{sem.totalCredits || 0}</Text>
                         </View>
                       </View>

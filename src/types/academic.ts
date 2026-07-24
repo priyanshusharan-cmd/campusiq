@@ -32,6 +32,7 @@ export interface Semester {
     totalMarks: string;
     gradePoint: string;
   }[];
+  hiddenSgpaSubjects?: string[];
 }
 
 // Indian 10-point CGPA Scale

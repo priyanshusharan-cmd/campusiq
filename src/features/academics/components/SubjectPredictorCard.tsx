@@ -12,10 +12,11 @@ interface SubjectPredictorCardProps {
   subject: Subject;
   scheme: GradeScheme;
   requiredPercentage?: number;
+  isCompleted?: boolean;
   onPress: () => void;
 }
 
-export function SubjectPredictorCard({ subject, scheme, requiredPercentage, onPress }: SubjectPredictorCardProps) {
+export function SubjectPredictorCard({ subject, scheme, requiredPercentage, isCompleted, onPress }: SubjectPredictorCardProps) {
   const { colors, isDark, fontFamily } = useTheme();
   const settings = useSettingsStore();
 
@@ -29,7 +30,7 @@ export function SubjectPredictorCard({ subject, scheme, requiredPercentage, onPr
   // Calculate target score based on uniform percentage of remaining marks
   let targetScore = currentScore;
   let hasTarget = false;
-  if (requiredPercentage !== undefined && maxScore > currentScore) {
+  if (!isCompleted && requiredPercentage !== undefined && maxScore > currentScore) {
     targetScore = Math.ceil(currentScore + (maxScore - currentScore) * requiredPercentage);
     hasTarget = true;
   }
@@ -74,28 +75,38 @@ export function SubjectPredictorCard({ subject, scheme, requiredPercentage, onPr
         <View style={styles.metricsRow}>
           <View style={styles.metricCol}>
             <Text style={[styles.metricLabel, { color: colors.textSecondary, fontFamily: fontFamily.regular }]}>
-              Current
+              {isCompleted ? 'Final Marks' : 'Current'}
             </Text>
-            <Text style={[styles.metricValue, { color: colors.primary, fontFamily: fontFamily.bold }]}>
+            <Text style={[styles.metricValue, { color: isCompleted ? colors.textPrimary : colors.primary, fontFamily: fontFamily.bold }]}>
               {currentScore.toFixed(1)} <Text style={styles.metricUnit}>/ {maxPossible}</Text>
             </Text>
-            <Text style={[styles.gradeBadge, { backgroundColor: colors.surfaceHover, color: colors.textPrimary }]}>
-              {currentBoundary.gradeLetter} ({currentBoundary.gradePoints} pt)
-            </Text>
+            {!isCompleted && (
+              <Text style={[styles.gradeBadge, { backgroundColor: colors.surfaceHover, color: colors.textPrimary }]}>
+                {currentBoundary.gradeLetter} ({currentBoundary.gradePoints} pt)
+              </Text>
+            )}
           </View>
 
           <View style={[styles.metricDivider, { backgroundColor: colors.border }]} />
 
           <View style={styles.metricCol}>
             <Text style={[styles.metricLabel, { color: colors.textSecondary, fontFamily: fontFamily.regular }]}>
-              Max Possible
+              {isCompleted ? 'Final Grade' : 'Max Possible'}
             </Text>
-            <Text style={[styles.metricValue, { color: colors.success, fontFamily: fontFamily.bold }]}>
-              {maxScore.toFixed(1)} <Text style={styles.metricUnit}>/ {maxPossible}</Text>
-            </Text>
-            <Text style={[styles.gradeBadge, { backgroundColor: colors.success + '20', color: colors.success }]}>
-              {maxBoundary.gradeLetter} ({maxBoundary.gradePoints} pt)
-            </Text>
+            {!isCompleted ? (
+              <>
+                <Text style={[styles.metricValue, { color: colors.success, fontFamily: fontFamily.bold }]}>
+                  {maxScore.toFixed(1)} <Text style={styles.metricUnit}>/ {maxPossible}</Text>
+                </Text>
+                <Text style={[styles.gradeBadge, { backgroundColor: colors.success + '20', color: colors.success }]}>
+                  {maxBoundary.gradeLetter} ({maxBoundary.gradePoints} pt)
+                </Text>
+              </>
+            ) : (
+              <Text style={[styles.metricValue, { color: colors.success, fontFamily: fontFamily.bold }]}>
+                {currentBoundary.gradeLetter} <Text style={[styles.metricUnit, { color: colors.success }]}>({currentBoundary.gradePoints} pt)</Text>
+              </Text>
+            )}
           </View>
         </View>
 

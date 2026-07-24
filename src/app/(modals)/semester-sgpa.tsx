@@ -45,12 +45,13 @@ const InputField = ({ label, style, containerStyle, highlight = false, onFocus, 
   return (
     <View style={[{ flex: 1 }, containerStyle]}>
       <Text style={[textStyles.small, { color: isActive ? colors.primary : colors.textSecondary, marginBottom: 6, marginLeft: 4, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700' }]}>{label}</Text>
-      <View style={[styles.inputContainer, { borderColor: isActive ? colors.primary + '50' : colors.borderLight, backgroundColor: isActive ? colors.primary + '10' : colors.bg }]}>
+      <View style={[styles.inputContainer, { borderColor: isActive ? colors.primary + '50' : colors.borderLight, backgroundColor: isActive ? colors.primary + '10' : colors.bg, minHeight: props.multiline ? 70 : 50 }]}>
         <TextInput 
-          style={[styles.input, { color: isActive ? colors.primary : colors.textPrimary }, style]} 
+          style={[styles.input, { color: colors.textPrimary }, style]} 
           placeholderTextColor={colors.textQuaternary}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          textAlignVertical={props.multiline ? 'top' : 'center'}
           {...props} 
         />
       </View>
@@ -82,6 +83,7 @@ export default function SemesterSGPAScreen() {
 
     // Step 2: Get any saved SGPA subjects from the academic store
     const savedSubjects = existingSem?.sgpaSubjects || [];
+    const hiddenSaved = existingSem?.hiddenSgpaSubjects || [];
 
     if (savedSubjects.length === 0 && semSubjects.length === 0) {
       // No data at all — show one blank row
@@ -107,7 +109,7 @@ export default function SemesterSGPAScreen() {
       const existsByName = merged.find(saved => 
         saved.name.trim().toLowerCase() === s.name.trim().toLowerCase() && saved.name.trim() !== ''
       );
-      if (!existsById && !existsByName) {
+      if (!existsById && !existsByName && !hiddenSaved.includes(s.id)) {
         merged.push({
           id: s.id,
           name: s.name,
@@ -123,6 +125,7 @@ export default function SemesterSGPAScreen() {
   }, [allSubjects, existingSem, semesterNum]);
 
   const [subjects, setSubjects] = useState<SubjectEntry[]>(initialSubjects);
+  const [hiddenSubjects, setHiddenSubjects] = useState<string[]>(existingSem?.hiddenSgpaSubjects || []);
 
   const addSubject = () => {
     setSubjects([...subjects, { id: Date.now().toString(), name: '', code: '', credits: '', totalMarks: '', gradePoint: '' }]);
@@ -131,6 +134,9 @@ export default function SemesterSGPAScreen() {
   const removeSubject = (id: string) => {
     if (subjects.length > 1) {
       setSubjects(subjects.filter(s => s.id !== id));
+      if (!hiddenSubjects.includes(id)) {
+        setHiddenSubjects([...hiddenSubjects, id]);
+      }
     }
   };
 
@@ -140,9 +146,9 @@ export default function SemesterSGPAScreen() {
       const updated = { ...s, [field]: value };
       
       if (field === 'totalMarks') {
-        let marks = parseFloat(updated.totalMarks) || 0;
+        let marks = parseFloat(updated.totalMarks);
         
-        if (marks > 0) {
+        if (!isNaN(marks) && updated.totalMarks !== '') {
           const boundary = getGradeBoundary(gradeScheme, marks);
           updated.gradePoint = boundary.gradePoints.toString();
         } else if (updated.totalMarks === '') {
@@ -153,9 +159,10 @@ export default function SemesterSGPAScreen() {
     }));
   };
 
-  const { sgpa, totalCredits, backlogCount, backlogCredits } = useMemo(() => {
+  const { sgpa, displayCredits, evaluatedCredits, backlogCount, backlogCredits } = useMemo(() => {
     let pts = 0;
-    let creds = 0;
+    let evalCreds = 0;
+    let allCreds = 0;
     let bCount = 0;
     let bCreds = 0;
 
@@ -164,10 +171,12 @@ export default function SemesterSGPAScreen() {
       const gp = parseFloat(sub.gradePoint) || 0;
       const marks = parseFloat(sub.totalMarks) || 0;
       
+      allCreds += c;
+
       const hasEnteredData = sub.totalMarks !== '' || sub.gradePoint !== '';
       
       if (c > 0 && hasEnteredData) {
-        creds += c;
+        evalCreds += c;
         pts += (gp * c);
         
         const isBacklogByMarks = marks > 0 && marks < passingMarks;
@@ -181,40 +190,23 @@ export default function SemesterSGPAScreen() {
     });
 
     return {
-      sgpa: creds > 0 ? Math.round((pts / creds) * 100) / 100 : 0.0,
-      totalCredits: creds,
+      sgpa: evalCreds > 0 ? Math.round((pts / evalCreds) * 100) / 100 : 0.0,
+      displayCredits: allCreds,
+      evaluatedCredits: evalCreds,
       backlogCount: bCount,
       backlogCredits: bCreds
     };
   }, [subjects, passingMarks]);
 
-  useEffect(() => {
-    // Auto-save ONLY the academic store data (subjects list, sgpa, credits)
-    // Do NOT create SubjectStore subjects here (that happens on explicit Save)
-    const currentSem = useAcademicStore.getState().semesters.find(s => s.number === semesterNum);
-    
-    // Only auto-save if there's meaningful data (at least one subject with a name)
-    const hasMeaningfulData = subjects.some(s => s.name.trim() !== '');
-    if (!hasMeaningfulData) return;
-    
-    if (currentSem) {
-      updateSemester(currentSem.id, { sgpa, totalCredits, backlogCount, backlogCredits, sgpaSubjects: subjects });
-    } else {
-      addSemester({ name: `Semester ${semesterNum}`, number: semesterNum, isCurrent: false, sgpa, totalCredits, backlogCount, backlogCredits, sgpaSubjects: subjects });
-    }
-  }, [subjects, sgpa, totalCredits, backlogCount, backlogCredits, semesterNum]);
+
 
   const handleSave = () => {
-    if (totalCredits === 0) {
-      Alert.alert('Incomplete', 'Please enter credits and grade points/marks to calculate SGPA.');
-      return;
-    }
 
     // Save to academic store
     if (existingSem) {
-      updateSemester(existingSem.id, { sgpa, totalCredits, backlogCount, backlogCredits, sgpaSubjects: subjects });
+      updateSemester(existingSem.id, { sgpa, totalCredits: displayCredits, backlogCount, backlogCredits, sgpaSubjects: subjects, hiddenSgpaSubjects: hiddenSubjects });
     } else {
-      addSemester({ name: `Semester ${semesterNum}`, number: semesterNum, isCurrent: false, sgpa, totalCredits, backlogCount, backlogCredits, sgpaSubjects: subjects });
+      addSemester({ name: `Semester ${semesterNum}`, number: semesterNum, isCurrent: false, sgpa, totalCredits: displayCredits, backlogCount, backlogCredits, sgpaSubjects: subjects, hiddenSgpaSubjects: hiddenSubjects });
     }
 
     // --- TWO-WAY SYNC: Create subjects in SubjectStore if they don't exist ---
@@ -256,23 +248,48 @@ export default function SemesterSGPAScreen() {
         <Text style={[textStyles.h3, { color: colors.textPrimary }]}>Semester {semesterNum} SGPA</Text>
         <Pressable 
           onPress={() => {
-            Alert.alert(
-              'Clear Subjects',
-              `Are you sure you want to clear all subjects for Semester ${semesterNum}? This will remove all grade data for this semester.`,
-              [
-                { text: 'Cancel', style: 'cancel' },
-                { 
-                  text: 'Clear All', 
-                  style: 'destructive', 
-                  onPress: () => {
-                    setSubjects([{ id: Date.now().toString(), name: '', code: '', credits: '', totalMarks: '', gradePoint: '' }]);
-                    // Also clear from academic store
-                    if (existingSem) {
-                      updateSemester(existingSem.id, { sgpa: 0, totalCredits: 0, backlogCount: 0, backlogCredits: 0, sgpaSubjects: [] });
-                    }
+            const buttons: any[] = [
+              { text: 'Cancel', style: 'cancel' }
+            ];
+
+            if (hiddenSubjects.length > 0) {
+              buttons.push({
+                text: 'Recover Deleted',
+                onPress: () => {
+                  // Add hidden subjects back from SubjectStore
+                  const semStr = semesterNum.toString();
+                  const semSubjects = allSubjects.filter(s => s.semesterId === semStr);
+                  
+                  const recovered = semSubjects.filter(s => hiddenSubjects.includes(s.id)).map(s => ({
+                    id: s.id,
+                    name: s.name,
+                    code: s.code || '',
+                    credits: (s.credits || 0).toString(),
+                    totalMarks: '',
+                    gradePoint: ''
+                  }));
+
+                  if (recovered.length > 0) {
+                    setSubjects([...subjects, ...recovered]);
                   }
+                  setHiddenSubjects([]);
                 }
-              ]
+              });
+            }
+
+            buttons.push({ 
+              text: 'Clear All', 
+              style: 'destructive', 
+              onPress: () => {
+                setSubjects([{ id: Date.now().toString(), name: '', code: '', credits: '', totalMarks: '', gradePoint: '' }]);
+                setHiddenSubjects([]);
+              }
+            });
+
+            Alert.alert(
+              'Manage Subjects',
+              `What would you like to do for Semester ${semesterNum}?`,
+              buttons
             );
           }} 
           style={[styles.iconBtn, { backgroundColor: colors.borderLight }]} 
@@ -295,7 +312,7 @@ export default function SemesterSGPAScreen() {
             </LinearGradient>
             <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
               <Text style={[textStyles.smallMedium, { color: colors.textSecondary, marginBottom: 4 }]}>Credits</Text>
-              <Text style={[textStyles.display, { color: colors.textPrimary, fontSize: 36, lineHeight: 40 }]}>{totalCredits}</Text>
+              <Text style={[textStyles.display, { color: colors.textPrimary, fontSize: 36, lineHeight: 40 }]}>{displayCredits}</Text>
             </View>
           </Animated.View>
 
@@ -339,6 +356,7 @@ export default function SemesterSGPAScreen() {
                   label="Subject Name" 
                   placeholder="Subject Name"
                   value={sub.name}
+                  multiline={true}
                   onChangeText={(val: string) => updateSubject(sub.id, 'name', val)}
                 />
               </View>
@@ -362,7 +380,7 @@ export default function SemesterSGPAScreen() {
                 />
                 <InputField 
                   label="Grade Pt." 
-                  placeholder="10"
+                  placeholder="-"
                   keyboardType="numeric"
                   style={{ fontWeight: '700', fontSize: 16 }}
                   value={sub.gradePoint}
@@ -371,7 +389,7 @@ export default function SemesterSGPAScreen() {
                 
                 <InputField 
                   label="Marks" 
-                  placeholder="Auto-fills GP"
+                  placeholder="e.g. 85"
                   keyboardType="numeric"
                   value={sub.totalMarks}
                   onChangeText={(val: string) => updateSubject(sub.id, 'totalMarks', val)}
@@ -401,7 +419,7 @@ export default function SemesterSGPAScreen() {
 
       <View style={[styles.bottomBar, { backgroundColor: colors.surface, borderTopColor: colors.borderLight }]}>
         <LinearGradient
-          colors={totalCredits > 0 ? ['#8B5CF6', '#6366F1'] : ['#E5E7EB', '#D1D5DB']}
+          colors={['#8B5CF6', '#6366F1']}
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={styles.calculateBtnGradient}
         >
@@ -411,10 +429,9 @@ export default function SemesterSGPAScreen() {
               { opacity: pressed ? 0.8 : 1 }
             ]}
             onPress={handleSave}
-            disabled={totalCredits === 0}
           >
-            <Ionicons name="save" size={20} color={totalCredits > 0 ? "#FFF" : "#9CA3AF"} style={{ marginRight: 10 }} />
-            <Text style={[textStyles.h3, { color: totalCredits > 0 ? '#FFF' : '#9CA3AF', fontWeight: '700' }]}>Save SGPA</Text>
+            <Ionicons name="save" size={20} color="#FFF" style={{ marginRight: 10 }} />
+            <Text style={[textStyles.h3, { color: '#FFF', fontWeight: '700' }]}>Save SGPA</Text>
           </Pressable>
         </LinearGradient>
       </View>
@@ -435,7 +452,7 @@ const styles = StyleSheet.create({
   subjectAvatar: { width: 32, height: 32, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   trashBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#FEF2F2', justifyContent: 'center', alignItems: 'center' },
   row: { flexDirection: 'row', gap: 12 },
-  inputContainer: { height: 50, borderRadius: 14, borderWidth: 1, paddingHorizontal: 16, justifyContent: 'center' },
+  inputContainer: { borderRadius: 14, borderWidth: 1, paddingHorizontal: 16, paddingVertical: 12, justifyContent: 'center' },
   input: { flex: 1, fontSize: 15, fontWeight: '500' },
 
   addBtn: { flexDirection: 'row', height: 60, borderRadius: 20, borderWidth: 1, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', marginBottom: 24 },

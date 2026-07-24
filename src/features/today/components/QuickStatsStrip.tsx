@@ -13,12 +13,13 @@ import { useDrawerStore } from '@/stores';
 interface QuickStatsStripProps {
   cgpa: number;
   expectedSGPA: number;
+  isSemesterComplete?: boolean;
   attendancePercentage: number;
   attendanceTotal: number;
   isBackground?: boolean;
 }
 
-export function QuickStatsStrip({ cgpa, expectedSGPA, attendancePercentage, attendanceTotal, isBackground = false }: QuickStatsStripProps) {
+export function QuickStatsStrip({ cgpa, expectedSGPA, isSemesterComplete = false, attendancePercentage, attendanceTotal, isBackground = false }: QuickStatsStripProps) {
   const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
   const homeStatsScrollX = useDrawerStore(s => s.homeStatsScrollX);
@@ -61,7 +62,7 @@ export function QuickStatsStrip({ cgpa, expectedSGPA, attendancePercentage, atte
           <View style={[styles.iconWrap, { backgroundColor: isDark ? 'rgba(244, 114, 182, 0.15)' : '#FCE7F3' }]}>
             <Ionicons name="sparkles" size={20} color={isDark ? "#F472B6" : '#DB2777'} />
           </View>
-          <Text style={[textStyles.smallMedium, { color: isDark ? '#FFFFFF' : colors.textPrimary, marginTop: 16 }]}>Expected SGPA</Text>
+          <Text style={[textStyles.smallMedium, { color: isDark ? '#FFFFFF' : colors.textPrimary, marginTop: 16 }]}>{isSemesterComplete ? 'SGPA' : 'Expected SGPA'}</Text>
           <Text style={[textStyles.display, { color: isDark ? '#F472B6' : '#DB2777', fontSize: 32, marginVertical: 4, textShadowColor: isDark ? 'rgba(244, 114, 182, 0.3)' : 'transparent', textShadowOffset: {width: 0, height: 2}, textShadowRadius: isDark ? 8 : 0 }]}>
             {expectedSGPA > 0 ? expectedSGPA.toFixed(2) : '--'}
           </Text>

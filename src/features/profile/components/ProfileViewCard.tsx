@@ -23,6 +23,7 @@ interface ProfileViewCardProps {
   currentSGPA: number;
   cgpa: number;
   completedCredits: number;
+  totalRegisteredCredits?: number;
   totalBacklogs?: number;
   avatarUri?: string;
   isPredictedSGPA?: boolean;
@@ -32,7 +33,7 @@ interface ProfileViewCardProps {
 
 export function ProfileViewCard({
   name, enrollmentNumber, branch, semesterStr, college, section,
-  currentSGPA, cgpa, completedCredits, totalBacklogs = 0, avatarUri, isPredictedSGPA, onAvatarPress, onAvatarLongPress
+  currentSGPA, cgpa, completedCredits, totalRegisteredCredits = 0, totalBacklogs = 0, avatarUri, isPredictedSGPA, onAvatarPress, onAvatarLongPress
 }: ProfileViewCardProps) {
   const { colors, spacing, textStyles, radius, isDark } = useTheme();
 
@@ -112,7 +113,7 @@ export function ProfileViewCard({
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
                   <Ionicons name={isPredictedSGPA ? "sparkles" : "trending-up"} size={14} color={colors.primary} style={{ marginRight: 4 }} />
                   <Text style={[textStyles.smallMedium, { color: colors.textSecondary, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }]}>
-                    {isPredictedSGPA ? 'Expected\nSGPA' : 'Current\nSGPA'}
+                    {isPredictedSGPA ? 'Expected\nSGPA' : 'SGPA'}
                   </Text>
                 </View>
                 <Text style={[textStyles.display, { color: colors.primary, fontSize: 32, lineHeight: 36 }]}>{(currentSGPA > 0 || isPredictedSGPA) ? currentSGPA.toFixed(2) : '--'}</Text>
@@ -143,8 +144,11 @@ export function ProfileViewCard({
                   <Ionicons name="ribbon" size={14} color="#10B981" style={{ marginRight: 4 }} />
                   <Text style={[textStyles.smallMedium, { color: colors.textSecondary, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }]}>Credits{'\n'}Completed</Text>
                 </View>
-                <Text style={[textStyles.display, { color: '#10B981', fontSize: 32, lineHeight: 36 }]}>
-                  {completedCredits}
+                <Text style={[textStyles.display, { fontSize: 32, lineHeight: 36 }]}>
+                  <Text style={{ color: '#10B981' }}>{completedCredits}</Text>
+                  {totalRegisteredCredits > 0 && (
+                    <Text style={{ color: isDark ? 'rgba(255,255,255,0.3)' : colors.textTertiary, fontSize: 22 }}> / {totalRegisteredCredits}</Text>
+                  )}
                 </Text>
                 {totalBacklogs > 0 ? (
                   <View style={{ backgroundColor: isDark ? 'rgba(220, 38, 38, 0.1)' : '#FEF2F2', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginTop: 4, flexDirection: 'row', alignItems: 'center' }}>
