@@ -307,7 +307,7 @@ export default function SemesterSGPAScreen() {
               <Text style={[textStyles.smallMedium, { color: 'rgba(255,255,255,0.8)', marginBottom: 4 }]}>Calculated SGPA</Text>
               <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 6 }}>
                 <Text style={[textStyles.display, { color: '#FFF', fontSize: 36, lineHeight: 40 }]}>{sgpa > 0 ? sgpa.toFixed(2) : '--'}</Text>
-                {sgpa > 0 && <View style={styles.badge}><Text style={[textStyles.small, { color: '#FFF', fontWeight: 'bold' }]}>{getGPALabel(sgpa)}</Text></View>}
+                {sgpa > 0 && <View style={[styles.badge, { flexShrink: 1 }]}><Text style={[textStyles.small, { color: '#FFF', fontWeight: 'bold' }]} numberOfLines={1} adjustsFontSizeToFit>{getGPALabel(sgpa)}</Text></View>}
               </View>
             </LinearGradient>
             <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>

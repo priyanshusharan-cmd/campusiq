@@ -129,13 +129,61 @@ export const useAcademicStore = create<AcademicState>()(
   },
 
   removeEntriesBySubject: (subjectId) => {
-    set((state) => ({
-      gradeEntries: state.gradeEntries.filter((e) => e.subjectId !== subjectId),
-      semesters: state.semesters.map((sem) => ({
-        ...sem,
-        sgpaSubjects: sem.sgpaSubjects?.filter((s) => s.id !== subjectId),
-      })),
-    }));
+    set((state) => {
+      const newGradeEntries = state.gradeEntries.filter((e) => e.subjectId !== subjectId);
+      
+      const newSemesters = state.semesters.map((sem) => {
+        if (!sem.sgpaSubjects) return sem;
+        
+        const originalLength = sem.sgpaSubjects.length;
+        const newSgpaSubjects = sem.sgpaSubjects.filter((s) => s.id !== subjectId);
+        
+        if (newSgpaSubjects.length === originalLength) return sem; // No change
+        
+        let pts = 0;
+        let evalCreds = 0;
+        let allCreds = 0;
+        let bCount = 0;
+        let bCreds = 0;
+
+        newSgpaSubjects.forEach(sub => {
+          const c = parseFloat(sub.credits) || 0;
+          const gp = parseFloat(sub.gradePoint) || 0;
+          const marks = parseFloat(sub.totalMarks) || 0;
+          
+          allCreds += c;
+          
+          const hasEnteredData = sub.totalMarks !== '' || sub.gradePoint !== '';
+          if (c > 0 && hasEnteredData) {
+            evalCreds += c;
+            pts += (gp * c);
+            
+            // Assume 40 is passing mark fallback if we don't fetch settings
+            const isBacklogByMarks = marks > 0 && marks < 40;
+            const isBacklogByGrade = gp === 0;
+            
+            if (isBacklogByMarks || isBacklogByGrade) {
+              bCount++;
+              bCreds += c;
+            }
+          }
+        });
+        
+        return {
+          ...sem,
+          sgpaSubjects: newSgpaSubjects,
+          sgpa: evalCreds > 0 ? Math.round((pts / evalCreds) * 100) / 100 : 0.0,
+          totalCredits: allCreds,
+          backlogCount: bCount,
+          backlogCredits: bCreds
+        };
+      });
+
+      return {
+        gradeEntries: newGradeEntries,
+        semesters: newSemesters,
+      };
+    });
   },
 
   getSGPA: (semesterId) => {

@@ -108,8 +108,8 @@ export default function AcademicsScreen() {
                             <Text style={[textStyles.display, { color: '#FFF', fontSize: 36, lineHeight: 40 }]}>{(sgpa > 0) ? sgpa.toFixed(2) : '--'}</Text>
                           </View>
                           {(sgpa > 0) ? (
-                            <View style={styles.tag}>
-                              <Text style={[textStyles.smallMedium, { color: '#FFF', fontSize: 10 }]}>{getGPALabel(sgpa)}</Text>
+                            <View style={[styles.tag, { flexShrink: 1 }]}>
+                              <Text style={[textStyles.smallMedium, { color: '#FFF', fontSize: 10 }]} numberOfLines={1} adjustsFontSizeToFit>{getGPALabel(sgpa)}</Text>
                             </View>
                           ) : null}
                         </View>
