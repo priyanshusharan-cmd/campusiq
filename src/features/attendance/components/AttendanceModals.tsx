@@ -94,10 +94,9 @@ interface SubjectMenuModalProps {
   topOffset: number;
   onEditSubject: () => void;
   onChangeTarget: () => void;
-  onDeleteSubject: () => void;
 }
 
-export function SubjectMenuModal({ visible, onClose, topOffset, onEditSubject, onChangeTarget, onDeleteSubject }: SubjectMenuModalProps) {
+export function SubjectMenuModal({ visible, onClose, topOffset, onEditSubject, onChangeTarget }: SubjectMenuModalProps) {
   const { colors } = useTheme();
 
   return (
@@ -115,12 +114,6 @@ export function SubjectMenuModal({ visible, onClose, topOffset, onEditSubject, o
             onPress={onChangeTarget}
           >
             <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Change Attendance Target</Text>
-          </Pressable>
-          <Pressable 
-            style={styles.menuItem}
-            onPress={onDeleteSubject}
-          >
-            <Text style={[styles.menuItemText, { color: '#EF4444' }]}>Delete Subject</Text>
           </Pressable>
         </View>
       </Pressable>

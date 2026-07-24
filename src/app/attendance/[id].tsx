@@ -138,24 +138,6 @@ export default function SubjectAttendanceDetailScreen() {
 
   const subDetails = [subject?.faculty, subject?.room].filter(Boolean).join(' · ');
 
-  const confirmDeleteSubject = () => {
-    Alert.alert(
-      'Delete Subject',
-      'Are you sure you want to delete this subject? All related classes and attendance records will be permanently deleted.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive', 
-          onPress: () => {
-            removeSubject(id as string);
-            router.replace('/(tabs)/overview' as any);
-          }
-        }
-      ]
-    );
-  };
-
   const handleChangeTarget = () => {
     setShowSubjectMenu(false);
     
@@ -344,10 +326,6 @@ export default function SubjectAttendanceDetailScreen() {
           router.push(`/(modals)/create-subject?id=${id}`);
         }}
         onChangeTarget={handleChangeTarget}
-        onDeleteSubject={() => {
-          setShowSubjectMenu(false);
-          setTimeout(() => confirmDeleteSubject(), 300);
-        }}
       />
     </SafeAreaView>
   );
