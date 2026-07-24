@@ -128,7 +128,9 @@ export function ProfileViewCard({
               <View style={{ flex: 1, alignItems: 'center' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
                   <Ionicons name="school" size={14} color="#3B82F6" style={{ marginRight: 4 }} />
-                  <Text style={[textStyles.smallMedium, { color: colors.textSecondary, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }]}>Current{'\n'}CGPA</Text>
+                  <Text style={[textStyles.smallMedium, { color: colors.textSecondary, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }]}>
+                    {isPredictedSGPA ? 'Current\nCGPA' : 'CGPA'}
+                  </Text>
                 </View>
                 <Text style={[textStyles.display, { color: '#0284C7', fontSize: 32, lineHeight: 36 }]}>{cgpa > 0 ? cgpa.toFixed(2) : '--'}</Text>
                 <View style={{ backgroundColor: isDark ? 'rgba(59, 130, 246, 0.1)' : '#EFF6FF', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginTop: 4, alignItems: 'center' }}>
@@ -142,7 +144,9 @@ export function ProfileViewCard({
               <View style={{ flex: 1, alignItems: 'center' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
                   <Ionicons name="ribbon" size={14} color="#10B981" style={{ marginRight: 4 }} />
-                  <Text style={[textStyles.smallMedium, { color: colors.textSecondary, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }]}>Credits{'\n'}Completed</Text>
+                  <Text style={[textStyles.smallMedium, { color: colors.textSecondary, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center' }]}>
+                    {isPredictedSGPA ? 'Credits\nCompleted' : 'Credits'}
+                  </Text>
                 </View>
                 <Text style={[textStyles.display, { fontSize: 32, lineHeight: 36 }]}>
                   <Text style={{ color: '#10B981' }}>{completedCredits}</Text>
