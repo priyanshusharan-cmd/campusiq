@@ -1,0 +1,74 @@
+{
+  "expo": {
+    "name": "CampusIQ",
+    "slug": "campusiq",
+    "version": "1.0.0",
+    "icon": "./assets/images/logo.png",
+    "orientation": "portrait",
+    "scheme": "campusiq",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "requireFullScreen": true,
+      "supportsTablet": true,
+      "bundleIdentifier": "com.priyanshusharan.campusiq",
+      "infoPlist": {
+        "UIFileSharingEnabled": true,
+        "LSSupportsOpeningDocumentsInPlace": true
+      }
+    },
+    "android": {
+      "predictiveBackGestureEnabled": false,
+      "package": "com.priyanshusharan.campusiq"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/logo-transparent.png"
+    },
+    "plugins": [
+      "./strip-push-plugin.js",
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/images/logo-transparent.png",
+          "imageWidth": 200
+        }
+      ],
+      "expo-sqlite",
+      "expo-sharing",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow CampusIQ to use Face ID to unlock your app."
+        }
+      ],
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "2.1.20"
+          },
+          "ios": {
+            "deploymentTarget": "16.4",
+            "enableSceneSupport": true
+          }
+        }
+      ],
+      "expo-asset",
+      "expo-font",
+      "expo-image",
+      "expo-status-bar"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
