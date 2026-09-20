@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { askCampusIQAI } from '@/features/ai/services/aiService';
+import { useSettingsStore } from '@/stores/useSettingsStore';
 
 interface Message {
   id: string;
@@ -36,7 +37,8 @@ export default function CampusAIModal() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const isOfflineMode = useSettingsStore((s) => s.aiOfflineMode);
+  const setIsOfflineMode = useSettingsStore((s) => s.setAiOfflineMode);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -52,7 +54,7 @@ export default function CampusAIModal() {
     setIsLoading(true);
     
     try {
-      const { reply, isFallback } = await askCampusIQAI(userMessage.content);
+      const { reply, isFallback } = await askCampusIQAI(userMessage.content, isOfflineMode);
       setIsOfflineMode(isFallback);
       
       const assistantMessage: Message = {

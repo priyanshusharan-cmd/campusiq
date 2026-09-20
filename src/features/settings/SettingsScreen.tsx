@@ -1,7 +1,7 @@
 // Campora — Settings Screen
 
 import React from 'react';
-import { View, Text, Switch, Alert, Platform, ActionSheetIOS } from 'react-native';
+import { View, Text, Switch, Alert, Platform, ActionSheetIOS, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -240,6 +240,17 @@ export default function SettingsScreen() {
 
   const [showKeys, setShowKeys] = React.useState(false);
 
+  // Key input modal state
+  const [keyModal, setKeyModal] = React.useState<{ visible: boolean; label: string; value: string; secure: boolean; onSave: (v: string) => void }>({ visible: false, label: '', value: '', secure: false, onSave: () => {} });
+  const [keyDraft, setKeyDraft] = React.useState('');
+
+  const openKeyModal = (label: string, currentValue: string, secure: boolean, onSave: (v: string) => void) => {
+    setKeyDraft(currentValue);
+    setKeyModal({ visible: true, label, value: currentValue, secure, onSave });
+  };
+
+  const closeKeyModal = () => setKeyModal(m => ({ ...m, visible: false }));
+
   const formatKey = (key: string) => {
     if (!key) return 'Not Set';
     if (showKeys) return key.substring(0, 15) + '...';
@@ -248,7 +259,7 @@ export default function SettingsScreen() {
 
   const renderKeyRightElement = (key: string) => (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      <Text style={[textStyles.body2, { color: key ? colors.textSecondary : colors.textMuted, marginRight: spacing.sm }]}>
+      <Text style={[textStyles.body, { color: key ? colors.textSecondary : colors.textTertiary, marginRight: spacing.sm }]}>
         {formatKey(key)}
       </Text>
       {key ? (
@@ -377,22 +388,7 @@ export default function SettingsScreen() {
                 />
               } 
             />
-            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-            <ListRow 
-              icon="sparkles-outline" iconColor={colors.primary} 
-              title="Use offline fallback" 
-              showChevron={false}
-              rightElement={
-                <Switch 
-                  value={settings.useOfflineAIFallback} 
-                  onValueChange={() => {
-                    triggerHaptic('light');
-                    settings.toggleOfflineAIFallback();
-                  }} 
-                  trackColor={{ false: colors.border, true: colors.primary }} 
-                />
-              } 
-            />
+            {/* API Keys hidden for Hackathon submission (injected via .env)
             <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
             <ListRow 
               icon="key-outline" iconColor={colors.primary} 
@@ -401,20 +397,7 @@ export default function SettingsScreen() {
               showChevron={false}
               onPress={() => {
                 triggerHaptic('light');
-                if (Platform.OS === 'ios') {
-                  Alert.prompt(
-                    'Gemini API Key',
-                    'Enter your Google Gemini API Key',
-                    [
-                      { text: 'Cancel', style: 'cancel' },
-                      { text: 'Save', onPress: (text) => settings.setGeminiKey(text || '') }
-                    ],
-                    'plain-text',
-                    settings.geminiKey
-                  );
-                } else {
-                  Alert.alert('Not Supported', 'Key configuration currently requires iOS.');
-                }
+                openKeyModal('Gemini API Key', settings.geminiKey, false, (v) => settings.setGeminiKey(v));
               }}
             />
             <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
@@ -425,18 +408,7 @@ export default function SettingsScreen() {
               showChevron={false}
               onPress={() => {
                 triggerHaptic('light');
-                if (Platform.OS === 'ios') {
-                  Alert.prompt(
-                    'AWS Access Key',
-                    'Enter your AWS Access Key ID',
-                    [
-                      { text: 'Cancel', style: 'cancel' },
-                      { text: 'Save', onPress: (text) => settings.setAwsAccessKey(text || '') }
-                    ],
-                    'plain-text',
-                    settings.awsAccessKey
-                  );
-                }
+                openKeyModal('AWS Access Key ID', settings.awsAccessKey, false, (v) => settings.setAwsAccessKey(v));
               }}
             />
             <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
@@ -447,20 +419,10 @@ export default function SettingsScreen() {
               showChevron={false}
               onPress={() => {
                 triggerHaptic('light');
-                if (Platform.OS === 'ios') {
-                  Alert.prompt(
-                    'AWS Secret Key',
-                    'Enter your AWS Secret Access Key',
-                    [
-                      { text: 'Cancel', style: 'cancel' },
-                      { text: 'Save', onPress: (text) => settings.setAwsSecretKey(text || '') }
-                    ],
-                    'secure-text',
-                    settings.awsSecretKey
-                  );
-                }
+                openKeyModal('AWS Secret Access Key', settings.awsSecretKey, true, (v) => settings.setAwsSecretKey(v));
               }}
             />
+            */}
           </Card>
 
           <SectionHeader title="Account & Security" />
@@ -490,6 +452,70 @@ export default function SettingsScreen() {
         </Animated.View>
 
       </ScrollView>
+
+      {/* ── API Key Entry Modal ────────────────────────────────── */}
+      <Modal
+        visible={keyModal.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeKeyModal}
+      >
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={closeKeyModal}
+            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: spacing.xl }}
+          >
+            <TouchableOpacity activeOpacity={1} style={{ width: '100%', backgroundColor: colors.surface, borderRadius: 16, padding: spacing.xl }}>
+              <Text style={[textStyles.h3, { color: colors.textPrimary, marginBottom: spacing.xs }]}>{keyModal.label}</Text>
+              <Text style={[textStyles.caption, { color: colors.textSecondary, marginBottom: spacing.lg }]}>
+                {keyModal.secure ? 'Your key is stored securely on this device only.' : 'Paste or type your API key below.'}
+              </Text>
+              <TextInput
+                value={keyDraft}
+                onChangeText={setKeyDraft}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoFocus
+                secureTextEntry={keyModal.secure}
+                placeholder={`Enter ${keyModal.label}`}
+                placeholderTextColor={colors.textTertiary}
+                style={{
+                  backgroundColor: colors.bg,
+                  color: colors.textPrimary,
+                  borderRadius: 10,
+                  paddingHorizontal: spacing.lg,
+                  paddingVertical: spacing.md,
+                  fontSize: 14,
+                  fontFamily: 'monospace',
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  marginBottom: spacing.lg,
+                }}
+              />
+              <View style={{ flexDirection: 'row', gap: spacing.md }}>
+                <TouchableOpacity
+                  onPress={closeKeyModal}
+                  style={{ flex: 1, paddingVertical: spacing.md, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: 'center' }}
+                >
+                  <Text style={[textStyles.body, { color: colors.textSecondary, fontWeight: '600' }]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    keyModal.onSave(keyDraft.trim());
+                    closeKeyModal();
+                    triggerHaptic('light');
+                  }}
+                  style={{ flex: 1, paddingVertical: spacing.md, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center' }}
+                >
+                  <Text style={[textStyles.body, { color: '#fff', fontWeight: '700' }]}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
+      </Modal>
+
     </SafeAreaView>
   );
 }

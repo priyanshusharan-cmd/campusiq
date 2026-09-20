@@ -92,6 +92,7 @@ interface SettingsState {
   appLockEnabled: boolean;
   cloudAiEnabled: boolean;
   useOfflineAIFallback: boolean;
+  aiOfflineMode: boolean;
 
   // AI API Keys
   geminiKey: string;
@@ -122,6 +123,7 @@ interface SettingsState {
   setGeminiKey: (key: string) => void;
   setAwsAccessKey: (key: string) => void;
   setAwsSecretKey: (key: string) => void;
+  setAiOfflineMode: (offline: boolean) => void;
   resetSettings: () => void;
 }
 
@@ -172,10 +174,11 @@ const initialState = {
   appLockEnabled: false,
   cloudAiEnabled: true,
   useOfflineAIFallback: true,
+  aiOfflineMode: false,
 
-  geminiKey: '',
-  awsAccessKey: '',
-  awsSecretKey: '',
+  geminiKey: process.env.GEMINI_API_KEY || process.env.EXPO_PUBLIC_GEMINI_API_KEY || '',
+  awsAccessKey: process.env.AWS_ACCESS_KEY || process.env.EXPO_PUBLIC_AWS_ACCESS_KEY || '',
+  awsSecretKey: process.env.AWS_SECRET_KEY || process.env.EXPO_PUBLIC_AWS_SECRET_KEY || '',
 };
 
 // ─── Store ──────────────────────────────────────────────────────────────────────
@@ -257,9 +260,10 @@ export const useSettingsStore = create<SettingsState>()(
         labMaxExternalMarks: Math.max(1, config.labMaxExternalMarks),
       }),
 
-      setGeminiKey: (key) => set({ geminiKey: key }),
-      setAwsAccessKey: (key) => set({ awsAccessKey: key }),
-      setAwsSecretKey: (key) => set({ awsSecretKey: key }),
+      setGeminiKey: (key) => set({ geminiKey: key, aiOfflineMode: false }),  // reset offline when key changes
+      setAwsAccessKey: (key) => set({ awsAccessKey: key, aiOfflineMode: false }),
+      setAwsSecretKey: (key) => set({ awsSecretKey: key, aiOfflineMode: false }),
+      setAiOfflineMode: (offline) => set({ aiOfflineMode: offline }),
     }),
     {
       name: 'settings-storage',

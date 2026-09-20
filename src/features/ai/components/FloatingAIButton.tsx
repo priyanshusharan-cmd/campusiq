@@ -29,7 +29,17 @@ export default function FloatingAIButton() {
       y: height - BUTTON_SIZE - INITIAL_BOTTOM,
     })
   ).current;
+  const panValue = useRef({ x: INITIAL_LEFT, y: height - BUTTON_SIZE - INITIAL_BOTTOM });
   
+  React.useEffect(() => {
+    const listenerId = pan.addListener((value) => {
+      panValue.current = value;
+    });
+    return () => {
+      pan.removeListener(listenerId);
+    };
+  }, [pan]);
+
   const scale = useRef(new Animated.Value(1)).current;
 
   const panResponder = useRef(
@@ -40,8 +50,8 @@ export default function FloatingAIButton() {
       },
       onPanResponderGrant: () => {
         pan.setOffset({
-          x: (pan.x as any)._value,
-          y: (pan.y as any)._value,
+          x: panValue.current.x,
+          y: panValue.current.y,
         });
         pan.setValue({ x: 0, y: 0 });
         
@@ -63,14 +73,14 @@ export default function FloatingAIButton() {
         }).start();
 
         // Snap to edges
-        let destX = (pan.x as any)._value;
+        let destX = panValue.current.x;
         if (destX < width / 2 - BUTTON_SIZE / 2) {
           destX = BOUNDS.left;
         } else {
           destX = BOUNDS.right;
         }
         
-        const destY = Math.max(BOUNDS.top, Math.min((pan.y as any)._value, BOUNDS.bottom));
+        const destY = Math.max(BOUNDS.top, Math.min(panValue.current.y, BOUNDS.bottom));
 
         Animated.spring(pan, {
           toValue: { x: destX, y: destY },
