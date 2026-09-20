@@ -93,6 +93,7 @@ interface SettingsState {
   cloudAiEnabled: boolean;
   useOfflineAIFallback: boolean;
   aiOfflineMode: boolean;
+  demoModeEnabled: boolean;
 
   // AI API Keys
   geminiKey: string;
@@ -112,6 +113,7 @@ interface SettingsState {
   toggleAppLock: () => void;
   toggleCloudAiEnabled: () => void;
   toggleOfflineAIFallback: () => void;
+  toggleDemoMode: () => void;
   updateStreak: (todayStr: string) => void;
   setReminderMinutes: (minutes: number) => void;
   setTargetCGPA: (target: number) => void;
@@ -175,6 +177,7 @@ const initialState = {
   cloudAiEnabled: true,
   useOfflineAIFallback: true,
   aiOfflineMode: false,
+  demoModeEnabled: process.env.EXPO_PUBLIC_DEMO_MODE === 'true' || false,
 
   geminiKey: process.env.GEMINI_API_KEY || process.env.EXPO_PUBLIC_GEMINI_API_KEY || '',
   awsAccessKey: process.env.AWS_ACCESS_KEY || process.env.EXPO_PUBLIC_AWS_ACCESS_KEY || '',
@@ -211,6 +214,8 @@ export const useSettingsStore = create<SettingsState>()(
       toggleCloudAiEnabled: () => set((s) => ({ cloudAiEnabled: !s.cloudAiEnabled })),
 
       toggleOfflineAIFallback: () => set((s) => ({ useOfflineAIFallback: !s.useOfflineAIFallback })),
+
+      toggleDemoMode: () => set((s) => ({ demoModeEnabled: !s.demoModeEnabled })),
 
       setReminderMinutes: (minutes) => set({ reminderMinutesBefore: minutes }),
 

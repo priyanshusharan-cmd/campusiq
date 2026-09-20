@@ -388,6 +388,22 @@ export default function SettingsScreen() {
                 />
               } 
             />
+            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
+            <ListRow 
+              icon="videocam-outline" iconColor={colors.primary} 
+              title="Demo Mode (Offline AI)" 
+              showChevron={false}
+              rightElement={
+                <Switch 
+                  value={settings.demoModeEnabled} 
+                  onValueChange={() => {
+                    triggerHaptic('light');
+                    settings.toggleDemoMode();
+                  }} 
+                  trackColor={{ false: colors.border, true: colors.primary }} 
+                />
+              } 
+            />
             {/* API Keys hidden for Hackathon submission (injected via .env)
             <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
             <ListRow 

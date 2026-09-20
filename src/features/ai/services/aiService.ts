@@ -20,7 +20,7 @@ export async function askCampusIQAI(query: string, isAlreadyOffline: boolean = f
   }
 
   // DEMO VIDEO MODE: Intercept all queries and respond instantly to avoid rate limits
-  let isDemoVideoMode = true;
+  const isDemoVideoMode = settings.demoModeEnabled;
   if (isDemoVideoMode) {
     return new Promise(resolve => {
       setTimeout(() => {
@@ -114,44 +114,35 @@ Answer the user's question clearly, concisely, and helpfully using their academi
   // 2. Fallback to Gemini
   if (geminiKey) {
     const gKey = geminiKey.trim();
-    const geminiAttempts = [
-      { version: 'v1beta', model: 'gemini-flash-latest' },
-      { version: 'v1beta', model: 'gemini-2.0-flash-lite' },
-      { version: 'v1beta', model: 'gemini-1.5-flash' },
-      { version: 'v1beta', model: 'gemini-1.5-flash-8b' },
-      { version: 'v1', model: 'gemini-pro' },
-    ];
-    for (const { version, model } of geminiAttempts) {
-      try {
-        const geminiResponse = await fetch(
-          `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': gKey },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }],
-              generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
-            })
-          }
-        );
-        if (geminiResponse.ok) {
-          const geminiData = await geminiResponse.json();
-          const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text) return { reply: text.trim(), isFallback: false };
-        } else {
-          lastError += `Gemini(${model}):${geminiResponse.status} `;
+    const model = process.env.EXPO_PUBLIC_GEMINI_MODEL_ID || 'gemini-3.6-flash';
+    const version = 'v1beta';
+    try {
+      const geminiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': gKey },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
+          })
         }
-      } catch (e: any) {
-        lastError += `Gemini(${model}):err `;
+      );
+      if (geminiResponse.ok) {
+        const geminiData = await geminiResponse.json();
+        const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) return { reply: text.trim(), isFallback: false };
+      } else {
+        console.warn(`Gemini API Error: ${geminiResponse.status}`);
       }
+    } catch (e: any) {
+      console.warn('Gemini Exception:', e);
     }
   }
 
-  if (lastError) {
-    return { reply: `AI Request Failed:\n\n${lastError.trim()}\n\nPlease check your AWS or Gemini API keys.`, isFallback: false };
-  }
-
-  return { reply: "Please configure AWS or Gemini API keys in the .env file to use the AI.", isFallback: false };
+  // Handle all errors gracefully without exposing to the user
+  console.warn('AI Services failed or quota exceeded. Falling back to deterministic offline response.');
+  return { reply: generateLocalFallbackResponse(query, context), isFallback: true };
 
 }
 
