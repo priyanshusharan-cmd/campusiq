@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -74,6 +74,7 @@ export default function SemesterSGPAScreen() {
   const existingSem = semesters.find(s => s.number === semesterNum);
   
   const allSubjects = useSubjectStore(s => s.subjects);
+  const removeStoreSubject = useSubjectStore(s => s.removeSubject);
   
   const initialSubjects = useMemo(() => {
     // Step 1: Get subjects for this specific semester number
@@ -114,8 +115,40 @@ export default function SemesterSGPAScreen() {
 
   const [subjects, setSubjects] = useState<SubjectEntry[]>(initialSubjects);
 
+  // Sync initial subjects when global store changes (like when a subject is added in the modal)
+  useEffect(() => {
+    setSubjects(prev => {
+      const next = initialSubjects.map(initS => {
+        const existing = prev.find(p => p.id === initS.id);
+        if (existing) {
+           return { ...initS, totalMarks: existing.totalMarks, gradePoint: existing.gradePoint };
+        }
+        return initS;
+      });
+      // Check if anything changed to avoid infinite render loop
+      if (JSON.stringify(prev) !== JSON.stringify(next)) {
+        return next;
+      }
+      return prev;
+    });
+  }, [initialSubjects]);
+
   const removeSubject = (id: string) => {
-    setSubjects(subjects.filter(s => s.id !== id));
+    Alert.alert(
+      "Delete Subject",
+      "Are you sure you want to permanently delete this subject?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          style: "destructive", 
+          onPress: () => {
+            removeStoreSubject(id); // Completely removes from global store
+            setSubjects(prev => prev.filter(s => s.id !== id));
+          } 
+        }
+      ]
+    );
   };
 
   const updateSubject = (id: string, field: keyof SubjectEntry, value: any) => {
