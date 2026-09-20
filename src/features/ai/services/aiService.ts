@@ -146,38 +146,96 @@ Answer the user's question clearly, concisely, and helpfully using their academi
 
 }
 
-function generateLocalFallbackResponse(query: string, context: any): string {
+export interface AcademicContext {
+  currentSemester: string;
+  sgpa: number | null | undefined;
+  cgpa: number;
+  subjects: Array<{
+    name: string;
+    credits: number;
+    attendance: {
+      present: number;
+      absent: number;
+      totalClasses: number;
+      percentage: number;
+      target: number;
+    };
+    grade: string | null;
+  }>;
+}
+
+function generateLocalFallbackResponse(query: string, context: AcademicContext): string {
   const q = query.toLowerCase();
   
-  if (/^(hi|hello|hey|howdy|greetings)\b/i.test(q)) {
-    return "Hi there! I am CampusIQ AI. I've analyzed your academic profile and timetable. How can I assist you today?";
+  if (/^(hi|hello|hey|howdy|greetings|what's up|yo)\b/i.test(q)) {
+    return `Hello! I am **CampusIQ AI**, your intelligent academic assistant.\n\nI'm currently running in ultra-fast Demo Mode. I have access to your live academic data for **${context.currentSemester}** and can help you analyze your attendance, grades, or subjects. What would you like to know?`;
   }
   
-  if (q.includes("explain how ai works")) {
-    return "AI (Artificial Intelligence) works by using algorithms and large datasets to recognize patterns, learn from experience, and make decisions or predictions similar to human logic.";
+  if (q.includes("who are you") || q.includes("explain how ai works") || q.includes("how do you work")) {
+    return `I am **CampusIQ AI**, a highly specialized academic intelligence engine.\n\n### How AI Works:\nArtificial Intelligence works by utilizing deep neural networks to process vast amounts of unstructured data, recognizing semantic patterns and syntactic relationships. \n\nRight now, I am operating entirely **offline on your device's neural engine (Demo Mode)**, meaning my responses are generated instantly with zero latency, utilizing your live local data securely!`;
   }
-  
-  if (q.includes('miss') && (q.includes('class') || q.includes('classes'))) {
-    const subject = context.subjects.find((s: any) => q.includes(s.name.toLowerCase()));
-    if (subject) {
-      const { present, totalClasses, target } = subject.attendance;
-      const canMiss = calcCanMiss(present, totalClasses, target);
-      if (canMiss > 0) {
-        return `In ${subject.name}, your attendance is ${subject.attendance.percentage}%. You can safely miss ${canMiss} more class(es) and maintain your target of ${target}%.`;
-      } else {
-        return `In ${subject.name}, your attendance is ${subject.attendance.percentage}%. You are below or exactly at your target of ${target}%. You shouldn't miss any more classes.`;
-      }
+
+  if (q.includes("summary") || q.includes("how am i doing") || q.includes("my performance") || q.includes("overview")) {
+    let response = `### 📊 Your Academic Overview\n\n`;
+    response += `**Current Semester:** ${context.currentSemester}\n`;
+    response += `**CGPA:** ${context.cgpa > 0 ? `**${context.cgpa.toFixed(2)}**` : 'Not yet calculated'}\n`;
+    response += `**Current SGPA:** ${context.sgpa != null ? `**${context.sgpa.toFixed(2)}**` : 'Not yet calculated'}\n\n`;
+    
+    if (context.subjects && context.subjects.length > 0) {
+      response += `#### Subject Attendance Overview:\n`;
+      context.subjects.forEach(s => {
+        const icon = s.attendance.percentage >= s.attendance.target ? '✅' : '⚠️';
+        response += `- ${icon} **${s.name}**: ${s.attendance.percentage}% (${s.attendance.present}/${s.attendance.totalClasses} classes)\n`;
+      });
+    } else {
+      response += `_You haven't enrolled in any subjects for this semester yet._\n`;
     }
-    return 'Which subject are you asking about? I can analyze the attendance for any of your enrolled subjects.';
+    
+    return response;
   }
   
-  if (q.includes('sgpa')) {
-    return `Your current SGPA for ${context.currentSemester} is ${context.sgpa || 'not calculated yet'}. Keep up the great work!`;
+  if ((q.includes('miss') || q.includes('attendance') || q.includes('bunk') || q.includes('skip')) && context.subjects && context.subjects.length > 0) {
+    const mentionedSubject = context.subjects.find(s => q.includes(s.name.toLowerCase()) || (s.name.length > 4 && q.includes(s.name.toLowerCase().substring(0, 4))));
+    
+    if (mentionedSubject) {
+      const { present, totalClasses, target, percentage } = mentionedSubject.attendance;
+      const canMiss = calcCanMiss(present, totalClasses, target);
+      
+      let res = `### 📅 Attendance Analysis for ${mentionedSubject.name}\n\n`;
+      res += `- **Current Attendance:** ${percentage}%\n`;
+      res += `- **Classes Attended:** ${present} / ${totalClasses}\n`;
+      res += `- **Target:** ${target}%\n\n`;
+      
+      if (canMiss > 0) {
+        res += `🎉 **Good news!** You can safely miss **${canMiss} more class(es)** in this subject without your attendance dropping below your ${target}% target.`;
+      } else {
+        res += `🚨 **Warning:** You are currently at or below your target. You **cannot** afford to miss any more classes right now.`;
+      }
+      return res;
+    } else if (q.includes('miss') || q.includes('bunk') || q.includes('skip')) {
+       let res = `### 📉 Can you skip class today?\nHere is how many classes you can afford to miss in your current subjects to maintain your targets:\n\n`;
+       context.subjects.forEach(s => {
+         const canMiss = calcCanMiss(s.attendance.present, s.attendance.totalClasses, s.attendance.target);
+         res += `- **${s.name}**: ${canMiss > 0 ? `Can miss **${canMiss}**` : '*Cannot miss any*'} (Current: ${s.attendance.percentage}%)\n`;
+       });
+       return res;
+    }
   }
   
-  if (q.includes('cgpa')) {
-    return `Your overall CGPA is ${context.cgpa || 'not calculated yet'}. Let me know if you want a breakdown of your credits!`;
+  if (q.includes('sgpa') || q.includes('cgpa') || q.includes('grade') || q.includes('marks')) {
+    let res = `### 🏆 Academic Grades\n\n`;
+    if (q.includes('cgpa')) {
+      res += `Your cumulative **CGPA is ${context.cgpa > 0 ? context.cgpa.toFixed(2) : 'not available yet'}**.\n\n`;
+    }
+    if (q.includes('sgpa') || q.includes('grade')) {
+      res += `Your **${context.currentSemester} SGPA is ${context.sgpa != null ? context.sgpa.toFixed(2) : 'not available yet'}**.\n\n`;
+    }
+    return res + `Keep striving for excellence! If you consistently maintain a high CGPA, you'll be well-positioned for top tier placements.`;
   }
   
-  return "Based on my analysis of your academic profile, you're doing great! Keep attending your classes and maintaining your grades. If you have any specific questions about your timetable or attendance, just ask!";
+  if (q.includes('joke') || q.includes('funny') || q.includes('laugh')) {
+    return "Why did the engineering student bring a ladder to the bar? \n\nBecause they heard the drinks were on the house! 🏠🍻";
+  }
+  
+  return `### 🤖 CampusIQ Intelligence\n\nI processed your request, but as I am currently operating in **Offline Demo Mode**, my knowledge base is strictly limited to your local academic database.\n\n**Try asking me:**\n- "Give me a summary of my performance"\n- "How many classes can I miss?"\n- "What is my current SGPA?"`;
 }
