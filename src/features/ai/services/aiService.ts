@@ -20,11 +20,14 @@ export async function askCampusIQAI(query: string, isAlreadyOffline: boolean = f
   }
 
   // DEMO VIDEO MODE: Intercept all queries and respond instantly to avoid rate limits
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve({ reply: generateLocalFallbackResponse(query, context), isFallback: false });
-    }, 1500); // Simulate network latency for a realistic demo
-  });
+  let isDemoVideoMode = true;
+  if (isDemoVideoMode) {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve({ reply: generateLocalFallbackResponse(query, context), isFallback: false });
+      }, 1500); // Simulate network latency for a realistic demo
+    });
+  }
 
   const prompt = `You are CampusIQ AI, a highly intelligent academic assistant.
 Here is the user's current academic context:

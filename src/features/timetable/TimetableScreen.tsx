@@ -441,7 +441,8 @@ export default function TimetableScreen() {
                       onPress={() => {
                         setShowFabMenu(false);
                         const dateStr = days[selectedDay].dateString;
-                        router.push(`/(modals)/create-class?initialDay=${days[selectedDay].dayName}` as any);
+                        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                        router.push(`/(modals)/create-class?initialDay=${dayNames[selectedDay]}` as any);
                       }}
                     >
                       <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '15', justifyContent: 'center', alignItems: 'center', marginRight: 12 }}>
@@ -458,7 +459,8 @@ export default function TimetableScreen() {
                       onPress={() => {
                         setShowFabMenu(false);
                         const dateStr = days[selectedDay].dateString;
-                        router.push(`/(modals)/create-class?initialDay=${days[selectedDay].dayName}&isLab=true&isLabOnly=true` as any);
+                        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                        router.push(`/(modals)/create-class?initialDay=${dayNames[selectedDay]}&isLab=true&isLabOnly=true` as any);
                       }}
                     >
                       <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '15', justifyContent: 'center', alignItems: 'center', marginRight: 12 }}>

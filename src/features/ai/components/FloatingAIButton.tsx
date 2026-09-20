@@ -40,6 +40,7 @@ export default function FloatingAIButton() {
 
   const [scale] = React.useState(() => new Animated.Value(1));
 
+  // eslint-disable-next-line react-hooks/refs
   const [panResponder] = React.useState(() => 
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
