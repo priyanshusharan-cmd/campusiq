@@ -8,7 +8,7 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 const { width, height } = Dimensions.get('window');
 const BUTTON_SIZE = 60;
 const INITIAL_BOTTOM = Platform.OS === 'ios' ? 100 : 90;
-const INITIAL_RIGHT = 20;
+const INITIAL_LEFT = 20;
 
 const BOUNDS = {
   left: 10,
@@ -25,7 +25,7 @@ export default function FloatingAIButton() {
   const cloudAiEnabled = useSettingsStore(s => s.cloudAiEnabled);
   const pan = useRef(
     new Animated.ValueXY({
-      x: width - BUTTON_SIZE - INITIAL_RIGHT,
+      x: INITIAL_LEFT,
       y: height - BUTTON_SIZE - INITIAL_BOTTOM,
     })
   ).current;

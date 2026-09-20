@@ -78,15 +78,13 @@ const data = [
             name: 'Semester V',
             targetSemesters: [5],
             subjects: [
+              { code: '23CS5PCOOM', name: 'Object Oriented Modelling', credits: 3 },
+              { code: '23CS5PCDEV', name: 'Data Exploration and Visualization', credits: 3 },
+              { code: '23CS5PCAIN', name: 'Artificial Intelligence', credits: 4 },
+              { code: '25CS5PCCON', name: 'Computer Networks', credits: 4 },
+              { code: '23CV5HSEVS', name: 'Environmental Studies', credits: 1 },
               { code: '23CS5BSBIS', name: 'Bio Inspired Systems', credits: 1 },
-              { code: '23CS5PCCND', name: 'Compiler Design', credits: 4 },
-              { code: '23CS5PCFSD', name: 'Full Stack Development', credits: 4 },
-              { code: '23CS5PCCGV', name: 'Computer Vision and Graphics', credits: 4 },
-              { code: '23CS5PCDMD', name: 'Data Mining', credits: 4 },
-              { code: '23CS5PEXXX', name: 'Professional Elective–I', credits: 3 },
-              { code: '23MA5HSEMG', name: 'Engineering Management', credits: 1 },
-              { code: '23CS5PWMP', name: 'Mini Project', credits: 2 },
-              { code: '23NCMC3NS3', name: 'AICTE Activity Point Course (Non-Credit)', credits: 0 }
+              { code: '23CS5PWMIP', name: 'Mini Project', credits: 2 }
             ]
           },
           {
