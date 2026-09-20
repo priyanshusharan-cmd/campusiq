@@ -115,7 +115,7 @@ export default function SemesterSGPAScreen() {
   const [subjects, setSubjects] = useState<SubjectEntry[]>(initialSubjects);
 
   const removeSubject = (id: string) => {
-    setSubjects(subjects.map(s => s.id === id ? { ...s, totalMarks: '', gradePoint: '' } : s));
+    setSubjects(subjects.filter(s => s.id !== id));
   };
 
   const updateSubject = (id: string, field: keyof SubjectEntry, value: any) => {
