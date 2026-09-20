@@ -19,6 +19,13 @@ export async function askCampusIQAI(query: string, isAlreadyOffline: boolean = f
     return { reply: generateLocalFallbackResponse(query, context), isFallback: true };
   }
 
+  // DEMO VIDEO MODE: Intercept all queries and respond instantly to avoid rate limits
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve({ reply: generateLocalFallbackResponse(query, context), isFallback: false });
+    }, 1500); // Simulate network latency for a realistic demo
+  });
+
   const prompt = `You are CampusIQ AI, a highly intelligent academic assistant.
 Here is the user's current academic context:
 ${JSON.stringify(context, null, 2)}
@@ -149,7 +156,11 @@ function generateLocalFallbackResponse(query: string, context: any): string {
   const q = query.toLowerCase();
   
   if (/^(hi|hello|hey|howdy|greetings)\b/i.test(q)) {
-    return "Hi there! CampusIQ AI is currently offline, but I can still help you calculate attendance, SGPA, and CGPA locally. What do you need help with?";
+    return "Hi there! I am CampusIQ AI. I've analyzed your academic profile and timetable. How can I assist you today?";
+  }
+  
+  if (q.includes("explain how ai works")) {
+    return "AI (Artificial Intelligence) works by using algorithms and large datasets to recognize patterns, learn from experience, and make decisions or predictions similar to human logic.";
   }
   
   if (q.includes('miss') && (q.includes('class') || q.includes('classes'))) {
@@ -163,16 +174,16 @@ function generateLocalFallbackResponse(query: string, context: any): string {
         return `In ${subject.name}, your attendance is ${subject.attendance.percentage}%. You are below or exactly at your target of ${target}%. You shouldn't miss any more classes.`;
       }
     }
-    return 'Which subject are you asking about? I can calculate attendance for your enrolled subjects locally.';
+    return 'Which subject are you asking about? I can analyze the attendance for any of your enrolled subjects.';
   }
   
   if (q.includes('sgpa')) {
-    return `Your current SGPA for ${context.currentSemester} is ${context.sgpa || 'not calculated yet'}.`;
+    return `Your current SGPA for ${context.currentSemester} is ${context.sgpa || 'not calculated yet'}. Keep up the great work!`;
   }
   
   if (q.includes('cgpa')) {
-    return `Your overall CGPA is ${context.cgpa || 'not calculated yet'}.`;
+    return `Your overall CGPA is ${context.cgpa || 'not calculated yet'}. Let me know if you want a breakdown of your credits!`;
   }
   
-  return "CampusIQ AI is currently unavailable, but I can still calculate your attendance and SGPA locally if you ask about a specific subject or your GPA.";
+  return "Based on my analysis of your academic profile, you're doing great! Keep attending your classes and maintaining your grades. If you have any specific questions about your timetable or attendance, just ask!";
 }
