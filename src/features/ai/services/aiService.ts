@@ -3,7 +3,6 @@ import { buildAcademicContext } from './contextBuilder';
 import { calcCanMiss } from '@/lib/pureAttendanceUtils';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 
-
 import { SignatureV4 } from '@aws-sdk/signature-v4';
 import { HttpRequest } from '@aws-sdk/protocol-http';
 import { Sha256 } from '@aws-crypto/sha256-js';
@@ -30,59 +29,27 @@ Answer the user's question clearly, concisely, and helpfully using their academi
 
   let lastError = '';
 
-  // Read keys directly from .env to bypass any empty values cached in Zustand's local storage
-  const awsAccessKey = process.env.AWS_ACCESS_KEY || process.env.EXPO_PUBLIC_AWS_ACCESS_KEY || settings.awsAccessKey;
-  const awsSecretKey = process.env.AWS_SECRET_KEY || process.env.EXPO_PUBLIC_AWS_SECRET_KEY || settings.awsSecretKey;
-  const geminiKey = process.env.GEMINI_API_KEY || process.env.EXPO_PUBLIC_GEMINI_API_KEY || settings.geminiKey;
+  const awsAccessKey = process.env.EXPO_PUBLIC_AWS_ACCESS_KEY || settings.awsAccessKey;
+  const awsSecretKey = process.env.EXPO_PUBLIC_AWS_SECRET_KEY || settings.awsSecretKey;
+  const geminiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || settings.geminiKey;
 
-  // 1. Try Gemini first (detect Bearer vs API key)
-  if (geminiKey) {
-    const gKey = geminiKey.trim();
-    const isBearer = gKey.startsWith('AQ.') || gKey.startsWith('ya29.') || gKey.startsWith('eyJ');
-
-    const geminiAttempts = [
-      { version: 'v1beta', model: 'gemini-2.0-flash-lite' },
-      { version: 'v1beta', model: 'gemini-1.5-flash-8b' },
-      { version: 'v1beta', model: 'gemini-1.5-flash' },
-      { version: 'v1', model: 'gemini-pro' },
-    ];
-    for (const { version, model } of geminiAttempts) {
-      try {
-        const url = isBearer
-          ? `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent`
-          : `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${gKey}`;
-        
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (isBearer) headers['Authorization'] = `Bearer ${gKey}`;
-
-        const geminiResponse = await fetch(url, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
-          })
-        });
-
-        if (geminiResponse.ok) {
-          const geminiData = await geminiResponse.json();
-          const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text) return { reply: text.trim(), isFallback: false };
-        } else {
-          lastError += `Gemini(${model}):${geminiResponse.status} `;
-        }
-      } catch (e: any) {
-        lastError += `Gemini(${model}):err `;
-      }
-    }
-  }
-
-  // 2. Try AWS Bedrock second if Gemini fails or is missing
-  if (awsAccessKey && awsSecretKey) {
+  // 1. Try AWS first
+  if (awsAccessKey && awsSecretKey && awsAccessKey !== 'your_aws_access_key') {
     try {
       console.log('Attempting AWS Bedrock Nova...');
       const modelId = 'amazon.nova-lite-v1:0';
+      const awsHost = 'bedrock-runtime.us-east-1.amazonaws.com';
       
+      const reqBody = JSON.stringify({
+        messages: [{ role: 'user', content: [{ text: prompt }] }],
+        inferenceConfig: { maxTokens: 512, temperature: 0.7 }
+      });
+
+      const hash = new Sha256();
+      hash.update(reqBody);
+      const bodyHash = await hash.digest();
+      const bodyHashHex = Array.from(bodyHash).map(b => b.toString(16).padStart(2, '0')).join('');
+
       const sigv4 = new SignatureV4({
         service: 'bedrock',
         region: 'us-east-1',
@@ -93,26 +60,22 @@ Answer the user's question clearly, concisely, and helpfully using their academi
         sha256: Sha256
       });
 
-      const reqBody = JSON.stringify({
-        messages: [{ role: 'user', content: [{ text: prompt }] }],
-        inferenceConfig: { maxTokens: 512, temperature: 0.7 }
-      });
-
       const request = new HttpRequest({
         method: 'POST',
         protocol: 'https:',
-        hostname: 'bedrock-runtime.us-east-1.amazonaws.com',
+        hostname: awsHost,
         path: `/model/${modelId}/invoke`,
         headers: {
           'Content-Type': 'application/json',
-          'host': 'bedrock-runtime.us-east-1.amazonaws.com'
+          'host': awsHost,
+          'x-amz-content-sha256': bodyHashHex,
         },
         body: reqBody
       });
 
       const signedRequest = await sigv4.sign(request);
       
-      const bedrockResponse = await fetch(`https://bedrock-runtime.us-east-1.amazonaws.com/model/${modelId}/invoke`, {
+      const bedrockResponse = await fetch(`https://${awsHost}/model/${modelId}/invoke`, {
         method: signedRequest.method,
         headers: signedRequest.headers as any,
         body: signedRequest.body
@@ -120,7 +83,6 @@ Answer the user's question clearly, concisely, and helpfully using their academi
 
       if (bedrockResponse.ok) {
         const bedrockData = await bedrockResponse.json();
-        // Nova response format
         const text = bedrockData.output?.message?.content?.[0]?.text;
         if (text) return { reply: text.trim(), isFallback: false };
       } else {
@@ -134,12 +96,66 @@ Answer the user's question clearly, concisely, and helpfully using their academi
     }
   }
 
-  // 3. No fallback, just return the errors
-  if (lastError) {
-    return { reply: `AI Request Failed:\n\n${lastError.trim()}\n\nPlease check that your API keys are valid.`, isFallback: false };
+  // 2. Fallback to Gemini
+  if (geminiKey) {
+    const gKey = geminiKey.trim();
+    const geminiAttempts = [
+      { version: 'v1beta', model: 'gemini-flash-latest' },
+      { version: 'v1beta', model: 'gemini-2.0-flash-lite' },
+      { version: 'v1beta', model: 'gemini-1.5-flash' },
+      { version: 'v1beta', model: 'gemini-1.5-flash-8b' },
+      { version: 'v1', model: 'gemini-pro' },
+    ];
+    for (const { version, model } of geminiAttempts) {
+      try {
+        const geminiResponse = await fetch(
+          `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': gKey },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
+            })
+          }
+        );
+        if (geminiResponse.ok) {
+          const geminiData = await geminiResponse.json();
+          const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) return { reply: text.trim(), isFallback: false };
+        }
+      } catch {}
+
+      try {
+        const geminiResponse = await fetch(
+          `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${gKey}` },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
+            })
+          }
+        );
+        if (geminiResponse.ok) {
+          const geminiData = await geminiResponse.json();
+          const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) return { reply: text.trim(), isFallback: false };
+        } else {
+          lastError += `Gemini(${model}):${geminiResponse.status} `;
+        }
+      } catch (e: any) {
+        lastError += `Gemini(${model}):err `;
+      }
+    }
   }
 
-  return { reply: "Please add your Gemini or AWS API keys in the .env file to use the AI.", isFallback: false };
+  if (lastError) {
+    return { reply: `AI Request Failed:\n\n${lastError.trim()}\n\nPlease check your AWS or Gemini API keys.`, isFallback: false };
+  }
+
+  return { reply: "Please configure AWS or Gemini API keys in the .env file to use the AI.", isFallback: false };
 
 }
 

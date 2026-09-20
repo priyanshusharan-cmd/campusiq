@@ -400,28 +400,6 @@ export default function SettingsScreen() {
                 openKeyModal('Gemini API Key', settings.geminiKey, false, (v) => settings.setGeminiKey(v));
               }}
             />
-            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-            <ListRow 
-              icon="cloud-outline" iconColor={colors.primary} 
-              title="AWS Access Key" 
-              rightElement={renderKeyRightElement(settings.awsAccessKey)}
-              showChevron={false}
-              onPress={() => {
-                triggerHaptic('light');
-                openKeyModal('AWS Access Key ID', settings.awsAccessKey, false, (v) => settings.setAwsAccessKey(v));
-              }}
-            />
-            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-            <ListRow 
-              icon="lock-closed-outline" iconColor={colors.primary} 
-              title="AWS Secret Key" 
-              rightElement={renderKeyRightElement(settings.awsSecretKey)}
-              showChevron={false}
-              onPress={() => {
-                triggerHaptic('light');
-                openKeyModal('AWS Secret Access Key', settings.awsSecretKey, true, (v) => settings.setAwsSecretKey(v));
-              }}
-            />
             */}
           </Card>
 
