@@ -23,7 +23,7 @@ export default function CreateClassScreen() {
   const updateEntry = useTimetableStore(state => state.updateEntry);
   const entries = useTimetableStore(state => state.entries);
 
-  const { editId, subjectId: initialSubjectId, isLab, initialDay, initialStartTime, initialEndTime } = useLocalSearchParams();
+  const { editId, subjectId: initialSubjectId, isLab, isLabOnly, initialDay, initialStartTime, initialEndTime } = useLocalSearchParams();
 
   const [selectedSubjectId, setSelectedSubjectId] = useState('');
   const [faculty, setFaculty] = useState('');
@@ -294,7 +294,7 @@ export default function CreateClassScreen() {
               <Pressable onPress={() => setShowSubjectModal(false)} hitSlop={10}><Ionicons name="close" size={24} color={colors.textSecondary} /></Pressable>
             </View>
             <FlatList
-              data={subjects}
+              data={isLabOnly === 'true' ? subjects.filter(s => s.type === 'lab') : subjects}
               keyExtractor={item => item.id}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => (

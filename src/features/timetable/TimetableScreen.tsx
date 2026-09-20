@@ -435,22 +435,58 @@ export default function TimetableScreen() {
                 <Text style={[textStyles.h3, { color: colors.textPrimary, marginBottom: 16 }]}>Timetable Options</Text>
                 
                 {hasSubjects && (
-                  <Pressable 
-                    style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.borderLight }}
-                    onPress={() => {
-                      setShowFabMenu(false);
-                      const dateStr = days[selectedDay].dateString;
-                      router.push(`/(modals)/create-extra-class?date=${dateStr}` as any);
-                    }}
-                  >
-                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '15', justifyContent: 'center', alignItems: 'center', marginRight: 12 }}>
-                      <Ionicons name="add" size={24} color={colors.primary} />
-                    </View>
-                    <View>
-                      <Text style={[textStyles.body, { color: colors.textPrimary, fontWeight: '600' }]}>Add Extra Class</Text>
-                      <Text style={[textStyles.small, { color: colors.textSecondary }]}>Schedule a one-off class or event</Text>
-                    </View>
-                  </Pressable>
+                  <>
+                    <Pressable 
+                      style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.borderLight }}
+                      onPress={() => {
+                        setShowFabMenu(false);
+                        const dateStr = days[selectedDay].dateString;
+                        router.push(`/(modals)/create-class?initialDay=${days[selectedDay].dayName}` as any);
+                      }}
+                    >
+                      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '15', justifyContent: 'center', alignItems: 'center', marginRight: 12 }}>
+                        <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+                      </View>
+                      <View>
+                        <Text style={[textStyles.body, { color: colors.textPrimary, fontWeight: '600' }]}>Add Class</Text>
+                        <Text style={[textStyles.small, { color: colors.textSecondary }]}>Schedule a regular class</Text>
+                      </View>
+                    </Pressable>
+
+                    <Pressable 
+                      style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.borderLight }}
+                      onPress={() => {
+                        setShowFabMenu(false);
+                        const dateStr = days[selectedDay].dateString;
+                        router.push(`/(modals)/create-class?initialDay=${days[selectedDay].dayName}&isLab=true&isLabOnly=true` as any);
+                      }}
+                    >
+                      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '15', justifyContent: 'center', alignItems: 'center', marginRight: 12 }}>
+                        <Ionicons name="flask-outline" size={20} color={colors.primary} />
+                      </View>
+                      <View>
+                        <Text style={[textStyles.body, { color: colors.textPrimary, fontWeight: '600' }]}>Add Lab</Text>
+                        <Text style={[textStyles.small, { color: colors.textSecondary }]}>Schedule a practical lab session</Text>
+                      </View>
+                    </Pressable>
+
+                    <Pressable 
+                      style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.borderLight }}
+                      onPress={() => {
+                        setShowFabMenu(false);
+                        const dateStr = days[selectedDay].dateString;
+                        router.push(`/(modals)/create-extra-class?date=${dateStr}` as any);
+                      }}
+                    >
+                      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '15', justifyContent: 'center', alignItems: 'center', marginRight: 12 }}>
+                        <Ionicons name="add" size={24} color={colors.primary} />
+                      </View>
+                      <View>
+                        <Text style={[textStyles.body, { color: colors.textPrimary, fontWeight: '600' }]}>Add Extra Class</Text>
+                        <Text style={[textStyles.small, { color: colors.textSecondary }]}>Schedule a one-off class or event</Text>
+                      </View>
+                    </Pressable>
+                  </>
                 )}
 
                 <Pressable 
