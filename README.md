@@ -18,24 +18,6 @@
 
 ---
 
-## 📖 Table of Contents
-
-- [Overview](#-overview)
-- [Why CampusIQ?](#-why-campusiq)
-- [Video Demo](#-video-demo)
-- [Screenshots](#-screenshots)
-- [Key Features In-Depth](#-key-features-in-depth)
-- [Agent Capabilities](#-agent-capabilities)
-- [Tech Stack](#-tech-stack)
-- [System Architecture](#-system-architecture)
-- [Getting Started](#-getting-started)
-- [Hackathon Submission Details](#-hackathon-submission-details-aws-first-commit)
-- [Roadmap](#-roadmap)
-- [Contributing](#-contributing)
-- [License](#-license)
-
----
-
 ## 📖 Overview
 
 **CampusIQ** is a comprehensive, AI-powered academic management platform designed to streamline the modern student experience. By centralizing timetable scheduling, attendance tracking, SGPA forecasting, and assignment management, CampusIQ eliminates the friction of university life. 
@@ -57,17 +39,6 @@ We built CampusIQ to solve this fragmentation. It's not just another calendar ap
 <div align="center">
   <video src="[INSERT_DEMO_VIDEO_LINK_HERE]" controls="controls" style="max-width: 100%; height: auto;"></video>
   <p><em>(Replace with your 3-minute hackathon demo video link)</em></p>
-</div>
-
----
-
-## 📸 Screenshots
-
-<div align="center">
-  <img src="[INSERT_SCREENSHOT_1_URL]" width="24%" alt="Home Screen"/>
-  <img src="[INSERT_SCREENSHOT_2_URL]" width="24%" alt="Attendance Tracker"/>
-  <img src="[INSERT_SCREENSHOT_3_URL]" width="24%" alt="SGPA Predictor"/>
-  <img src="[INSERT_SCREENSHOT_4_URL]" width="24%" alt="AI Assistant Chat"/>
 </div>
 
 ---
