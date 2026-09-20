@@ -26,7 +26,7 @@ export default function PrivacyPolicyScreen() {
           CampusIQ Privacy Policy
         </Text>
         <Text style={[textStyles.body, { color: colors.textSecondary, marginBottom: spacing.lg }]}>
-          Last Updated: July 2026
+          Last Updated: September 2026
         </Text>
 
         <Text style={[textStyles.h3, { color: colors.textPrimary, marginTop: spacing.md, marginBottom: spacing.sm }]}>
@@ -60,8 +60,15 @@ export default function PrivacyPolicyScreen() {
         <Text style={[textStyles.h3, { color: colors.textPrimary, marginTop: spacing.md, marginBottom: spacing.sm }]}>
           5. On-Device Processing
         </Text>
-        <Text style={[textStyles.body, { color: colors.textSecondary, marginBottom: spacing.xl }]}>
+        <Text style={[textStyles.body, { color: colors.textSecondary, marginBottom: spacing.lg }]}>
           All computations—including your SGPA/CGPA calculations, attendance predictions, and performance bounds—are processed entirely locally on your own device. We do not use any remote servers or cloud services to calculate or process your academic data, guaranteeing that your information is private, secure, and always accessible offline.
+        </Text>
+
+        <Text style={[textStyles.h3, { color: colors.textPrimary, marginTop: spacing.md, marginBottom: spacing.sm }]}>
+          6. AI Features & Third-Party APIs
+        </Text>
+        <Text style={[textStyles.body, { color: colors.textSecondary, marginBottom: spacing.xl }]}>
+          If you choose to enable Cloud AI features, your queries and relevant academic context are transmitted securely to third-party AI providers (AWS Bedrock or Google Gemini) using the API keys you provide. These providers operate under their own privacy policies. CampusIQ does not collect or retain copies of these queries or API keys on any of our own servers.
         </Text>
       </ScrollView>
     </SafeAreaView>

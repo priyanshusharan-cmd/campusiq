@@ -54,17 +54,22 @@ Answer the user's question clearly, concisely, and helpfully using their academi
         service: 'bedrock',
         region: 'us-east-1',
         credentials: {
-          accessKeyId: awsAccessKey.trim(),
-          secretAccessKey: awsSecretKey.trim()
+          accessKeyId: awsAccessKey.replace(/\s/g, ''),
+          secretAccessKey: awsSecretKey.replace(/\s/g, '')
         },
         sha256: Sha256
       });
+
+      // Bedrock's API Gateway strictly requires URL-encoded paths for the canonical request.
+      // iOS fetch() will auto-encode it anyway, so we MUST encode it here so SignatureV4 signs the encoded version!
+      const encodedModelId = encodeURIComponent(modelId);
+      const requestPath = `/model/${encodedModelId}/invoke`;
 
       const request = new HttpRequest({
         method: 'POST',
         protocol: 'https:',
         hostname: awsHost,
-        path: `/model/${modelId}/invoke`,
+        path: requestPath,
         headers: {
           'Content-Type': 'application/json',
           'host': awsHost,
@@ -75,7 +80,7 @@ Answer the user's question clearly, concisely, and helpfully using their academi
 
       const signedRequest = await sigv4.sign(request);
       
-      const bedrockResponse = await fetch(`https://${awsHost}/model/${modelId}/invoke`, {
+      const bedrockResponse = await fetch(`https://${awsHost}${requestPath}`, {
         method: signedRequest.method,
         headers: signedRequest.headers as any,
         body: signedRequest.body
@@ -113,25 +118,6 @@ Answer the user's question clearly, concisely, and helpfully using their academi
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-goog-api-key': gKey },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }],
-              generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
-            })
-          }
-        );
-        if (geminiResponse.ok) {
-          const geminiData = await geminiResponse.json();
-          const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text) return { reply: text.trim(), isFallback: false };
-        }
-      } catch {}
-
-      try {
-        const geminiResponse = await fetch(
-          `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${gKey}` },
             body: JSON.stringify({
               contents: [{ parts: [{ text: prompt }] }],
               generationConfig: { maxOutputTokens: 512, temperature: 0.7 }

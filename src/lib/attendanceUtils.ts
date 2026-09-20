@@ -3,14 +3,13 @@
 import { DEFAULTS } from '@/constants';
 import { parseISO, eachDayOfInterval, format, startOfMonth } from 'date-fns';
 import type { TimetableEntry, DayOfWeek, ID } from '@/types';
+import { calcCanMiss as pureCalcCanMiss } from './pureAttendanceUtils';
 
 // Calculate attendance percentage
 export function calcAttendancePercentage(present: number, total: number): number {
   if (total === 0) return 100;
   return Math.round((present / total) * 10000) / 100; // 2 decimal places
 }
-
-import { calcCanMiss as pureCalcCanMiss } from './pureAttendanceUtils';
 
 // Calculate how many more classes can be missed while staying at/above target
 export function calcCanMiss(present: number, total: number, target: number = DEFAULTS.attendanceTarget): number {

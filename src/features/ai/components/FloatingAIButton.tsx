@@ -23,12 +23,10 @@ export default function FloatingAIButton() {
   
   // Hide the button if Cloud AI is disabled
   const cloudAiEnabled = useSettingsStore(s => s.cloudAiEnabled);
-  const pan = useRef(
-    new Animated.ValueXY({
-      x: INITIAL_LEFT,
-      y: height - BUTTON_SIZE - INITIAL_BOTTOM,
-    })
-  ).current;
+  const [pan] = React.useState(() => new Animated.ValueXY({
+    x: INITIAL_LEFT,
+    y: height - BUTTON_SIZE - INITIAL_BOTTOM,
+  }));
   const panValue = useRef({ x: INITIAL_LEFT, y: height - BUTTON_SIZE - INITIAL_BOTTOM });
   
   React.useEffect(() => {
@@ -40,9 +38,9 @@ export default function FloatingAIButton() {
     };
   }, [pan]);
 
-  const scale = useRef(new Animated.Value(1)).current;
+  const [scale] = React.useState(() => new Animated.Value(1));
 
-  const panResponder = useRef(
+  const [panResponder] = React.useState(() => 
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (evt, gestureState) => {
@@ -95,7 +93,7 @@ export default function FloatingAIButton() {
         }
       },
     })
-  ).current;
+  );
 
   if (!cloudAiEnabled) {
     return null;
