@@ -16,8 +16,9 @@ import { TextInput, Select, ColorPicker, SegmentedControl, IconPicker } from '@/
 export default function CreateSubjectScreen() {
   const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const { id, targetSemester } = useLocalSearchParams();
   const subjectId = Array.isArray(id) ? id[0] : id;
+  const targetSem = Array.isArray(targetSemester) ? targetSemester[0] : targetSemester;
 
   const { addSubject, updateSubject, getSubject } = useSubjectStore();
   const existingSubject = subjectId ? getSubject(subjectId) : undefined;
@@ -42,7 +43,7 @@ export default function CreateSubjectScreen() {
       return;
     }
 
-    const currentSemesterId = profile?.currentSemester?.toString() || '1';
+    const currentSemesterId = targetSem?.toString() || profile?.currentSemester?.toString() || '1';
     const allSubjects = useSubjectStore.getState().subjects;
     
     // Calculate total credits for the current semester
@@ -75,7 +76,7 @@ export default function CreateSubjectScreen() {
         faculty,
         type: subjectType,
         credits,
-        semesterId: profile?.currentSemester?.toString() || '1',
+        semesterId: targetSem?.toString() || profile?.currentSemester?.toString() || '1',
         color: autoColor,
         icon
       });

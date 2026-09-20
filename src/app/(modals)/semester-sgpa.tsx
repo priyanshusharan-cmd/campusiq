@@ -215,6 +215,18 @@ export default function SemesterSGPAScreen() {
               { text: 'Cancel', style: 'cancel' }
             ];
             buttons.push({ 
+              text: 'Add Subject', 
+              onPress: () => {
+                router.push(`/(modals)/create-subject?targetSemester=${semesterNum}` as any);
+              }
+            });
+            buttons.push({ 
+              text: 'Import Semester', 
+              onPress: () => {
+                router.push(`/(modals)/import-subjects?targetSemester=${semesterNum}` as any);
+              }
+            });
+            buttons.push({ 
               text: 'Clear All', 
               style: 'destructive', 
               onPress: () => {

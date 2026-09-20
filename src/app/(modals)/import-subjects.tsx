@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -598,6 +598,8 @@ export default function ImportSubjectsScreen() {
   const { addSubject, removeSubject, subjects: storeSubjects } = useSubjectStore();
   const profile = useProfileStore(s => s.profile);
   const addEntry = useTimetableStore(s => s.addEntry);
+  const { targetSemester } = useLocalSearchParams();
+  const targetSemNum = targetSemester ? parseInt(targetSemester as string) : (profile?.currentSemester || 1);
 
   const [step, setStep] = useState<'college' | 'branch' | 'semester'>('college');
   const [selectedCollege, setSelectedCollege] = useState<string | null>(null);
@@ -620,10 +622,10 @@ export default function ImportSubjectsScreen() {
       }
     }
 
-    if (!semesterData.targetSemesters.includes(profile?.currentSemester || 1)) {
+    if (!semesterData.targetSemesters.includes(targetSemNum)) {
       Alert.alert(
         'Semester Mismatch',
-        `You are currently in Semester ${profile?.currentSemester || 1}. You can only import subjects for your active semester.`
+        `You are currently viewing Semester ${targetSemNum}. You can only import subjects for this semester.`
       );
       return;
     }
@@ -637,7 +639,7 @@ export default function ImportSubjectsScreen() {
           text: 'Import & Replace',
           style: 'destructive',
           onPress: () => {
-            const currentSemesterId = profile?.currentSemester?.toString() || '1';
+            const currentSemesterId = targetSemNum.toString();
             
             // Delete existing subjects for this semester
             const existingSubjects = storeSubjects.filter(s => s.semesterId === currentSemesterId);
@@ -703,10 +705,10 @@ export default function ImportSubjectsScreen() {
       }
 
       // Check semester match
-      if (parsedData.semester && parsedData.semester !== (profile?.currentSemester || 1)) {
+      if (parsedData.semester && parsedData.semester !== targetSemNum) {
         Alert.alert(
           'Semester Mismatch', 
-          `This file is for Semester ${parsedData.semester}, but you are currently in Semester ${profile?.currentSemester || 1}.`
+          `This file is for Semester ${parsedData.semester}, but you are currently viewing Semester ${targetSemNum}.`
         );
         return;
       }
@@ -725,7 +727,7 @@ export default function ImportSubjectsScreen() {
             text: 'Import',
             style: 'destructive',
             onPress: () => {
-              const currentSemesterId = profile?.currentSemester?.toString() || '1';
+              const currentSemesterId = targetSemNum.toString();
               
               const existingSubjects = storeSubjects.filter(s => s.semesterId === currentSemesterId);
               existingSubjects.forEach(s => removeSubject(s.id));
