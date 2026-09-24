@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
-import { useSubjectStore } from '@/stores/useSubjectStore';
+import { useSubjectStore, useActiveSubjects } from '@/stores/useSubjectStore';
 import { useTimetableStore } from '@/stores/useTimetableStore';
 import { format } from 'date-fns';
 import { DayOfWeek } from '@/types';
@@ -18,7 +18,7 @@ export default function CreateLabScreen() {
   const { colors, spacing, textStyles, isDark } = useTheme();
   const router = useRouter();
 
-  const subjects = useSubjectStore(state => state.subjects);
+  const subjects = useActiveSubjects();
   const addEntry = useTimetableStore(state => state.addEntry);
 
   const [selectedSubjectId, setSelectedSubjectId] = useState('');

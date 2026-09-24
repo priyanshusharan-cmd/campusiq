@@ -39,109 +39,146 @@ Answer the user's question clearly, concisely, and helpfully using their academi
 
   let lastError = '';
 
-  const awsAccessKey = process.env.EXPO_PUBLIC_AWS_ACCESS_KEY || settings.awsAccessKey;
-  const awsSecretKey = process.env.EXPO_PUBLIC_AWS_SECRET_KEY || settings.awsSecretKey;
-  const geminiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || settings.geminiKey;
+  const awsAccessKey = settings.awsAccessKey || process.env.EXPO_PUBLIC_AWS_ACCESS_KEY;
+  const awsSecretKey = settings.awsSecretKey || process.env.EXPO_PUBLIC_AWS_SECRET_KEY;
+  const geminiKey = settings.geminiKey || process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+  const openaiKey = settings.openaiKey || process.env.EXPO_PUBLIC_OPENAI_API_KEY;
+  
+  const priority = settings.aiModelPriority || ['aws', 'gemini', 'openai', 'local'];
 
-  // 1. Try AWS first
-  if (awsAccessKey && awsSecretKey && awsAccessKey !== 'your_aws_access_key') {
-    try {
-      console.log('Attempting AWS Bedrock Nova...');
-      const modelId = 'amazon.nova-lite-v1:0';
-      const awsHost = 'bedrock-runtime.us-east-1.amazonaws.com';
-      
-      const reqBody = JSON.stringify({
-        messages: [{ role: 'user', content: [{ text: prompt }] }],
-        inferenceConfig: { maxTokens: 512, temperature: 0.7 }
-      });
+  for (const modelProvider of priority) {
+    if (modelProvider === 'aws' && awsAccessKey && awsSecretKey && awsAccessKey !== 'your_aws_access_key') {
+      try {
+        console.log('Attempting AWS Bedrock Nova...');
+        const modelId = 'amazon.nova-lite-v1:0';
+        const awsHost = 'bedrock-runtime.us-east-1.amazonaws.com';
+        
+        const reqBody = JSON.stringify({
+          messages: [{ role: 'user', content: [{ text: prompt }] }],
+          inferenceConfig: { maxTokens: 512, temperature: 0.7 }
+        });
 
-      const hash = new Sha256();
-      hash.update(reqBody);
-      const bodyHash = await hash.digest();
-      const bodyHashHex = Array.from(bodyHash).map(b => b.toString(16).padStart(2, '0')).join('');
+        const hash = new Sha256();
+        hash.update(reqBody);
+        const bodyHash = await hash.digest();
+        const bodyHashHex = Array.from(bodyHash).map(b => b.toString(16).padStart(2, '0')).join('');
 
-      const sigv4 = new SignatureV4({
-        service: 'bedrock',
-        region: 'us-east-1',
-        credentials: {
-          accessKeyId: awsAccessKey.replace(/\s/g, ''),
-          secretAccessKey: awsSecretKey.replace(/\s/g, '')
-        },
-        sha256: Sha256
-      });
+        const sigv4 = new SignatureV4({
+          service: 'bedrock',
+          region: 'us-east-1',
+          credentials: {
+            accessKeyId: awsAccessKey.replace(/\s/g, ''),
+            secretAccessKey: awsSecretKey.replace(/\s/g, '')
+          },
+          sha256: Sha256
+        });
 
-      // Bedrock's API Gateway strictly requires URL-encoded paths for the canonical request.
-      // iOS fetch() will auto-encode it anyway, so we MUST encode it here so SignatureV4 signs the encoded version!
-      const encodedModelId = encodeURIComponent(modelId);
-      const requestPath = `/model/${encodedModelId}/invoke`;
+        const encodedModelId = encodeURIComponent(modelId);
+        const requestPath = `/model/${encodedModelId}/invoke`;
 
-      const request = new HttpRequest({
-        method: 'POST',
-        protocol: 'https:',
-        hostname: awsHost,
-        path: requestPath,
-        headers: {
-          'Content-Type': 'application/json',
-          'host': awsHost,
-          'x-amz-content-sha256': bodyHashHex,
-        },
-        body: reqBody
-      });
-
-      const signedRequest = await sigv4.sign(request);
-      
-      const bedrockResponse = await fetch(`https://${awsHost}${requestPath}`, {
-        method: signedRequest.method,
-        headers: signedRequest.headers as any,
-        body: signedRequest.body
-      });
-
-      if (bedrockResponse.ok) {
-        const bedrockData = await bedrockResponse.json();
-        const text = bedrockData.output?.message?.content?.[0]?.text;
-        if (text) return { reply: text.trim(), isFallback: false };
-      } else {
-        const err = await bedrockResponse.text();
-        console.warn('AWS Bedrock Nova failed:', err);
-        lastError += `AWS Error: ${err}\n\n`;
-      }
-    } catch (e: any) {
-      console.warn('AWS Bedrock exception:', e);
-      lastError += `AWS Exception: ${e.message}\n\n`;
-    }
-  }
-
-  // 2. Fallback to Gemini
-  if (geminiKey) {
-    const gKey = geminiKey.trim();
-    const model = process.env.EXPO_PUBLIC_GEMINI_MODEL_ID || 'gemini-3.6-flash';
-    const version = 'v1beta';
-    try {
-      const geminiResponse = await fetch(
-        `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent`,
-        {
+        const request = new HttpRequest({
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': gKey },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
-          })
+          protocol: 'https:',
+          hostname: awsHost,
+          path: requestPath,
+          headers: {
+            'Content-Type': 'application/json',
+            'host': awsHost,
+            'x-amz-content-sha256': bodyHashHex,
+          },
+          body: reqBody
+        });
+
+        const signedRequest = await sigv4.sign(request);
+        
+        const bedrockResponse = await fetch(`https://${awsHost}${requestPath}`, {
+          method: signedRequest.method,
+          headers: signedRequest.headers as any,
+          body: signedRequest.body
+        });
+
+        if (bedrockResponse.ok) {
+          const bedrockData = await bedrockResponse.json();
+          const text = bedrockData.output?.message?.content?.[0]?.text;
+          if (text) return { reply: text.trim(), isFallback: false };
+        } else {
+          const err = await bedrockResponse.text();
+          console.warn('AWS Bedrock Nova failed:', err);
+          lastError += `AWS Error: ${err}\n\n`;
         }
-      );
-      if (geminiResponse.ok) {
-        const geminiData = await geminiResponse.json();
-        const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) return { reply: text.trim(), isFallback: false };
-      } else {
-        console.warn(`Gemini API Error: ${geminiResponse.status}`);
+      } catch (e: any) {
+        console.warn('AWS Bedrock exception:', e);
+        lastError += `AWS Exception: ${e.message}\n\n`;
       }
-    } catch (e: any) {
-      console.warn('Gemini Exception:', e);
+    }
+
+    if (modelProvider === 'gemini' && geminiKey) {
+      const gKey = geminiKey.trim();
+      const model = process.env.EXPO_PUBLIC_GEMINI_MODEL_ID || 'gemini-3.5-flash';
+      const version = 'v1beta';
+      try {
+        console.log('Attempting Gemini...');
+        const geminiResponse = await fetch(
+          `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': gKey },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
+            })
+          }
+        );
+        if (geminiResponse.ok) {
+          const geminiData = await geminiResponse.json();
+          const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) return { reply: text.trim(), isFallback: false };
+        } else {
+          console.warn(`Gemini API Error: ${geminiResponse.status}`);
+          lastError += `Gemini Error: ${geminiResponse.status}\n\n`;
+        }
+      } catch (e: any) {
+        console.warn('Gemini Exception:', e);
+        lastError += `Gemini Exception: ${e.message}\n\n`;
+      }
+    }
+
+    if (modelProvider === 'openai' && openaiKey) {
+      try {
+        console.log('Attempting OpenAI...');
+        const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey.trim()}` },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 512,
+            temperature: 0.7
+          })
+        });
+        if (openaiResponse.ok) {
+          const data = await openaiResponse.json();
+          const text = data.choices?.[0]?.message?.content;
+          if (text) return { reply: text.trim(), isFallback: false };
+        } else {
+          const err = await openaiResponse.text();
+          console.warn('OpenAI failed:', err);
+          lastError += `OpenAI Error: ${err}\n\n`;
+        }
+      } catch (e: any) {
+        console.warn('OpenAI Exception:', e);
+        lastError += `OpenAI Exception: ${e.message}\n\n`;
+      }
+    }
+
+    if (modelProvider === 'local') {
+      console.log('Using Local Fallback...');
+      return { reply: generateLocalFallbackResponse(query, context), isFallback: true };
     }
   }
 
-  // Handle all errors gracefully without exposing to the user
-  console.warn('AI Services failed or quota exceeded. Falling back to deterministic offline response.');
+  // Handle all errors gracefully without exposing to the user if none matched or all failed
+  console.warn('All AI Services failed or quota exceeded. Falling back to deterministic offline response.');
   return { reply: generateLocalFallbackResponse(query, context), isFallback: true };
 
 }

@@ -6,7 +6,9 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useTheme } from '@/theme';
 import { Card, SectionHeader, ListRow } from '@/components/ui';
 import { useSettingsStore, useAcademicStore, useAttendanceStore, useAssignmentStore, useExamStore, useSubjectStore, useTimetableStore, useProfileStore } from '@/stores';
@@ -243,6 +245,39 @@ export default function SettingsScreen() {
   // Key input modal state
   const [keyModal, setKeyModal] = React.useState<{ visible: boolean; label: string; value: string; secure: boolean; onSave: (v: string) => void }>({ visible: false, label: '', value: '', secure: false, onSave: () => {} });
   const [keyDraft, setKeyDraft] = React.useState('');
+  
+  const [priorityModal, setPriorityModal] = React.useState(false);
+  const [localPriority, setLocalPriority] = React.useState(settings.aiModelPriority || ['aws', 'gemini', 'openai', 'local']);
+
+  const renderPriorityItem = ({ item, drag, isActive }: RenderItemParams<string>) => (
+    <ScaleDecorator>
+      <TouchableOpacity
+        activeOpacity={1}
+        onLongPress={drag}
+        disabled={isActive}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: isActive ? colors.surface : colors.bg,
+          padding: spacing.md,
+          borderRadius: 12,
+          marginBottom: spacing.sm,
+          borderWidth: 1,
+          borderColor: isActive ? colors.primary : colors.borderLight,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: isActive ? 4 : 0 },
+          shadowOpacity: isActive ? 0.2 : 0,
+          shadowRadius: isActive ? 5 : 0,
+          elevation: isActive ? 5 : 0,
+        }}
+      >
+        <Text style={[textStyles.bodyMedium, { flex: 1, color: colors.textPrimary, textTransform: 'capitalize', marginLeft: spacing.sm }]}>
+          {item === 'aws' ? 'Amazon AWS' : item === 'gemini' ? 'Google Gemini' : item === 'openai' ? 'OpenAI' : 'Local AI'}
+        </Text>
+        <MaterialIcons name="unfold-more" size={24} color={colors.textSecondary} style={{ marginLeft: spacing.md }} />
+      </TouchableOpacity>
+    </ScaleDecorator>
+  );
 
   const openKeyModal = (label: string, currentValue: string, secure: boolean, onSave: (v: string) => void) => {
     setKeyDraft(currentValue);
@@ -391,7 +426,7 @@ export default function SettingsScreen() {
             <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
             <ListRow 
               icon="videocam-outline" iconColor={colors.primary} 
-              title="Demo Mode (Offline AI)" 
+              title="Offline AI" 
               showChevron={false}
               rightElement={
                 <Switch 
@@ -404,7 +439,17 @@ export default function SettingsScreen() {
                 />
               } 
             />
-            {/* API Keys hidden for Hackathon submission (injected via .env)
+            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
+            <ListRow 
+              icon="list-outline" iconColor={colors.primary} 
+              title="AI Model Priority"
+              showChevron={true}
+              onPress={() => {
+                triggerHaptic('light');
+                setLocalPriority(settings.aiModelPriority || ['aws', 'gemini', 'openai', 'local']);
+                setPriorityModal(true);
+              }}
+            />
             <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
             <ListRow 
               icon="key-outline" iconColor={colors.primary} 
@@ -413,10 +458,42 @@ export default function SettingsScreen() {
               showChevron={false}
               onPress={() => {
                 triggerHaptic('light');
-                openKeyModal('Gemini API Key', settings.geminiKey, false, (v) => settings.setGeminiKey(v));
+                openKeyModal('Gemini API Key', settings.geminiKey, true, (v) => settings.setGeminiKey(v));
               }}
             />
-            */}
+            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
+            <ListRow 
+              icon="key-outline" iconColor={colors.primary} 
+              title="OpenAI API Key" 
+              rightElement={renderKeyRightElement(settings.openaiKey)}
+              showChevron={false}
+              onPress={() => {
+                triggerHaptic('light');
+                openKeyModal('OpenAI API Key', settings.openaiKey || '', true, (v) => settings.setOpenaiKey(v));
+              }}
+            />
+            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
+            <ListRow 
+              icon="key-outline" iconColor={colors.primary} 
+              title="AWS Access Key" 
+              rightElement={renderKeyRightElement(settings.awsAccessKey)}
+              showChevron={false}
+              onPress={() => {
+                triggerHaptic('light');
+                openKeyModal('AWS Access Key', settings.awsAccessKey || '', false, (v) => settings.setAwsAccessKey(v));
+              }}
+            />
+            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
+            <ListRow 
+              icon="key-outline" iconColor={colors.primary} 
+              title="AWS Secret Key" 
+              rightElement={renderKeyRightElement(settings.awsSecretKey)}
+              showChevron={false}
+              onPress={() => {
+                triggerHaptic('light');
+                openKeyModal('AWS Secret Key', settings.awsSecretKey || '', true, (v) => settings.setAwsSecretKey(v));
+              }}
+            />
           </Card>
 
           <SectionHeader title="Account & Security" />
@@ -508,6 +585,36 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </TouchableOpacity>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* ── Priority Modal ────────────────────────────────── */}
+      <Modal visible={priorityModal} transparent animationType="slide" onRequestClose={() => setPriorityModal(false)}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+            <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.xl, paddingBottom: spacing['4xl'] }}>
+              <Text style={[textStyles.h2, { color: colors.textPrimary, marginBottom: spacing.md }]}>AI Model Priority</Text>
+              <Text style={[textStyles.body, { color: colors.textSecondary, marginBottom: spacing.xl }]}>Hold and drag to arrange the models in order of preference. The app will try the top model first.</Text>
+              
+              <View style={{ height: 260 }}>
+                <DraggableFlatList
+                  data={localPriority}
+                  onDragEnd={({ data }) => setLocalPriority(data)}
+                  keyExtractor={(item) => item}
+                  renderItem={renderPriorityItem}
+                />
+              </View>
+              
+              <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl }}>
+                <TouchableOpacity onPress={() => setPriorityModal(false)} style={{ flex: 1, paddingVertical: spacing.md, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: 'center' }}>
+                  <Text style={[textStyles.body, { color: colors.textSecondary, fontWeight: '600' }]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => { settings.setAiModelPriority(localPriority); setPriorityModal(false); triggerHaptic('light'); }} style={{ flex: 1, paddingVertical: spacing.md, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center' }}>
+                  <Text style={[textStyles.body, { color: '#fff', fontWeight: '700' }]}>Save Priority</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </GestureHandlerRootView>
       </Modal>
 
     </SafeAreaView>

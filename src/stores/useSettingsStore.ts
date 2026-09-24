@@ -99,6 +99,8 @@ interface SettingsState {
   geminiKey: string;
   awsAccessKey: string;
   awsSecretKey: string;
+  openaiKey: string;
+  aiModelPriority: string[];
 
   // Actions
   setTheme: (theme: ThemeMode) => void;
@@ -125,6 +127,8 @@ interface SettingsState {
   setGeminiKey: (key: string) => void;
   setAwsAccessKey: (key: string) => void;
   setAwsSecretKey: (key: string) => void;
+  setOpenaiKey: (key: string) => void;
+  setAiModelPriority: (priority: string[]) => void;
   setAiOfflineMode: (offline: boolean) => void;
   resetSettings: () => void;
 }
@@ -182,6 +186,8 @@ const initialState = {
   geminiKey: process.env.GEMINI_API_KEY || process.env.EXPO_PUBLIC_GEMINI_API_KEY || '',
   awsAccessKey: process.env.AWS_ACCESS_KEY || process.env.EXPO_PUBLIC_AWS_ACCESS_KEY || '',
   awsSecretKey: process.env.AWS_SECRET_KEY || process.env.EXPO_PUBLIC_AWS_SECRET_KEY || '',
+  openaiKey: process.env.OPENAI_API_KEY || process.env.EXPO_PUBLIC_OPENAI_API_KEY || '',
+  aiModelPriority: ['aws', 'gemini', 'openai', 'local'],
 };
 
 // ─── Store ──────────────────────────────────────────────────────────────────────
@@ -268,6 +274,8 @@ export const useSettingsStore = create<SettingsState>()(
       setGeminiKey: (key) => set({ geminiKey: key, aiOfflineMode: false }),  // reset offline when key changes
       setAwsAccessKey: (key) => set({ awsAccessKey: key, aiOfflineMode: false }),
       setAwsSecretKey: (key) => set({ awsSecretKey: key, aiOfflineMode: false }),
+      setOpenaiKey: (key) => set({ openaiKey: key, aiOfflineMode: false }),
+      setAiModelPriority: (priority) => set({ aiModelPriority: priority }),
       setAiOfflineMode: (offline) => set({ aiOfflineMode: offline }),
     }),
     {
