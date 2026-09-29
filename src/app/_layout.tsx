@@ -12,7 +12,8 @@ import { Drawer } from 'react-native-drawer-layout';
 import { useDrawerStore, useSettingsStore } from '@/stores';
 import MoreScreen from '@/features/more/MoreScreen';
 import * as LocalAuthentication from 'expo-local-authentication';
-import { AppState, View, Text, TouchableOpacity, StyleSheet, Image, LogBox, Alert } from 'react-native';
+import { AppState, View, Text, TouchableOpacity, StyleSheet, Image, LogBox, Alert, Platform } from 'react-native';
+import Purchases from 'react-native-purchases';
 
 // Suppress known Expo Go warnings for remote push notifications
 LogBox.ignoreLogs([
@@ -31,6 +32,22 @@ export default function RootLayout() {
   });
 
   const [storesHydrated, setStoresHydrated] = React.useState(false);
+
+  useEffect(() => {
+    // Initialize RevenueCat
+    // You should replace these keys with your actual RevenueCat public API keys
+    const REVENUECAT_API_KEY_IOS = "test_bjwTXnyrXakjIGkfkQnyIsiRdkm";
+    const REVENUECAT_API_KEY_ANDROID = "test_bjwTXnyrXakjIGkfkQnyIsiRdkm";
+
+    if (Platform.OS === 'ios') {
+      Purchases.configure({ apiKey: REVENUECAT_API_KEY_IOS });
+    } else if (Platform.OS === 'android') {
+      Purchases.configure({ apiKey: REVENUECAT_API_KEY_ANDROID });
+    }
+    
+    // Optional: Log level for debugging
+    Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
+  }, []);
 
   useEffect(() => {
     let hasWarnedThisSession = false;

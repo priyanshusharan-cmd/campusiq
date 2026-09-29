@@ -183,15 +183,14 @@ Scan the QR code with the Expo Go app on your physical device (iOS/Android), or 
 
 ---
 
-## 🏆 Hackathon Submission Details (AWS First Commit)
+## 🏆 Hackathon Submission Details (Shipaton 2026 - Next Gen Award)
 
-We built CampusIQ specifically for the AWS First Commit Hackathon, addressing real-world problems faced by students globally.
+We built CampusIQ specifically for the **Shipaton 2026 Hackathon**, targeting the **Next Gen Award** for students. It addresses real-world problems faced by students globally.
 
-- **Track:** Build It (Agents and AI)
+- **Award Category:** Next Gen Award & HAMM Award
 - **Problem Solved:** Fragmented student data leading to missed classes, chaotic deadlines, and unpredictable grades. CampusIQ centralizes this into a single, intelligent interface.
-- **AWS Usage:** 
-  - **AWS Open Source:** Leveraged the **Strands Agents SDK** to orchestrate our AI assistant efficiently.
-  - **AWS Cloud:** Utilized **AWS Bedrock** to securely access powerful Foundation Models for the agent's reasoning engine, completely bypassing traditional, less-secure third-party APIs.
+- **Monetization (RevenueCat):** Integrated **RevenueCat** using the `react-native-purchases` SDK to manage in-app subscriptions and premium features seamlessly.
+- **AI Integration:** Leveraged AWS Bedrock and the Strands Agents SDK to orchestrate our context-aware AI assistant efficiently and securely.
 
 ---
 
@@ -223,5 +222,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <div align="center">
-  <sub>Built with ❤️ for the AWS First Commit Hackathon.</sub>
+  <sub>Built with ❤️ for Shipaton 2026.</sub>
 </div>

@@ -102,6 +102,9 @@ interface SettingsState {
   openaiKey: string;
   aiModelPriority: string[];
 
+  // RevenueCat / Monetization
+  isPro: boolean;
+
   // Actions
   setTheme: (theme: ThemeMode) => void;
   setAccentColor: (color: string) => void;
@@ -130,6 +133,7 @@ interface SettingsState {
   setOpenaiKey: (key: string) => void;
   setAiModelPriority: (priority: string[]) => void;
   setAiOfflineMode: (offline: boolean) => void;
+  setIsPro: (isPro: boolean) => void;
   resetSettings: () => void;
 }
 
@@ -188,6 +192,8 @@ const initialState = {
   awsSecretKey: process.env.AWS_SECRET_KEY || process.env.EXPO_PUBLIC_AWS_SECRET_KEY || '',
   openaiKey: process.env.OPENAI_API_KEY || process.env.EXPO_PUBLIC_OPENAI_API_KEY || '',
   aiModelPriority: ['aws', 'gemini', 'openai', 'local'],
+  
+  isPro: false,
 };
 
 // ─── Store ──────────────────────────────────────────────────────────────────────
@@ -277,6 +283,7 @@ export const useSettingsStore = create<SettingsState>()(
       setOpenaiKey: (key) => set({ openaiKey: key, aiOfflineMode: false }),
       setAiModelPriority: (priority) => set({ aiModelPriority: priority }),
       setAiOfflineMode: (offline) => set({ aiOfflineMode: offline }),
+      setIsPro: (isPro) => set({ isPro }),
     }),
     {
       name: 'settings-storage',
