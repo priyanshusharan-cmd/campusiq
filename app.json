@@ -1,5 +1,6 @@
 {
   "expo": {
+    "newArchEnabled": false,
     "name": "CampusIQ",
     "slug": "campusiq",
     "version": "1.0.0",

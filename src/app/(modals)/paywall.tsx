@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Purchases from 'react-native-purchases';
 
 export default function PaywallScreen() {
   const router = useRouter();
@@ -79,7 +80,7 @@ export default function PaywallScreen() {
 
         <View style={styles.featuresList}>
           <FeatureItem text="Unlimited AI Queries" theme={theme} />
-          <FeatureItem text="Advanced Bedrock Models" theme={theme} />
+          <FeatureItem text="Advanced Gemini Models" theme={theme} />
           <FeatureItem text="Personalized Study Plans" theme={theme} />
         </View>
 
