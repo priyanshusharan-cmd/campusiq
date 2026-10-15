@@ -27,7 +27,7 @@ Render builds the committed GitHub version, not your local files. The prepared d
 
 | Field | Value |
 |---|---|
-| Name | `campusiq-demo` (or any available name) |
+| Name | `campusiq` |
 | Root Directory | Leave blank |
 | Build Command | `npm ci && npm run build:web` |
 | Publish Directory | `dist` |
@@ -62,6 +62,8 @@ The included `render.yaml` declares the same Static Site, build settings, Node v
 6. Open the assistant and ask “How many classes can I skip?” It should display its local-demo label and attendance calculations.
 7. Try a JSON export and a report export. On supported browsers the report opens the print/Save as PDF flow.
 8. Check the link on your actual Android/iPhone browser as well. Desktop viewport testing cannot prove every physical-device browser behavior.
+
+Use the site name `campusiq` to request `https://campusiq.onrender.com`. Render must confirm name availability; the URL is not reserved by this repository configuration.
 
 You can then put the Render URL in your LinkedIn post as “Try CampusIQ in your browser”. Future pushes to the configured branch can redeploy the demo.
 
