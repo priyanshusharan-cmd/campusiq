@@ -15,14 +15,14 @@ The public demo does not provide cloud AI, app-store billing, biometric locks, s
 
 ## 1. Put the changes on GitHub
 
-Render builds the committed GitHub version, not your local files. The prepared deployment branch is `render-web-demo`. Push this branch if it is not already on GitHub. Do not upload `.env`, `node_modules`, `dist`, or personal credentials. The repository already ignores these paths.
+Render builds the committed GitHub version, not your local files. The browser demo is on the `main` branch. Render should deploy that branch. Do not upload `.env`, `node_modules`, `dist`, or personal credentials. The repository already ignores these paths.
 
 ## 2. Create the Static Site manually
 
 1. Sign in at https://dashboard.render.com/.
 2. Click **New**, then **Static Site**.
 3. Connect your GitHub account if needed and select `priyanshusharan-cmd/campusiq`.
-4. Select **`render-web-demo`** as the branch. This keeps deployment separate from your mobile branch.
+4. Select **`main`** as the branch.
 5. Enter these settings:
 
 | Field | Value |
