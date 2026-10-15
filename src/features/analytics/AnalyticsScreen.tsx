@@ -1,8 +1,9 @@
+import { Alert } from '@/platform/alert';
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, Pressable, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Pressable, TouchableOpacity, } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/platform/router';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
@@ -10,8 +11,8 @@ import { Card, EmptyState, Badge } from '@/components/ui';
 import { useAcademicStore, useSubjectAttendance, useSubjectStore, useSettingsStore } from '@/stores';
 import { LineChart, BarChart } from 'react-native-gifted-charts';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
+import * as Print from '@/platform/print';
+import * as Sharing from '@/platform/sharing';
 
 const { width } = Dimensions.get('window');
 

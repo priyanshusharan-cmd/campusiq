@@ -1,9 +1,10 @@
+import { Alert } from '@/platform/alert';
 // Campora — Create New Lab Session Modal
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Platform, KeyboardAvoidingView, Switch, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Platform, KeyboardAvoidingView, Switch, Modal, } from 'react-native';
 import { ScrollView, FlatList } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/platform/router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { useSubjectStore, useActiveSubjects } from '@/stores/useSubjectStore';

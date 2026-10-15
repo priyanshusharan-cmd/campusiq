@@ -1,8 +1,9 @@
+import { Alert } from '@/platform/alert';
 // Campora — Weekly Classes Component
 // Overview tab showing swipeable class list grouped by day
 
 import React from 'react';
-import { View, Text, Pressable, Alert } from 'react-native';
+import { View, Text, Pressable, } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';

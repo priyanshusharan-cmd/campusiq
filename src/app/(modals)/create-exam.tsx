@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/platform/router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { Card } from '@/components/ui';

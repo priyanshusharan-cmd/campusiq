@@ -1,12 +1,13 @@
+import { Alert } from '@/platform/alert';
 // Campora — Profile Screen
 
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert, Platform, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Platform, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/platform/router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from '@/platform/dateTimePicker';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/theme';
 import { Card, ListRow } from '@/components/ui';

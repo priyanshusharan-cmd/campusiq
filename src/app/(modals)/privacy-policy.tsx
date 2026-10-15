@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/platform/router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 

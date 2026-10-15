@@ -1,10 +1,12 @@
+import { Alert } from '@/platform/alert';
 // Campora — Subject Attendance Detail Route
 
 import React, { useState, useMemo } from 'react';
-import { View, Text, Pressable, Alert } from 'react-native';
+import { View, Text, Pressable, } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { useRouter } from '@/platform/router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { useSubjectStore } from '@/stores/useSubjectStore';

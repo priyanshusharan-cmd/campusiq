@@ -36,6 +36,7 @@ export const TextInput = forwardRef<RNTextInput, CustomTextInputProps>(
       ]}>
         <RNTextInput
           ref={innerRef}
+          accessibilityLabel={props.accessibilityLabel || label}
           style={[
             styles.input,
             { 
@@ -56,7 +57,9 @@ export const TextInput = forwardRef<RNTextInput, CustomTextInputProps>(
           }}
         />
         {iconRight && (
-          <Pressable 
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Choose ${label}`}
             onPress={() => {
               if (onIconRightPress) {
                 innerRef.current?.blur();
@@ -87,6 +90,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    minWidth: 0,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,

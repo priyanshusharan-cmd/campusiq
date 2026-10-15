@@ -18,6 +18,14 @@
 
 ---
 
+## Browser demo deployment
+
+CampusIQ can also run as a mobile-friendly browser demo with sample data and a local demo assistant. Deploy it to Render as a **Static Site** using the step-by-step [Render deployment guide](docs/RENDER_DEPLOYMENT.md). No backend or AI keys are required for this demo. The browser build uses platform-specific adapters so the native app keeps its existing integrations.
+
+> The Agent Server sections below describe an intended architecture. This repository currently has no `agent-server` directory; the native AI service calls providers directly. The public browser demo uses local calculations instead.
+
+---
+
 ## 📖 Overview
 
 **CampusIQ** is a comprehensive, AI-powered academic management platform designed to streamline the modern student experience. By centralizing timetable scheduling, attendance tracking, SGPA forecasting, and assignment management, CampusIQ eliminates the friction of university life. 

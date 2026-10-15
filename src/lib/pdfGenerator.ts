@@ -1,5 +1,5 @@
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
+import * as Print from '@/platform/print';
+import * as Sharing from '@/platform/sharing';
 import type { Semester, Subject, GradeScheme } from '@/types';
 import { calculateTotalSubjectScore, getGradeBoundary, convertLegacyToComponents } from './gradingEngine';
 

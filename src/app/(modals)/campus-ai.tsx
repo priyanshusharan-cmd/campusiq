@@ -10,7 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/platform/router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { askCampusIQAI } from '@/features/ai/services/aiService';
@@ -30,7 +30,7 @@ export default function CampusAIModal() {
     {
       id: 'welcome',
       role: 'assistant',
-      content: "Hi! I'm CampusIQ AI. Ask me anything about your attendance, CIEs, grades, SGPA, CGPA, or timetable.",
+      content: Platform.OS === 'web' ? "Hi! I'm the CampusIQ demo assistant. Ask about your attendance, timetable, or grade summary. I use local calculations, without a cloud AI model." : "Hi! I'm CampusIQ AI. Ask me anything about your attendance, CIEs, grades, SGPA, CGPA, or timetable.",
     },
   ]);
   const [input, setInput] = useState('');
@@ -92,13 +92,14 @@ export default function CampusAIModal() {
           <Text style={[styles.headerTitle, { color: theme.colors.textPrimary }]}>CampusIQ AI</Text>
           {isOfflineMode && (
             <View style={[styles.offlineBadge, { backgroundColor: theme.colors.warning }]}>
-              <Text style={styles.offlineText}>Offline Mode</Text>
+              <Text style={styles.offlineText}>{Platform.OS === 'web' ? 'Demo Mode' : 'Offline Mode'}</Text>
             </View>
           )}
         </View>
         <View style={styles.headerRight} />
       </View>
 
+      {Platform.OS === 'web' && <Text style={{ paddingHorizontal: 20, paddingVertical: 10, fontSize: 12, lineHeight: 18, color: theme.colors.textSecondary }}>Demo assistant · local calculations, no cloud AI. Try attendance, schedule, or grade questions.</Text>}
       <ScrollView 
         ref={scrollViewRef}
         style={styles.chatContainer}

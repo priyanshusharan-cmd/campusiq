@@ -1,8 +1,10 @@
+import { Alert } from '@/platform/alert';
 // Campora — Create New Subject Modal
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Platform, KeyboardAvoidingView, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Platform, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { useRouter } from '@/platform/router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { useSubjectStore } from '@/stores/useSubjectStore';

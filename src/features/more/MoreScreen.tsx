@@ -1,7 +1,8 @@
+import { Alert } from '@/platform/alert';
 // Campora — More Screen (Hub Tab)
 
 import React, { useState } from 'react';
-import { View, Text, Image, Pressable, StyleSheet, Linking, Modal, ActionSheetIOS, Alert, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
+import { View, Text, Image, Pressable, StyleSheet, Linking, Modal, ActionSheetIOS, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -717,7 +718,7 @@ export default function MoreScreen() {
               onBlur={() => handleTimeBlur(tStartTimeInput, setTStartTime, setTStartTimeInput)}
               keyboardType="numbers-and-punctuation"
               iconRight="time-outline"
-              onIconRightPress={() => { Platform.OS !== 'web' ? setShowStartTimePicker(true) : Alert.alert('Native Picker', 'Time pickers are native elements.'); }}
+              onIconRightPress={() => { setShowStartTimePicker(true); }}
             />
             <View style={{ height: 16 }} />
             <CustomTextInput 
@@ -728,7 +729,7 @@ export default function MoreScreen() {
               onBlur={() => handleTimeBlur(tEndTimeInput, setTEndTime, setTEndTimeInput)}
               keyboardType="numbers-and-punctuation"
               iconRight="time-outline"
-              onIconRightPress={() => { Platform.OS !== 'web' ? setShowEndTimePicker(true) : Alert.alert('Native Picker', 'Time pickers are native elements.'); }}
+              onIconRightPress={() => { setShowEndTimePicker(true); }}
             />
             <View style={{ flexDirection: 'row', gap: 12, marginTop: 24 }}>
               <Pressable style={{ flex: 1, padding: 16, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.05)', alignItems: 'center' }} onPress={() => setShowTimingsModal(false)}>

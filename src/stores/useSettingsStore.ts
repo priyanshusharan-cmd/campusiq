@@ -1,3 +1,4 @@
+import { aiDefaults } from '@/platform/aiDefaults';
 // CampusIQ — Settings Store (Zustand)
 // Synchronous local storage for app preferences
 
@@ -187,10 +188,7 @@ const initialState = {
   aiOfflineMode: false,
   demoModeEnabled: process.env.EXPO_PUBLIC_DEMO_MODE === 'true' || false,
 
-  geminiKey: process.env.GEMINI_API_KEY || process.env.EXPO_PUBLIC_GEMINI_API_KEY || '',
-  awsAccessKey: process.env.AWS_ACCESS_KEY || process.env.EXPO_PUBLIC_AWS_ACCESS_KEY || '',
-  awsSecretKey: process.env.AWS_SECRET_KEY || process.env.EXPO_PUBLIC_AWS_SECRET_KEY || '',
-  openaiKey: process.env.OPENAI_API_KEY || process.env.EXPO_PUBLIC_OPENAI_API_KEY || '',
+  ...aiDefaults,
   aiModelPriority: ['gemini', 'aws', 'openai', 'local'],
   
   isPro: false,

@@ -3,7 +3,7 @@
 import React from 'react';
 import MoreScreen from '@/features/more/MoreScreen';
 import { View, StyleSheet, Pressable } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/platform/router';
 
 export default function MoreRoute() {
   const router = useRouter();

@@ -1,5 +1,6 @@
+import { Alert } from '@/platform/alert';
 import React, { useMemo } from 'react';
-import { View, StyleSheet, Alert, Text } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 import { useTheme } from '@/theme';
 import { useTimetableStore, useAttendanceStore, useSettingsStore } from '@/stores';

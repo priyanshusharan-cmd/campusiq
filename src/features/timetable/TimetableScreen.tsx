@@ -1,8 +1,9 @@
+import { Alert } from '@/platform/alert';
 // Campora — Timetable Screen
 // Weekly timetable redesigned to match UI reference
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Alert, KeyboardAvoidingView, Platform, Modal } from 'react-native';
+import { View, Text, StyleSheet, Pressable, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,8 +11,8 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
+import * as FileSystem from '@/platform/fileSystem';
+import * as Sharing from '@/platform/sharing';
 import { useTheme } from '@/theme';
 import { EmptyState } from '@/components/ui';
 import { TopNavBar } from '@/components/ui/TopNavBar';

@@ -1,7 +1,8 @@
+import { Alert } from '@/platform/alert';
 // Campora — Academics Screen
 
 import React from 'react';
-import { View, Text, Alert, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';

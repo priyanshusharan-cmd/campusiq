@@ -71,7 +71,10 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "build:web": "node scripts/build-web.mjs",
+    "preview:web": "node scripts/serve-web.mjs",
+    "test:web": "node --test tests/web-adapters.test.cjs"
   },
   "private": true
 }

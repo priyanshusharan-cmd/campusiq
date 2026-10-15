@@ -1,11 +1,12 @@
+import { Alert } from '@/platform/alert';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Platform, Alert, Modal } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Platform, Modal } from 'react-native';
 import { ScrollView, Swipeable } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/platform/router';
 import { Ionicons } from '@expo/vector-icons';
-import { cacheDirectory, writeAsStringAsync, EncodingType } from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
+import { cacheDirectory, writeAsStringAsync, EncodingType } from '@/platform/fileSystem';
+import * as Sharing from '@/platform/sharing';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/theme';
 import { useSubjectStore, useTimetableStore, useActiveSubjects, useProfileStore } from '@/stores';
@@ -91,6 +92,8 @@ export default function SubjectsListScreen() {
         </Pressable>
         <Text style={[textStyles.h2, { color: colors.textPrimary, flex: 1, textAlign: 'center' }]}>Subjects</Text>
         <Pressable 
+          accessibilityRole="button"
+          accessibilityLabel="Export subjects"
           onPress={handleExport}
           style={[styles.iconBtn, { backgroundColor: colors.surfaceHover }]}
           hitSlop={12}

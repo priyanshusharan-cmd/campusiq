@@ -1,8 +1,9 @@
+import { Alert } from '@/platform/alert';
 // Campora — Attendance Screen
 // Fully redesigned to match new UI reference
 
 import React from 'react';
-import { View, Text, StyleSheet , Alert, Pressable } from 'react-native';
+import { View, Text, StyleSheet , Pressable } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';

@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { View, Text, Pressable, Modal, Platform, StyleSheet } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from '@/platform/dateTimePicker';
 import { useTheme } from '@/theme';
 
 interface TimePickerProps {

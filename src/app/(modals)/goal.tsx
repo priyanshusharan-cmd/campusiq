@@ -1,7 +1,9 @@
+import { Alert } from '@/platform/alert';
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions, Modal, TextInput, ScrollView, ActionSheetIOS, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Dimensions, Modal, TextInput, ScrollView, ActionSheetIOS, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, Link } from 'expo-router';
+import { Link } from 'expo-router';
+import { useRouter } from '@/platform/router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown } from 'react-native-reanimated';

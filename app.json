@@ -22,7 +22,7 @@
       "package": "com.priyanshusharan.campusiq"
     },
     "web": {
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/logo-transparent.png"
     },
     "plugins": [

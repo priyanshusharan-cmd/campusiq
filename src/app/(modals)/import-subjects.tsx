@@ -1,10 +1,12 @@
+import { Alert } from '@/platform/alert';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { useRouter } from '@/platform/router';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as FileSystem from '@/platform/fileSystem';
 import { useTheme, colorFromString } from '@/theme';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import { useSubjectStore, useProfileStore, useTimetableStore } from '@/stores';

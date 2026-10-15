@@ -9,7 +9,7 @@ import { Image } from 'expo-image';
 import Animated, { FadeInDown, FadeOutDown, FadeInRight, useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from '@/platform/dateTimePicker';
 import { useTheme } from '@/theme';
 import { useProfileStore, useSettingsStore } from '@/stores';
 
@@ -200,7 +200,7 @@ export default function WelcomeScreen() {
 
             <Pressable onPress={handleNext} style={({ pressed }) => [styles.submitButton, { backgroundColor: valid ? colors.primary : colors.primaryLight, opacity: pressed ? 0.9 : 1, marginTop: spacing.md }]}>
               <Text style={[textStyles.h3, { color: valid ? colors.white : colors.primary, marginRight: 8 }]}>
-                {step === 3 ? 'Create Account' : 'Continue'}
+                {step === 3 ? (Platform.OS === 'web' ? 'Open CampusIQ' : 'Create Account') : 'Continue'}
               </Text>
               <Ionicons name={step === 3 ? "checkmark-circle-outline" : "arrow-forward-circle-outline"} size={24} color={valid ? colors.white : colors.primary} />
             </Pressable>
@@ -210,7 +210,7 @@ export default function WelcomeScreen() {
           <View style={{ alignItems: 'center', marginTop: spacing['3xl'], paddingBottom: spacing.xl }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 }}>
               <Ionicons name="shield-checkmark" size={16} color={colors.primary} style={{ marginRight: 6 }} />
-              <Text style={[textStyles.smallMedium, { color: colors.primary }]}>Your data stays securely on your device</Text>
+              <Text style={[textStyles.smallMedium, { color: colors.primary }]}>{Platform.OS === 'web' ? 'Your data stays in this browser' : 'Your data stays securely on your device'}</Text>
             </View>
           </View>
         </View>
@@ -244,7 +244,7 @@ export default function WelcomeScreen() {
                 }}
                 onDismiss={() => setShowDatePicker(null)}
               />
-              {Platform.OS === 'ios' && (
+              {Platform.OS !== 'android' && (
                 <Pressable
                   onPress={() => {
                     const fmt = formatLocalDate(tempDate);

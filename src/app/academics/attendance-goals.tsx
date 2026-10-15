@@ -1,7 +1,7 @@
 import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, TouchableOpacity, Platform, ScrollView, Modal, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/platform/router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/theme';

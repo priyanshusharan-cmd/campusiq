@@ -1,10 +1,11 @@
+import { Alert } from '@/platform/alert';
 // Campora — Settings Screen
 
 import React from 'react';
-import { View, Text, Switch, Alert, Platform, ActionSheetIOS, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
+import { View, Text, Switch, Platform, ActionSheetIOS, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter } from '@/platform/router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
@@ -15,9 +16,9 @@ import { useSettingsStore, useAcademicStore, useAttendanceStore, useAssignmentSt
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { triggerHaptic } from '@/utils/haptics';
 import { requestNotificationPermissions, scheduleClassReminders, cancelAllReminders } from '@/utils/notifications';
-import * as FileSystem from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
-import * as LocalAuthentication from 'expo-local-authentication';
+import * as FileSystem from '@/platform/fileSystem';
+import * as Sharing from '@/platform/sharing';
+import * as LocalAuthentication from '@/platform/localAuthentication';
 
 export default function SettingsScreen() {
   const { colors, spacing, textStyles } = useTheme();
@@ -36,9 +37,9 @@ export default function SettingsScreen() {
           useSubjectStore.getState().clearSubjects();
           useProfileStore.getState().clearProfile();
           useSettingsStore.getState().resetSettings();
-          
+
           await AsyncStorage.clear();
-          
+
           router.replace('/(onboarding)/welcome');
         }
       }
@@ -75,14 +76,16 @@ export default function SettingsScreen() {
   };
 
   const handleToggleHapticFeedback = () => {
+    if (Platform.OS === 'web') { Alert.alert('Mobile app feature', "Haptic feedback is available in the mobile app. Browser support varies by device."); return; }
     triggerHaptic('light'); // Play immediately so user feels it
     settings.toggleHapticFeedback();
   };
 
   const handleToggleClassReminders = async () => {
+    if (Platform.OS === 'web') { Alert.alert('Mobile app feature', "Scheduled class reminders need the Android or iOS app. Your timetable is available here in the browser."); return; }
     triggerHaptic('light');
     settings.toggleClassReminders();
-    
+
     // The new value will be the opposite of the current settings.classReminders
     const willBeEnabled = !settings.classReminders;
     if (willBeEnabled) {
@@ -103,7 +106,7 @@ export default function SettingsScreen() {
     triggerHaptic('light');
     const options = ['Cancel', '5 minutes', '10 minutes', '15 minutes', '30 minutes'];
     const values = [0, 5, 10, 15, 30];
-    
+
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions({ options, cancelButtonIndex: 0 }, async (buttonIndex) => {
         if (buttonIndex > 0) {
@@ -128,7 +131,7 @@ export default function SettingsScreen() {
     triggerHaptic('light');
     const options = ['Cancel', 'Violet (Default)', 'Sky Blue', 'Emerald Green', 'Rose Pink', 'Amber Orange'];
     const values = ['', '#7C5CFC', '#0EA5E9', '#10B981', '#F43F5E', '#F59E0B'];
-    
+
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions({ options, cancelButtonIndex: 0 }, (buttonIndex) => {
         if (buttonIndex > 0) settings.setAccentColor(values[buttonIndex]);
@@ -162,6 +165,7 @@ export default function SettingsScreen() {
   };
 
   const handleToggleWeeklyDigest = async () => {
+    if (Platform.OS === 'web') { Alert.alert('Mobile app feature', "Scheduled weekly notifications need the Android or iOS app. You can review your analytics here anytime."); return; }
     triggerHaptic('light');
     settings.toggleWeeklyDigest();
     // Re-run the schedule function, it will pick up the new setting
@@ -169,11 +173,12 @@ export default function SettingsScreen() {
   };
 
   const handleToggleAppLock = async () => {
+    if (Platform.OS === 'web') { Alert.alert('Mobile app feature', "Biometric app locking is available in the Android and iOS app. This browser demo stores data only in your browser."); return; }
     triggerHaptic('light');
     if (!settings.appLockEnabled) {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-      
+
       if (!hasHardware || !isEnrolled) {
         Alert.alert(
           'Not Supported',
@@ -181,14 +186,14 @@ export default function SettingsScreen() {
         );
         return;
       }
-      
+
       // Optionally authenticate once to prove they can unlock it before turning it on
       try {
         const result = await LocalAuthentication.authenticateAsync({
           promptMessage: 'Authenticate to enable App Lock',
           fallbackLabel: 'Use Passcode',
         });
-        
+
         if (result.success) {
           settings.toggleAppLock();
         }
@@ -213,10 +218,10 @@ export default function SettingsScreen() {
         academic: useAcademicStore.getState(),
         settings: useSettingsStore.getState()
       };
-      
+
       const fileUri = FileSystem.cacheDirectory + 'CampusIQ_Backup.json';
       await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(data, null, 2));
-      
+
       const isAvailable = await Sharing.isAvailableAsync();
       if (isAvailable) {
         await Sharing.shareAsync(fileUri, {
@@ -245,7 +250,7 @@ export default function SettingsScreen() {
   // Key input modal state
   const [keyModal, setKeyModal] = React.useState<{ visible: boolean; label: string; value: string; secure: boolean; onSave: (v: string) => void }>({ visible: false, label: '', value: '', secure: false, onSave: () => {} });
   const [keyDraft, setKeyDraft] = React.useState('');
-  
+
   const [priorityModal, setPriorityModal] = React.useState(false);
   const [localPriority, setLocalPriority] = React.useState(settings.aiModelPriority || ['aws', 'gemini', 'openai', 'local']);
 
@@ -319,7 +324,7 @@ export default function SettingsScreen() {
         <Text style={[textStyles.h2, { color: colors.textPrimary }]}>Settings</Text>
       </View>
       <ScrollView contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 100 }}>
-        
+
         <Animated.View entering={FadeInDown.delay(0).duration(80)}>
           <SectionHeader title="Appearance" />
           <Card variant="flat" padding={0}>
@@ -327,7 +332,7 @@ export default function SettingsScreen() {
               icon="moon-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight} 
               title="Theme Mode" 
               rightText={getThemeText()} 
-              showChevron={true} 
+              showChevron={true}
               onPress={showThemePicker}
             />
             <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
@@ -335,7 +340,7 @@ export default function SettingsScreen() {
               icon="color-palette-outline" iconColor={colors.primary} iconBackgroundColor={colors.primaryLight} 
               title="Accent Color" 
               rightText={getColorName(settings.accentColor)} 
-              showChevron={true} 
+              showChevron={true}
               onPress={showColorPicker}
             />
           </Card>
@@ -350,7 +355,7 @@ export default function SettingsScreen() {
               showChevron={false}
               rightElement={
                 <Switch 
-                  value={settings.classReminders} 
+                  value={Platform.OS === 'web' ? false : settings.classReminders}
                   onValueChange={handleToggleClassReminders} 
                   trackColor={{ false: colors.border, true: colors.info }} 
                 />
@@ -375,7 +380,7 @@ export default function SettingsScreen() {
               showChevron={false}
               rightElement={
                 <Switch 
-                  value={settings.weeklyDigest} 
+                  value={Platform.OS === 'web' ? false : settings.weeklyDigest}
                   onValueChange={handleToggleWeeklyDigest} 
                   trackColor={{ false: colors.border, true: colors.info }} 
                 />
@@ -396,7 +401,7 @@ export default function SettingsScreen() {
               showChevron={false}
               rightElement={
                 <Switch 
-                  value={settings.hapticFeedback} 
+                  value={Platform.OS === 'web' ? false : settings.hapticFeedback}
                   onValueChange={handleToggleHapticFeedback} 
                   trackColor={{ false: colors.border, true: colors.warning }} 
                 />
@@ -407,6 +412,11 @@ export default function SettingsScreen() {
 
         <Animated.View entering={FadeInDown.delay(20).duration(80)}>
           <SectionHeader title="AI Assistant" />
+          {Platform.OS === 'web' ? (
+            <Card variant="flat">
+              <Text style={[textStyles.body, { color: colors.textSecondary, lineHeight: 24 }]}>The browser demo assistant calculates attendance, schedules, and grade summaries locally. No API keys or subscription are needed.</Text>
+            </Card>
+          ) : (<>
           <Card variant="flat" padding={0}>
             <ListRow 
               icon="cloudy-outline" iconColor={colors.info} 
@@ -418,7 +428,7 @@ export default function SettingsScreen() {
                   onValueChange={() => {
                     triggerHaptic('light');
                     settings.toggleCloudAiEnabled();
-                  }} 
+                  }}
                   trackColor={{ false: colors.border, true: colors.info }} 
                 />
               } 
@@ -434,7 +444,7 @@ export default function SettingsScreen() {
                   onValueChange={() => {
                     triggerHaptic('light');
                     settings.toggleDemoMode();
-                  }} 
+                  }}
                   trackColor={{ false: colors.border, true: colors.primary }} 
                 />
               } 
@@ -496,6 +506,8 @@ export default function SettingsScreen() {
             />
           </Card>
 
+          </>)}
+
           <SectionHeader title="Account & Security" />
           <Card variant="flat" padding={0}>
             <ListRow 
@@ -504,7 +516,7 @@ export default function SettingsScreen() {
               showChevron={false}
               rightElement={
                 <Switch 
-                  value={settings.appLockEnabled} 
+                  value={Platform.OS === 'web' ? false : settings.appLockEnabled}
                   onValueChange={handleToggleAppLock} 
                   trackColor={{ false: colors.border, true: colors.warning }} 
                 />
@@ -513,7 +525,7 @@ export default function SettingsScreen() {
             <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
             <ListRow 
               icon="person-remove-outline" iconColor={colors.danger} 
-              title="Delete Account" 
+              title={Platform.OS === 'web' ? 'Clear browser data' : 'Delete Account'}
               onPress={() => {
                 triggerHaptic('warning');
                 handleDeleteAccount();
@@ -594,7 +606,7 @@ export default function SettingsScreen() {
             <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.xl, paddingBottom: spacing['4xl'] }}>
               <Text style={[textStyles.h2, { color: colors.textPrimary, marginBottom: spacing.md }]}>AI Model Priority</Text>
               <Text style={[textStyles.body, { color: colors.textSecondary, marginBottom: spacing.xl }]}>Hold and drag to arrange the models in order of preference. The app will try the top model first.</Text>
-              
+
               <View style={{ height: 260 }}>
                 <DraggableFlatList
                   data={localPriority}
@@ -603,7 +615,7 @@ export default function SettingsScreen() {
                   renderItem={renderPriorityItem}
                 />
               </View>
-              
+
               <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl }}>
                 <TouchableOpacity onPress={() => setPriorityModal(false)} style={{ flex: 1, paddingVertical: spacing.md, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: 'center' }}>
                   <Text style={[textStyles.body, { color: colors.textSecondary, fontWeight: '600' }]}>Cancel</Text>

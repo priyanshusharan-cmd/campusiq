@@ -1,8 +1,9 @@
+import { Alert } from '@/platform/alert';
 // Campora — Attendance Calendar Component
 // Calendar with marked dates for attendance tracking + legend
 
 import React, { useMemo } from 'react';
-import { View, Text, Alert } from 'react-native';
+import { View, Text, } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
 import { format } from 'date-fns';

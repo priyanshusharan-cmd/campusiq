@@ -1,9 +1,11 @@
+import { Alert } from '@/platform/alert';
 // Campora — Create Extra Class Modal
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Platform, KeyboardAvoidingView, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Platform, KeyboardAvoidingView, Modal, } from 'react-native';
 import { ScrollView, FlatList } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { useRouter } from '@/platform/router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { useSubjectStore, useActiveSubjects } from '@/stores/useSubjectStore';
@@ -159,7 +161,7 @@ export default function CreateExtraClassScreen() {
                 onChangeText={(t) => setStartTimeInput(handleTimeInputChange(t, startTimeInput))}
                 onBlur={() => handleTimeBlur(startTimeInput, setStartTime, setStartTimeInput)}
                 keyboardType="numbers-and-punctuation"
-                onIconRightPress={() => { Platform.OS !== 'web' ? setShowStartTimePicker(true) : Alert.alert('Native Picker', 'Time pickers are native elements.'); }}
+                onIconRightPress={() => { setShowStartTimePicker(true); }}
               />
             </View>
             <View style={{ flex: 1 }}>
@@ -167,7 +169,7 @@ export default function CreateExtraClassScreen() {
                 onChangeText={(t) => setEndTimeInput(handleTimeInputChange(t, endTimeInput))}
                 onBlur={() => handleTimeBlur(endTimeInput, setEndTime, setEndTimeInput)}
                 keyboardType="numbers-and-punctuation"
-                onIconRightPress={() => { Platform.OS !== 'web' ? setShowEndTimePicker(true) : Alert.alert('Native Picker', 'Time pickers are native elements.'); }}
+                onIconRightPress={() => { setShowEndTimePicker(true); }}
               />
             </View>
           </View>

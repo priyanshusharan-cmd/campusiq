@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { useRouter } from '@/platform/router';
 import { useTheme } from '@/theme';
 import { useAcademicStore } from '@/stores/useAcademicStore';
 import { useSubjectStore } from '@/stores/useSubjectStore';
