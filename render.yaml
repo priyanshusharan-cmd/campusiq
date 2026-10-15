@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: campusiq
+    name: campusiq-web
     runtime: static
     buildCommand: npm ci && npm run build:web
     staticPublishPath: ./dist

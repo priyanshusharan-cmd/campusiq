@@ -27,7 +27,7 @@ Render builds the committed GitHub version, not your local files. The browser de
 
 | Field | Value |
 |---|---|
-| Name | `campusiq` |
+| Name | `campusiq-web` |
 | Root Directory | Leave blank |
 | Build Command | `npm ci && npm run build:web` |
 | Publish Directory | `dist` |
@@ -63,7 +63,9 @@ The included `render.yaml` declares the same Static Site, build settings, Node v
 7. Try a JSON export and a report export. On supported browsers the report opens the print/Save as PDF flow.
 8. Check the link on your actual Android/iPhone browser as well. Desktop viewport testing cannot prove every physical-device browser behavior.
 
-Use the site name `campusiq` to request `https://campusiq.onrender.com`. Render must confirm name availability; the URL is not reserved by this repository configuration.
+Use the site name `campusiq-web` to request `https://campusiq-web.onrender.com`. Render must confirm name availability; the URL is not reserved by this repository configuration. If unavailable, try `try-campusiq` or `campusiq-live` and check the resulting URL before sharing it.
+
+If an earlier site already works at a suffixed address such as `campusiq-cmee.onrender.com`, keep it until the replacement is Live. Create the new Static Site inside the same CampusIQ / Production project using the settings above, verify its URL and rewrite, and only then remove the older site if you no longer need it. Renaming a dashboard label is not a guarantee that its existing public hostname changes.
 
 You can then put the Render URL in your LinkedIn post as “Try CampusIQ in your browser”. Future pushes to the configured branch can redeploy the demo.
 
@@ -80,7 +82,7 @@ Open http://localhost:4173/. The preview serves the production build with the sa
 
 ## How mobile behavior is preserved
 
-Browser adapters use `.web.ts` / `.web.tsx` files. Their native counterparts re-export the existing native APIs. Existing mobile cloud AI, local storage, notification logic, purchases, and biometric functionality remain in their native implementations. Shared edits route imports through these adapters, enable web picker buttons, add accessible form labels, and choose the browser-only layout/demo notices. No native dependency versions were changed.
+Browser adapters use `.web.ts` / `.web.tsx` files. Their native counterparts re-export the existing native APIs. Existing mobile cloud AI, local storage, notification logic, purchases, and biometric functionality remain in their native implementations. Shared edits route imports through these adapters, enable web picker buttons, add accessible form labels, and choose the browser-only layout/demo notices. The initial browser conversion kept native dependency versions unchanged. The subsequent security update refreshes dependencies within the existing declared version ranges and pins patched UUID 11.1.1 only for the Xcode and optional ngrok tooling; their used v4 APIs are covered by compatibility tests. React Native remains 0.86.3 and Expo remains on SDK 57.
 
 ## References
 

@@ -74,7 +74,16 @@
     "lint": "expo lint",
     "build:web": "node scripts/build-web.mjs",
     "preview:web": "node scripts/serve-web.mjs",
-    "test:web": "node --test tests/web-adapters.test.cjs"
+    "test:web": "node --test tests/web-adapters.test.cjs",
+    "test:security": "node --test tests/dependency-security.test.cjs"
   },
-  "private": true
+  "private": true,
+  "overrides": {
+    "xcode": {
+      "uuid": "11.1.1"
+    },
+    "@expo/ngrok": {
+      "uuid": "11.1.1"
+    }
+  }
 }
