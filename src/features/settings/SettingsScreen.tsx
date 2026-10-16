@@ -422,7 +422,7 @@ export default function SettingsScreen() {
               showChevron={false}
               rightElement={
                 <Switch 
-                  value={Platform.OS === 'web' ? false : settings.cloudAiEnabled} 
+                  value={Platform.OS === 'web' ? false : settings.cloudAiEnabled}
                   onValueChange={() => {
                     triggerHaptic('light');
                     if (Platform.OS === 'web') { explainBrowserAI(); return; }
@@ -439,7 +439,7 @@ export default function SettingsScreen() {
               showChevron={false}
               rightElement={
                 <Switch 
-                  value={Platform.OS === 'web' ? true : settings.demoModeEnabled} 
+                  value={Platform.OS === 'web' ? true : settings.demoModeEnabled}
                   onValueChange={() => {
                     triggerHaptic('light');
                     if (Platform.OS === 'web') { explainBrowserAI(); return; }
