@@ -41,3 +41,18 @@ Build success is not a substitute for testing the installed Android/iOS app on p
 The web demo uses browser-local storage and a deterministic local assistant. Cloud AI, cross-device sync, scheduled background phone notifications, biometric app locks, and app-store purchases are not implemented for the static website. Browser settings explain unavailable phone capabilities. PDF saving depends on the browser's print support.
 
 Use the final checklist in `docs/RENDER_DEPLOYMENT.md` on the deployed HTTPS URL and on your actual phone before sharing it publicly.
+
+## Mobile design alignment update
+
+The browser-only marketing/welcome page has been removed. The root route now opens the existing mobile onboarding or Home screen. The optional `/?demo=1` link loads sample data straight into the same Home UI. Existing visitor data is retained.
+
+- The app frame is 430 px wide on desktop and fills narrower phone screens, preserving mobile card, tab, menu, and typography proportions.
+- Closed drawer contents are not mounted, and the app frame clips off-screen drawer movement. The menu opens over the app, rather than leaking into a desktop sidebar.
+- Browser screen measurements use the app-frame width for charts, sliders, and other dimension-based layouts. Native measurements re-export React Native's original APIs.
+- The assistant uses the mobile circular 60 px sparkle control, with browser pointer dragging and keyboard activation.
+- Modal portals stay within the same phone-width bounds on desktop.
+- Settings reuses the existing mobile card/row layout. Browser-unavailable cloud configuration explains its limitation when selected, without collecting provider keys. Phone-specific capability limits are unchanged.
+
+Background DOM checks (no screen sharing) verified native onboarding at the root, Home with sample data, drawer open/close, assistant activation, and modal bounds. Measured the app frame at 430 px in a 1440 px desktop viewport and 390 px in a 390 px phone viewport. No web marketing card or closed drawer menu remained in the rendered page.
+
+`npm run test:layout` adds three regression tests for viewport sizing and closed/open drawer rendering. The Android and iOS drawer implementations remain re-exports of the original library; the mobile onboarding, Home, and feature screen designs are shared with the browser.

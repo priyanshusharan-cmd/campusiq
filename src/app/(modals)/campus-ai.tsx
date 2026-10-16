@@ -90,7 +90,7 @@ export default function CampusAIModal() {
         </TouchableOpacity>
         <View style={styles.titleContainer}>
           <Text style={[styles.headerTitle, { color: theme.colors.textPrimary }]}>CampusIQ AI</Text>
-          {isOfflineMode && (
+          {(isOfflineMode || Platform.OS === 'web') && (
             <View style={[styles.offlineBadge, { backgroundColor: theme.colors.warning }]}>
               <Text style={styles.offlineText}>{Platform.OS === 'web' ? 'Demo Mode' : 'Offline Mode'}</Text>
             </View>
@@ -99,7 +99,6 @@ export default function CampusAIModal() {
         <View style={styles.headerRight} />
       </View>
 
-      {Platform.OS === 'web' && <Text style={{ paddingHorizontal: 20, paddingVertical: 10, fontSize: 12, lineHeight: 18, color: theme.colors.textSecondary }}>Demo assistant · local calculations, no cloud AI. Try attendance, schedule, or grade questions.</Text>}
       <ScrollView 
         ref={scrollViewRef}
         style={styles.chatContainer}

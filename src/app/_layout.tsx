@@ -10,7 +10,7 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ThemeProvider, useTheme } from '@/theme';
-import { Drawer } from 'react-native-drawer-layout';
+import { Drawer } from '@/platform/Drawer';
 import { useDrawerStore, useSettingsStore } from '@/stores';
 import MoreScreen from '@/features/more/MoreScreen';
 import * as LocalAuthentication from '@/platform/localAuthentication';

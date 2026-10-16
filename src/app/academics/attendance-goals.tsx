@@ -1,5 +1,6 @@
 import React, { useRef, useState, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, Pressable, TouchableOpacity, Platform, ScrollView, Modal, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TouchableOpacity, Platform, ScrollView, Modal } from 'react-native';
+import { useWindowDimensions } from '@/platform/dimensions';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from '@/platform/router';
 import { Ionicons } from '@expo/vector-icons';

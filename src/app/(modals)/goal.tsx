@@ -1,6 +1,7 @@
 import { Alert } from '@/platform/alert';
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions, Modal, TextInput, ScrollView, ActionSheetIOS, } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Modal, TextInput, ScrollView, ActionSheetIOS } from 'react-native';
+import { Dimensions } from '@/platform/dimensions';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link } from 'expo-router';
 import { useRouter } from '@/platform/router';

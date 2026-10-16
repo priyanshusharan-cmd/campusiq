@@ -284,7 +284,10 @@ export default function SettingsScreen() {
     </ScaleDecorator>
   );
 
+  const explainBrowserAI = () => Alert.alert('Browser assistant', 'The browser version uses local attendance, timetable, and grade calculations. Cloud providers and API key configuration are available in the mobile app.');
+
   const openKeyModal = (label: string, currentValue: string, secure: boolean, onSave: (v: string) => void) => {
+    if (Platform.OS === 'web') { explainBrowserAI(); return; }
     setKeyDraft(currentValue);
     setKeyModal({ visible: true, label, value: currentValue, secure, onSave });
   };
@@ -412,11 +415,6 @@ export default function SettingsScreen() {
 
         <Animated.View entering={FadeInDown.delay(20).duration(80)}>
           <SectionHeader title="AI Assistant" />
-          {Platform.OS === 'web' ? (
-            <Card variant="flat">
-              <Text style={[textStyles.body, { color: colors.textSecondary, lineHeight: 24 }]}>The browser demo assistant calculates attendance, schedules, and grade summaries locally. No API keys or subscription are needed.</Text>
-            </Card>
-          ) : (<>
           <Card variant="flat" padding={0}>
             <ListRow 
               icon="cloudy-outline" iconColor={colors.info} 
@@ -424,9 +422,10 @@ export default function SettingsScreen() {
               showChevron={false}
               rightElement={
                 <Switch 
-                  value={settings.cloudAiEnabled} 
+                  value={Platform.OS === 'web' ? false : settings.cloudAiEnabled} 
                   onValueChange={() => {
                     triggerHaptic('light');
+                    if (Platform.OS === 'web') { explainBrowserAI(); return; }
                     settings.toggleCloudAiEnabled();
                   }}
                   trackColor={{ false: colors.border, true: colors.info }} 
@@ -440,9 +439,10 @@ export default function SettingsScreen() {
               showChevron={false}
               rightElement={
                 <Switch 
-                  value={settings.demoModeEnabled} 
+                  value={Platform.OS === 'web' ? true : settings.demoModeEnabled} 
                   onValueChange={() => {
                     triggerHaptic('light');
+                    if (Platform.OS === 'web') { explainBrowserAI(); return; }
                     settings.toggleDemoMode();
                   }}
                   trackColor={{ false: colors.border, true: colors.primary }} 
@@ -456,6 +456,7 @@ export default function SettingsScreen() {
               showChevron={true}
               onPress={() => {
                 triggerHaptic('light');
+                if (Platform.OS === 'web') { explainBrowserAI(); return; }
                 setLocalPriority(settings.aiModelPriority || ['aws', 'gemini', 'openai', 'local']);
                 setPriorityModal(true);
               }}
@@ -505,8 +506,6 @@ export default function SettingsScreen() {
               }}
             />
           </Card>
-
-          </>)}
 
           <SectionHeader title="Account & Security" />
           <Card variant="flat" padding={0}>

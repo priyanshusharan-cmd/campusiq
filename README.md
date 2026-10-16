@@ -20,7 +20,7 @@
 
 ## Browser demo deployment
 
-CampusIQ can also run as a mobile-friendly browser demo with sample data and a local demo assistant. Deploy it to Render as a **Static Site** using the step-by-step [Render deployment guide](docs/RENDER_DEPLOYMENT.md). No backend or AI keys are required for this demo. The browser build uses platform-specific adapters so the native app keeps its existing integrations.
+CampusIQ also runs in the browser using the mobile app's existing onboarding, Home screen, tabs, and visual design. An optional `/?demo=1` link opens sample data directly, and the browser assistant uses local calculations. Deploy it to Render as a **Static Site** using the step-by-step [Render deployment guide](docs/RENDER_DEPLOYMENT.md). No backend or AI keys are required for this demo. The browser build uses platform-specific adapters so the native app keeps its existing integrations.
 
 > The Agent Server sections below describe an intended architecture. This repository currently has no `agent-server` directory; the native AI service calls providers directly. The public browser demo uses local calculations instead.
 

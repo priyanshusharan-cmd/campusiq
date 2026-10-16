@@ -4,7 +4,7 @@ Choose **Static Site**. This demo does not need a Web Service, database, login p
 
 ## What is included
 
-- A mobile-friendly entry page with “Try with sample data” and an empty-profile option.
+- The same onboarding, Home screen, colors, cards, tabs, and menu used by the mobile app. Desktop browsers keep a centered phone-width layout; phone browsers fill their screen.
 - The existing attendance, timetable, subjects, assignments, exams, grade tracker, forecaster, analytics, and profile screens.
 - Browser date/time inputs, working confirmation/action dialogs, and browser-local persistence.
 - JSON subjects/timetable exports as downloads; local JSON imports through the file picker.
@@ -55,7 +55,7 @@ The included `render.yaml` declares the same Static Site, build settings, Node v
 ## 4. Verify the published URL before posting
 
 1. Open the Render-provided HTTPS URL in a fresh/private browser tab.
-2. Select **Try with sample data**. You should see Alex's sample semester.
+2. The main URL opens the mobile app's normal onboarding for a new visitor, or Home for a returning visitor. To open sample data directly, use `/?demo=1` on a fresh browser profile. This enters the same Home screen without a separate welcome page.
 3. Open Timetable, Attendance, GPA, assignments, exams, and analytics.
 4. Create a subject or class and refresh; verify it remains saved in a normal browser tab.
 5. Open `/schedule` directly and refresh to confirm the rewrite works.

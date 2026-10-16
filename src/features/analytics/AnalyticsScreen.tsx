@@ -1,6 +1,7 @@
 import { Alert } from '@/platform/alert';
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, Pressable, TouchableOpacity, } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TouchableOpacity } from 'react-native';
+import { Dimensions } from '@/platform/dimensions';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from '@/platform/router';
