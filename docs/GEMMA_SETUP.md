@@ -47,3 +47,9 @@ Chat shows a preparation message before the first answer text, then updates the 
 A provider switch clears any unfinished answer before displaying the backup response. Interrupted streams require a completion marker and are never presented as a successful complete answer. Stream tests use mocked providers; a small local Ollama smoke test can verify chunks without Google quota.
 
 References: [Google streaming API](https://ai.google.dev/api/generate-content#method:-models.streamgeneratecontent), [Ollama streaming](https://docs.ollama.com/api/streaming).
+
+## When saved records are included
+
+The request builder uses a conservative keyword check for personal academic questions. Requests such as “What is my attendance?”, “How many classes can I skip?”, and “Show my academic summary” include saved academic context. Greetings and general questions such as “Explain CGPA” omit it. Image requests omit records unless the question explicitly refers to the user's saved academic data for comparison. This check is a routing heuristic, not model-based intent classification.
+
+Context contains the current semester name, SGPA, CGPA, subject names and credits, grades, and attendance counts, percentages and targets. It is labeled “Optional saved academic facts (reference only)” in the prompt. The prompt directs Gemma to answer the actual question and only summarize records when requested. The request does not include microphone recordings or prior chat messages.

@@ -242,3 +242,35 @@ test('stream errors and incomplete local answers do not falsely report success',
     await assert.rejects(client({ ...settings, cloudAiEnabled: false, basicOfflineHelp: false }, async () => streamed(response))('Hello', false, undefined, () => {}), /Cannot reach Ollama/);
   }
 });
+
+test('greetings and general questions reach Gemma without saved academic records', async () => {
+  for (const question of ['hello', 'Hi there!', 'hello how are you', 'What is photosynthesis?', 'Explain CGPA', 'Write a poem']) {
+    let prompt;
+    const result = await client(settings, async (_url, options) => {
+      prompt = JSON.parse(options.body).contents[0].parts[0].text;
+      return success({ candidates: [{ content: { parts: [{ text: 'Model answer' }] } }] });
+    })(question);
+    assert.equal(result.provider, 'gemma-api');
+    assert.equal(result.reply, 'Model answer');
+    assert.ok(!prompt.includes('"subjects":'));
+    assert.ok(prompt.includes(`Student question:\n${question}`));
+    assert.ok(prompt.includes('For a greeting, greet briefly'));
+  }
+});
+test('personal academic questions still receive saved facts', async () => {
+  for (const question of ['Show my academic summary', 'How many classes can I skip?', 'What is my attendance?', 'attendance', 'Show grades']) {
+    await client(settings, async (_url, options) => {
+      assert.ok(JSON.parse(options.body).contents[0].parts[0].text.includes('"subjects":[]'));
+      return success({ candidates: [{ content: { parts: [{ text: 'Model answer' }] } }] });
+    })(question);
+  }
+});
+test('image extraction does not attach unrelated records; explicit saved-data comparison does', async () => {
+  for (const question of ['Extract the timetable from this image', 'Compare this image with my saved grades']) {
+    await client({ ...settings, cloudAiEnabled: false }, async (_url, options) => {
+      const prompt = JSON.parse(options.body).messages[0].content;
+      assert.equal(prompt.includes('"subjects":[]'), question.includes('my saved'));
+      return success({ message: { content: 'Model answer' } });
+    })(question, false, { mimeType: 'image/png', data: 'iVBORw0KGgo=' });
+  }
+});
