@@ -82,7 +82,7 @@ Open http://localhost:4173/. The preview serves the production build with the sa
 
 ## How mobile behavior is preserved
 
-Browser adapters use `.web.ts` / `.web.tsx` files. Their native counterparts re-export the existing native APIs. Existing mobile cloud AI, local storage, notification logic, purchases, and biometric functionality remain in their native implementations. Shared edits route imports through these adapters, enable web picker buttons, add accessible form labels, and choose the browser-only layout/demo notices. The initial browser conversion kept native dependency versions unchanged. The subsequent security update refreshes dependencies within the existing declared version ranges and pins patched UUID 11.1.1 only for the Xcode and optional ngrok tooling; their used v4 APIs are covered by compatibility tests. React Native remains 0.86.3 and Expo remains on SDK 57.
+Browser adapters use `.web.ts` / `.web.tsx` files. Their native counterparts re-export the existing native APIs. Existing mobile cloud AI, local storage, notification logic, and biometric functionality remain in their native implementations. Shared edits route imports through these adapters, enable web picker buttons, add accessible form labels, and choose the browser-only layout/demo notices. The initial browser conversion kept native dependency versions unchanged. The subsequent security update refreshes dependencies within the existing declared version ranges and pins patched UUID 11.1.1 only for the Xcode and optional ngrok tooling; their used v4 APIs are covered by compatibility tests. React Native remains 0.86.3 and Expo remains on SDK 57.
 
 ## References
 

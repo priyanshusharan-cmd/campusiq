@@ -30,7 +30,7 @@ Do not run `npm audit fix --force` as a shortcut: this audit proposes downgradin
 - Production web export: passes.
 - Android and iOS bundle exports: pass.
 - Background browser check after the dependency updates: Home, Timetable, navigation, and the local assistant work without recorded runtime errors. No screen sharing was used.
-- Full project TypeScript check: the same five existing native paywall theme-property errors remain, with no new diagnostics.
+- Full project TypeScript check at the time: five existing theme-property errors in a native subscription screen. That screen has since been removed; see `WEB_VALIDATION.md` for current validation.
 
 ## Render dashboard / URL findings
 

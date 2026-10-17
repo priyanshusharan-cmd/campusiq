@@ -34,5 +34,5 @@ export function loadDemoData() {
   useAssignmentStore.getState().addAssignment({ title: 'Build a binary search tree', subjectId: subjects[0].id, dueDate: date(3), priority: 'high', notes: 'Sample assignment — try editing or completing it.' });
   useAssignmentStore.getState().addAssignment({ title: 'Design a campus database', subjectId: subjects[3].id, dueDate: date(6), priority: 'medium' });
   useExamStore.getState().addExam({ subjectId: subjects[1].id, type: 'midsem', date: date(8), startTime: '10:00', room: 'Hall A', syllabus: 'Network layers, routing, and transport protocols' });
-  useSettingsStore.setState({ onboardingCompleted: true, isPro: true, cloudAiEnabled: false, demoModeEnabled: true });
+  useSettingsStore.setState({ onboardingCompleted: true, cloudAiEnabled: false, demoModeEnabled: true });
 }

@@ -34,11 +34,11 @@ The browser print adapter is covered by automated tests for sandboxed report con
 
 ## Existing issues and practical limits
 
-The full project TypeScript check (`npx tsc --noEmit`) reports the same five pre-existing theme-property errors in `src/app/(modals)/paywall.tsx` as before this work: `background`, `text`, and `textMuted` are not valid theme properties. That native file is unchanged. The browser uses `paywall.web.tsx`, and no new TypeScript diagnostics were introduced.
+The native subscription screens have since been removed. See the current cleanup validation below for updated TypeScript results.
 
-Build success is not a substitute for testing the installed Android/iOS app on physical devices. Native adapters re-export the existing APIs, and native AI, notifications, storage, and purchase behavior remain in their original implementations.
+Build success is not a substitute for testing the installed Android/iOS app on physical devices. Native adapters re-export the existing APIs, and native AI, notifications, and storage behavior remain in their original implementations.
 
-The web demo uses browser-local storage and a deterministic local assistant. Cloud AI, cross-device sync, scheduled background phone notifications, biometric app locks, and app-store purchases are not implemented for the static website. Browser settings explain unavailable phone capabilities. PDF saving depends on the browser's print support.
+The web demo uses browser-local storage and a deterministic local assistant. Cloud AI, cross-device sync, scheduled background phone notifications, and biometric app locks are not implemented for the static website. Browser settings explain unavailable phone capabilities. PDF saving depends on the browser's print support.
 
 Use the final checklist in `docs/RENDER_DEPLOYMENT.md` on the deployed HTTPS URL and on your actual phone before sharing it publicly.
 
@@ -56,3 +56,14 @@ The browser-only marketing/welcome page has been removed. The root route now ope
 Background DOM checks (no screen sharing) verified native onboarding at the root, Home with sample data, drawer open/close, assistant activation, and modal bounds. Measured the app frame at 430 px in a 1440 px desktop viewport and 390 px in a 390 px phone viewport. No web marketing card or closed drawer menu remained in the rendered page.
 
 `npm run test:layout` adds three regression tests for viewport sizing and closed/open drawer rendering. The Android and iOS drawer implementations remain re-exports of the original library; the mobile onboarding, Home, and feature screen designs are shared with the browser.
+
+
+## Cleanup validation — 17 October 2026
+
+The billing SDK, initialization adapters, subscription routes, and paid-access checks have been removed. The native floating assistant button now opens Campus AI directly. Existing academic data and AI provider configuration are retained.
+
+- `npx tsc --noEmit`: passes.
+- ESLint for all modified TypeScript files: passes.
+- `npm run test:web`, `npm run test:layout`, and `npm run test:security`: all 16 tests pass.
+- Production web export and Android/iOS JavaScript/Hermes exports: pass.
+- Installed native builds must be rebuilt to remove the old native SDK. Physical-device navigation has not been tested during this cleanup.

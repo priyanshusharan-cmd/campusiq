@@ -68,7 +68,7 @@ Play with a "What-If" grading wizard. Adjust your expected grades on an intuitiv
 ### 📝 Assignment & Exam Manager
 Never miss a deadline. Track pending assignments, project due dates, and upcoming midterms or finals. Prioritize tasks visually with color-coded tags.
 
-### 🎨 Premium UI/UX
+### 🎨 Polished UI/UX
 Enjoy stunning glassmorphism design, smooth micro-animations powered by Reanimated and Moti, rich haptic feedback, and a fully customizable subject color palette that makes the app a joy to use.
 
 ### 🔒 Local-First Privacy
@@ -191,17 +191,6 @@ Scan the QR code with the Expo Go app on your physical device (iOS/Android), or 
 
 ---
 
-## 🏆 Hackathon Submission Details (Shipaton 2026 - Next Gen Award)
-
-We built CampusIQ specifically for the **Shipaton 2026 Hackathon**, targeting the **Next Gen Award** for students. It addresses real-world problems faced by students globally.
-
-- **Award Category:** Next Gen Award & HAMM Award
-- **Problem Solved:** Fragmented student data leading to missed classes, chaotic deadlines, and unpredictable grades. CampusIQ centralizes this into a single, intelligent interface.
-- **Monetization (RevenueCat):** Integrated **RevenueCat** using the `react-native-purchases` SDK to manage in-app subscriptions and premium features seamlessly.
-- **AI Integration:** Leveraged AWS Bedrock and the Strands Agents SDK to orchestrate our context-aware AI assistant efficiently and securely.
-
----
-
 ## 🛣️ Roadmap
 
 We have big plans for CampusIQ post-hackathon:
@@ -230,5 +219,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <div align="center">
-  <sub>Built with ❤️ for Shipaton 2026.</sub>
+  <sub>Built with ❤️ for students.</sub>
 </div>

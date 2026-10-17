@@ -15,7 +15,6 @@ import { useDrawerStore, useSettingsStore } from '@/stores';
 import MoreScreen from '@/features/more/MoreScreen';
 import * as LocalAuthentication from '@/platform/localAuthentication';
 import { AppState, View, Text, TouchableOpacity, StyleSheet, Image, LogBox, Platform } from 'react-native';
-import { initializePurchases } from '@/platform/initializePurchases';
 
 // Suppress known Expo Go warnings for remote push notifications
 LogBox.ignoreLogs([
@@ -34,10 +33,6 @@ export default function RootLayout() {
   });
 
   const [storesHydrated, setStoresHydrated] = React.useState(false);
-
-  useEffect(() => {
-    initializePurchases();
-  }, []);
 
   useEffect(() => {
     let hasWarnedThisSession = false;

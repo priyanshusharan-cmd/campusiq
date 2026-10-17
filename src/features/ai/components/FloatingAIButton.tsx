@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { StyleSheet, Dimensions, Platform, Animated, PanResponder, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Dimensions, Platform, Animated, PanResponder, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
@@ -90,12 +90,7 @@ export default function FloatingAIButton() {
 
         // If not dragged much, consider it a tap
         if (Math.abs(gestureState.dx) < 5 && Math.abs(gestureState.dy) < 5) {
-          const { isPro } = useSettingsStore.getState();
-          if (isPro) {
-            router.push('/(modals)/campus-ai');
-          } else {
-            router.push('/(modals)/paywall');
-          }
+          router.push('/(modals)/campus-ai');
         }
       },
     })
