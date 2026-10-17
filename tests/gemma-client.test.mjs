@@ -9,7 +9,7 @@ function load(path, dependencies, globals = {}) {
   vm.runInNewContext(source, { exports, require: name => { if (!(name in dependencies)) throw new Error(`Unexpected import: ${name}`); return dependencies[name]; }, Error, URL, AbortController, setTimeout, clearTimeout, ...globals });
   return exports;
 }
-const settings = { macOllamaUrl: 'http://192.168.1.52:11434', cloudAiEnabled: true, useOfflineAIFallback: true };
+const settings = { macOllamaUrl: 'http://192.168.1.52:11434', cloudAiEnabled: true, useOfflineAIFallback: true, basicOfflineHelp: true };
 const success = data => ({ ok: true, json: async () => data });
 function client(preferences, fetchImpl, key = 'test-google-key') {
   return load('src/features/ai/services/aiService.ts', {
@@ -61,7 +61,7 @@ test('manual local mode never calls Google', async () => {
 });
 test('disabling fallback prevents any Mac calls', async () => {
   let count = 0;
-  await assert.rejects(client({ ...settings, useOfflineAIFallback: false }, async url => {
+  await assert.rejects(client({ ...settings, useOfflineAIFallback: false, basicOfflineHelp: false }, async url => {
     count++; assert.ok(url.startsWith('https://generativelanguage.googleapis.com/'));
     return { ok: false, status: 429 };
   })('Hello'), /HTTP 429/);
@@ -130,4 +130,67 @@ test('browser Google key stays in memory and is cleared by reload', async () => 
   await first.setGoogleApiKey('test-key');
   assert.equal(await first.getGoogleApiKey(), 'test-key');
   assert.equal(await load('src/platform/googleApiKey.web.ts', {}).getGoogleApiKey(), '');
+});
+
+test('basic offline help works independently of Mac fallback', async () => {
+  const reply = await client({ ...settings, useOfflineAIFallback: false, basicOfflineHelp: true }, async url => {
+    assert.ok(url.startsWith('https://generativelanguage.googleapis.com/'));
+    return { ok: false, status: 429 };
+  })('Attendance');
+  assert.equal(reply.provider, 'calculations');
+});
+
+test('Mac-only mode does not return calculations when basic offline help is disabled', async () => {
+  await assert.rejects(client({ ...settings, cloudAiEnabled: false, basicOfflineHelp: false }, async () => { throw new Error('Mac off'); })('Attendance'), /Cannot reach Ollama/);
+});
+
+test('mode selection atomically sets the routing switches while preserving offline help', () => {
+  let initializer;
+  load('src/stores/useSettingsStore.ts', {
+    '@/platform/aiDefaults': { aiDefaults: { macOllamaUrl: '' } },
+    'zustand': { create: () => fn => { initializer = fn; } },
+    'zustand/middleware': { persist: fn => fn, createJSONStorage: fn => fn() },
+    '@/constants': { DEFAULTS: { attendanceTarget: 75, reminderMinutesBefore: 10 } },
+    './storage': { zustandStorage: {} },
+  });
+  let state;
+  const set = update => { Object.assign(state, typeof update === 'function' ? update(state) : update); };
+  state = initializer(set, () => state);
+  for (const [mode, cloud, local] of [['google', true, false], ['mac', false, true], ['automatic', true, true]]) {
+    state.setAiMode(mode);
+    assert.equal(state.cloudAiEnabled, cloud);
+    assert.equal(state.useOfflineAIFallback, local);
+    assert.equal(state.basicOfflineHelp, true);
+  }
+});
+
+test('Mac setup accepts a Wi-Fi address and fills the port, but rejects unsafe addresses', () => {
+  const checks = load('src/features/ai/services/connectionChecks.ts', { './aiService': { CLOUD_MODEL: 'gemma-cloud', LOCAL_MODEL: 'gemma-local' } });
+  assert.equal(checks.normalizeMacAddress('192.168.1.52'), 'http://192.168.1.52:11434');
+  assert.equal(checks.normalizeMacAddress('http://192.168.1.52:11434/'), 'http://192.168.1.52:11434');
+  assert.throws(() => checks.normalizeMacAddress('http://example.com'), /private Wi-Fi/);
+  assert.throws(() => checks.normalizeMacAddress('http://192.168.1.52/api/chat'), /without a path/);
+});
+
+test('Mac check verifies installed Gemma without generating an answer', async () => {
+  const checks = load('src/features/ai/services/connectionChecks.ts', { './aiService': { CLOUD_MODEL: 'gemma-cloud', LOCAL_MODEL: 'gemma-local' } }, { fetch: async (url, options) => {
+    assert.equal(url, 'http://192.168.1.52:11434/api/tags');
+    assert.equal(options.method, 'GET');
+    return success({ models: [{ name: 'gemma-local' }] });
+  } });
+  assert.match(await checks.checkMacConnection('192.168.1.52'), /No answer was generated/);
+});
+
+test('Mac reachable but missing model is not incorrectly marked ready', async () => {
+  const checks = load('src/features/ai/services/connectionChecks.ts', { './aiService': { CLOUD_MODEL: 'gemma-cloud', LOCAL_MODEL: 'gemma-local' } }, { fetch: async () => success({ models: [] }) });
+  await assert.rejects(checks.checkMacConnection('192.168.1.52'), /not installed/);
+});
+
+test('Google connection check uses a generic test without academic records', async () => {
+  const checks = load('src/features/ai/services/connectionChecks.ts', { './aiService': { CLOUD_MODEL: 'gemma-cloud', LOCAL_MODEL: 'gemma-local' } }, { fetch: async (_url, options) => {
+    assert.equal(options.headers['x-goog-api-key'], 'key');
+    assert.equal(JSON.parse(options.body).contents[0].parts[0].text, 'Reply with OK.');
+    return success({ candidates: [{ content: { parts: [{ text: 'OK' }] } }] });
+  } });
+  assert.match(await checks.checkGoogleConnection('key'), /real Gemma response/);
 });

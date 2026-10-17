@@ -95,6 +95,7 @@ interface SettingsState {
   useOfflineAIFallback: boolean;
   aiOfflineMode: boolean;
   macOllamaUrl: string;
+  basicOfflineHelp: boolean;
 
   // Actions
   setTheme: (theme: ThemeMode) => void;
@@ -118,6 +119,8 @@ interface SettingsState {
   setTheoryConfig: (config: TheoryGradingConfig) => void;
   setPracticalConfig: (config: PracticalGradingConfig) => void;
   setMacOllamaUrl: (url: string) => void;
+  setAiMode: (mode: 'automatic' | 'google' | 'mac') => void;
+  toggleBasicOfflineHelp: () => void;
   setAiOfflineMode: (offline: boolean) => void;
   resetSettings: () => void;
 }
@@ -170,6 +173,7 @@ const initialState = {
   cloudAiEnabled: true,
   useOfflineAIFallback: true,
   aiOfflineMode: false,
+  basicOfflineHelp: true,
 
   ...aiDefaults,
 };
@@ -255,15 +259,18 @@ export const useSettingsStore = create<SettingsState>()(
       }),
 
       setMacOllamaUrl: (url) => set({ macOllamaUrl: url.trim().replace(/\/+$/, ''), aiOfflineMode: false }),
+      setAiMode: (mode) => set({ cloudAiEnabled: mode !== 'mac', useOfflineAIFallback: mode !== 'google', aiOfflineMode: false }),
+      toggleBasicOfflineHelp: () => set(s => ({ basicOfflineHelp: !s.basicOfflineHelp })),
       setAiOfflineMode: (offline) => set({ aiOfflineMode: offline }),
     }),
     {
       name: 'settings-storage',
-      version: 2,
+      version: 3,
       migrate: (persisted) => {
         const saved = (persisted ?? {}) as Record<string, unknown>;
         return { ...initialState, ...Object.fromEntries(Object.keys(initialState)
-          .filter(key => key in saved).map(key => [key, saved[key]])) } as SettingsState;
+          .filter(key => key in saved).map(key => [key, saved[key]])),
+          basicOfflineHelp: saved.basicOfflineHelp ?? saved.useOfflineAIFallback ?? true } as SettingsState;
       },
       // Keep recognized preferences only; old client-side provider keys are discarded.
       merge: (persisted, current) => {

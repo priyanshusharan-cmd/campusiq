@@ -1,9 +1,10 @@
-import { getGoogleApiKey, setGoogleApiKey } from '@/platform/googleApiKey';
+import { setGoogleApiKey } from '@/platform/googleApiKey';
 import { Alert } from '@/platform/alert';
 // Campora — Settings Screen
 
 import React from 'react';
-import { View, Text, Switch, Platform, ActionSheetIOS, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
+import AISettingsPanel from './components/AISettingsPanel';
+import { View, Text, Switch, Platform, ActionSheetIOS } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from '@/platform/router';
@@ -23,13 +24,6 @@ export default function SettingsScreen() {
   const { colors, spacing, textStyles } = useTheme();
   const router = useRouter();
   const settings = useSettingsStore();
-  const [hasGoogleKey, setHasGoogleKey] = React.useState(false);
-  const [savingConnection, setSavingConnection] = React.useState(false);
-  React.useEffect(() => {
-    let mounted = true;
-    getGoogleApiKey().then(key => { if (mounted) setHasGoogleKey(Boolean(key)); }).catch(() => {});
-    return () => { mounted = false; };
-  }, []);
 
   const handleDeleteAccount = () => {
     Alert.alert('Delete Account', 'Are you sure you want to delete your account? All data and profile information will be permanently erased.', [
@@ -252,17 +246,6 @@ export default function SettingsScreen() {
     return 'Violet';
   };
 
-  // Key input modal state
-  const [keyModal, setKeyModal] = React.useState<{ visible: boolean; label: string; value: string; secure: boolean; onSave: (v: string) => void | Promise<void> }>({ visible: false, label: '', value: '', secure: false, onSave: () => {} });
-  const [keyDraft, setKeyDraft] = React.useState('');
-
-  const openKeyModal = (label: string, currentValue: string, secure: boolean, onSave: (v: string) => void | Promise<void>) => {
-    setKeyDraft(currentValue);
-    setKeyModal({ visible: true, label, value: currentValue, secure, onSave });
-  };
-
-  const closeKeyModal = () => { setKeyModal(m => ({ ...m, visible: false })); setKeyDraft(''); };
-
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
@@ -358,29 +341,7 @@ export default function SettingsScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(20).duration(80)}>
-          <SectionHeader title="AI Assistant" />
-          <Card variant="flat" padding={0}>
-            <Text style={[textStyles.body, { color: colors.textSecondary, padding: spacing.md }]}>
-              Your phone calls Google directly. Your Mac is optional and is used only for local fallback. Questions, academic summaries, and attached images go to the provider that handles the request.
-            </Text>
-            <ListRow icon="key-outline" iconColor={colors.primary} title="Google AI Studio API Key"
-              rightElement={<Text style={[textStyles.body, { color: colors.textSecondary }]}>{hasGoogleKey ? 'Configured' : 'Not set'}</Text>}
-              onPress={() => openKeyModal('Google AI Studio API Key', '', true, async key => {
-                await setGoogleApiKey(key); setHasGoogleKey(Boolean(key));
-              })} />
-            <ListRow icon="desktop-outline" iconColor={colors.primary} title="Mac Ollama URL (optional)"
-              rightElement={<Text style={[textStyles.body, { color: colors.textSecondary, maxWidth: 160 }]} numberOfLines={1}>{settings.macOllamaUrl || 'Not connected'}</Text>}
-              onPress={() => openKeyModal('Mac Ollama URL', settings.macOllamaUrl, false, settings.setMacOllamaUrl)} />
-            <ListRow icon="cloudy-outline" iconColor={colors.info} title="Enable Cloud AI" showChevron={false}
-              rightElement={<Switch value={settings.cloudAiEnabled} onValueChange={settings.toggleCloudAiEnabled}
-                trackColor={{ false: colors.border, true: colors.info }} />} />
-            <ListRow icon="desktop-outline" iconColor={colors.primary} title="Allow Local Fallback" showChevron={false}
-              rightElement={<Switch value={settings.useOfflineAIFallback} onValueChange={settings.toggleOfflineAIFallback}
-                trackColor={{ false: colors.border, true: colors.primary }} />} />
-            <Text style={[textStyles.body, { color: colors.textSecondary, padding: spacing.md }]}>
-              Cloud AI on: Google first, Mac as backup. Cloud AI off: Mac only. Your phone and Mac must be on the same Wi-Fi for local inference; the Mac must be awake with Ollama running. No separate backend is needed.
-            </Text>
-          </Card>
+          <AISettingsPanel />
 
           <SectionHeader title="Account & Security" />
           <Card variant="flat" padding={0}>
@@ -409,71 +370,6 @@ export default function SettingsScreen() {
         </Animated.View>
 
       </ScrollView>
-
-      {/* ── API Key Entry Modal ────────────────────────────────── */}
-      <Modal
-        visible={keyModal.visible}
-        transparent
-        animationType="fade"
-        onRequestClose={closeKeyModal}
-      >
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={closeKeyModal}
-            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: spacing.xl }}
-          >
-            <TouchableOpacity activeOpacity={1} style={{ width: '100%', backgroundColor: colors.surface, borderRadius: 16, padding: spacing.xl }}>
-              <Text style={[textStyles.h3, { color: colors.textPrimary, marginBottom: spacing.xs }]}>{keyModal.label}</Text>
-              <Text style={[textStyles.caption, { color: colors.textSecondary, marginBottom: spacing.lg }]}>
-                {keyModal.secure ? (Platform.OS === 'web' ? 'Browser key is temporary and cleared on reload. Leave blank and save to remove it.' : 'Saved securely on this phone. Leave blank and save to remove the key. Never share a key in a public app build.') : 'Example: http://192.168.1.52:11434. Use your Mac’s Wi-Fi address, not localhost, on your phone.'}
-              </Text>
-              <TextInput
-                value={keyDraft}
-                onChangeText={setKeyDraft}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoFocus
-                secureTextEntry={keyModal.secure}
-                placeholder={`Enter ${keyModal.label}`}
-                placeholderTextColor={colors.textTertiary}
-                style={{
-                  backgroundColor: colors.bg,
-                  color: colors.textPrimary,
-                  borderRadius: 10,
-                  paddingHorizontal: spacing.lg,
-                  paddingVertical: spacing.md,
-                  fontSize: 14,
-                  fontFamily: 'monospace',
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  marginBottom: spacing.lg,
-                }}
-              />
-              <View style={{ flexDirection: 'row', gap: spacing.md }}>
-                <TouchableOpacity
-                  onPress={closeKeyModal}
-                  style={{ flex: 1, paddingVertical: spacing.md, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: 'center' }}
-                >
-                  <Text style={[textStyles.body, { color: colors.textSecondary, fontWeight: '600' }]}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  disabled={savingConnection}
-                  onPress={async () => {
-                    setSavingConnection(true);
-                    try { await keyModal.onSave(keyDraft.trim()); closeKeyModal(); setKeyDraft(''); triggerHaptic('light'); }
-                    catch { Alert.alert('Could not save', 'The setting could not be saved. Please try again.'); }
-                    finally { setSavingConnection(false); }
-                  }}
-                  style={{ flex: 1, paddingVertical: spacing.md, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center' }}
-                >
-                  <Text style={[textStyles.body, { color: '#fff', fontWeight: '700' }]}>Save</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </KeyboardAvoidingView>
-      </Modal>
 
 
     </SafeAreaView>

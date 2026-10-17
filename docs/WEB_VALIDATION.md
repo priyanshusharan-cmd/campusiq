@@ -91,3 +91,14 @@ Ollama.app is installed in Applications. The model was moved to Documents/Campus
 - Updated routing/storage tests: all 14 AI tests pass; all 16 existing web/layout/security tests pass (30 total).
 - TypeScript, changed-source ESLint, and web/Android/iOS bundle exports pass. The private Google key is absent from all three exports.
 - No live Google request was made for this routing change.
+
+
+## Guided AI settings and composer update — 17 October 2026
+
+AI settings use three explicit modes, Google/Mac setup cards, accurate connection-check status, expandable help, and an independent Basic offline help preference. Google checks require a user button press and send only a short test prompt; Mac checks only inspect installed models. No Google quota was used during automated validation.
+
+Chat now uses a plus attachment menu and displays removable image previews within the composer. The persistent file-format/privacy strip was removed. Payload validation and clear image errors remain.
+
+All 21 AI tests and 16 existing web/layout/security tests pass (37 total). TypeScript and changed-source lint pass. Visual/file-picker and physical-phone interaction checks remain separate from these code checks.
+
+Typography in the AI settings panel and chat now uses the shared Inter theme styles. The AI section uses the same SectionHeader component as Appearance/Preferences, with consistent body, helper, button, and status text. The chat welcome is a short capability statement; setup explanations remain in Settings.

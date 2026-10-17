@@ -70,7 +70,7 @@ export async function askCampusIQAI(query: string, _wasFallback = false, image?:
   } else if (settings.useOfflineAIFallback) failures.push('Set your optional Mac Ollama URL in Settings for local Gemma.');
   const reason = failures.join(' ');
   if (image) throw new Error(`${reason} Your image was not analyzed. Connect a Gemma model and try again.`);
-  if (!settings.useOfflineAIFallback) throw new Error(reason);
+  if (!settings.basicOfflineHelp) throw new Error(reason);
   const answer = await askLocalAssistant(query);
   return { ...answer, reply: `${reason}\n\n${answer.reply}`, provider: 'calculations' };
 }

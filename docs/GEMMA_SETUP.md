@@ -18,11 +18,11 @@ The app requests a 4096-token local context and up to 512 output tokens. Cloud r
 
 ## Verify routing
 
-1. Add a Google key, enable Cloud AI, and leave the Mac URL blank. A successful answer shows **Gemma API**, proving no Mac dependency.
-2. Set the optional Mac URL and turn Cloud AI off. Expect **Gemma on Mac**, including for image questions.
-3. Re-enable Cloud AI. The next question tries Google first again.
+1. Add a Google key, select Automatic or Google only, and leave the Mac URL blank. A successful answer shows **Gemma API**, proving no Mac dependency.
+2. Set the optional Mac URL and select My Mac only. Expect **Gemma on Mac**, including for image questions.
+3. Re-select Automatic or Google only. The next question tries Google first again.
 4. With no reachable provider, text questions can get **Calculations** when fallback is allowed. Image questions get an explicit error.
-5. With fallback off, Google failure is shown without contacting the Mac.
+5. With Google only selected, the Mac is not contacted. Basic offline help independently controls whether failed text requests receive deterministic calculations.
 
 Existing real hosted inference and local image inference were verified before the routing change. The new direct routing and image serialization are covered by automated mocked tests; physical-iPhone network and permission testing is still needed. No new Google requests or UI screen sharing were used for this change.
 
@@ -33,3 +33,9 @@ Rebuild installed native versions for Expo SecureStore and local-network transpo
 ## Remove after the hackathon
 
 Quit Ollama. Delete `~/Documents/CampusIQ-Gemma` to remove downloaded weights. Remove the `~/.ollama/models` symlink if it remains broken. Remove `/Applications/Ollama.app` if no longer needed. The Homebrew CLI is a separate installation; `brew uninstall ollama` removes it. `launchctl unsetenv OLLAMA_HOST` and `launchctl unsetenv OLLAMA_NO_CLOUD` clear the app listener settings. These operations don't delete CampusIQ academic records.
+
+## Guided settings
+
+Answer preference selects Automatic, Google only, or My Mac only in one step. Google key and Mac address setup live in separate cards. A saved credential/address does not appear as verified until its check succeeds. Google checks use a short synthetic prompt with no academic records. Mac checks read `/api/tags` and confirm the expected model is installed, without running inference. Connection results describe the last check, not continuous monitoring. The address field accepts a bare Wi-Fi IP and adds HTTP/port 11434. Advanced connection and data-sharing explanations expand on demand.
+
+Basic offline help is separate from provider selection. Existing preferences migrate without deleting academic data.

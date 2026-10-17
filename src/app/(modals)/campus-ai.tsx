@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
   Image,
+  Pressable,
 } from 'react-native';
 import { useRouter } from '@/platform/router';
 import { Ionicons } from '@expo/vector-icons';
@@ -34,12 +35,13 @@ export default function CampusAIModal() {
     {
       id: 'welcome',
       role: 'assistant',
-      content: "Hi! I'm CampusIQ. Add your Google AI Studio key in Settings for direct Gemma API answers. Your Mac with Ollama is an optional backup. Without a model connection I can calculate attendance and grade summaries. Cloud requests go directly to Google; local requests go directly to Ollama on your Mac.",
+      content: "Ask about your attendance, grades, or semester. You can also attach an image.",
     },
   ]);
   const [input, setInput] = useState('');
   const [attachment, setAttachment] = useState<(AIImage & { uri: string }) | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [attachmentMenu, setAttachmentMenu] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const [provider, setProvider] = useState<AIProvider | null>(null);
@@ -67,6 +69,7 @@ export default function CampusAIModal() {
   const sendMessage = async () => {
     if ((!input.trim() && !attachment) || isLoading) return;
     const selectedImage = attachment;
+    setAttachmentMenu(false);
     
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -118,10 +121,10 @@ export default function CampusAIModal() {
           <Ionicons name="close" size={24} color={theme.colors.textPrimary} />
         </TouchableOpacity>
         <View style={styles.titleContainer}>
-          <Text style={[styles.headerTitle, { color: theme.colors.textPrimary }]}>CampusIQ AI</Text>
+          <Text style={[theme.textStyles.h3, styles.headerTitle, { color: theme.colors.textPrimary }]}>CampusIQ AI</Text>
           {provider && (
             <View style={[styles.offlineBadge, { backgroundColor: theme.colors.warning }]}>
-              <Text style={styles.offlineText}>{provider === 'gemma-api' ? 'Gemma API' : provider === 'gemma-local' ? 'Gemma on Mac' : 'Calculations'}</Text>
+              <Text style={[theme.textStyles.caption, styles.offlineText]}>{provider === 'gemma-api' ? 'Gemma API' : provider === 'gemma-local' ? 'Gemma on Mac' : 'Calculations'}</Text>
             </View>
           )}
         </View>
@@ -148,6 +151,7 @@ export default function CampusAIModal() {
             {msg.imageUri && <Image source={{ uri: msg.imageUri }} accessibilityLabel="Attached image" style={{ width: 180, height: 130, borderRadius: 12, marginBottom: 8 }} resizeMode="contain" />}
             <Text
               style={[
+                theme.textStyles.body,
                 styles.messageText,
                 { color: msg.role === 'user' ? '#fff' : theme.colors.textPrimary }
               ]}
@@ -163,40 +167,45 @@ export default function CampusAIModal() {
         )}
       </ScrollView>
 
-      {attachment && <View style={{ padding: 12, backgroundColor: theme.colors.surface }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <Image source={{ uri: attachment.uri }} accessibilityLabel="Image preview" style={{ width: 72, height: 72, borderRadius: 10 }} resizeMode="contain" />
-          <Text style={{ flex: 1, color: theme.colors.textSecondary }}>Image attached · sent only when you press Send</Text>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Remove attached image" onPress={() => setAttachment(null)} style={{ padding: 8 }}>
-            <Ionicons name="close-circle" size={24} color={theme.colors.textSecondary} />
-          </TouchableOpacity>
+      {attachmentMenu && <Pressable accessibilityRole="button" accessibilityLabel="Close attachment menu" onPress={() => setAttachmentMenu(false)} style={[StyleSheet.absoluteFill, { zIndex: 20 }]} />}
+      <View style={[styles.composerDock, { backgroundColor: theme.colors.bg }]}>
+        <View style={[styles.composer, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+          {attachment && <View style={styles.attachmentTray}>
+            <View style={[styles.attachmentTile, { borderColor: theme.colors.borderLight, backgroundColor: theme.colors.bg }]}>
+              <Image source={{ uri: attachment.uri }} accessibilityLabel="Image preview" style={styles.attachmentImage} resizeMode="cover" />
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Remove attached image" onPress={() => setAttachment(null)} style={[styles.removeAttachment, { backgroundColor: theme.colors.textPrimary }]}>
+                <Ionicons name="close" size={14} color={theme.colors.surface} />
+              </TouchableOpacity>
+            </View>
+          </View>}
+          <View style={styles.composerRow}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add attachment" accessibilityState={{ expanded: attachmentMenu }} disabled={isLoading} onPress={() => setAttachmentMenu(!attachmentMenu)} style={styles.addButton}>
+              <Ionicons name={attachmentMenu ? 'close' : 'add'} size={26} color={isLoading ? theme.colors.textTertiary : theme.colors.textSecondary} />
+            </TouchableOpacity>
+            <TextInput
+              accessibilityLabel="Message CampusIQ"
+              style={[theme.textStyles.body, styles.input, { color: theme.colors.textPrimary }]}
+              placeholder="Message CampusIQ…"
+              placeholderTextColor={theme.colors.textTertiary}
+              value={input}
+              onChangeText={setInput}
+              onFocus={() => setAttachmentMenu(false)}
+              onKeyPress={event => { if (event.nativeEvent.key === 'Escape') setAttachmentMenu(false); }}
+              onSubmitEditing={sendMessage}
+              returnKeyType="send"
+            />
+            <TouchableOpacity style={[styles.sendButton, { backgroundColor: (input.trim() || attachment) && !isLoading ? theme.colors.primary : theme.colors.border }]}
+              onPress={sendMessage} accessibilityRole="button" accessibilityLabel="Send message" disabled={(!input.trim() && !attachment) || isLoading}>
+              <Ionicons name="arrow-up" size={21} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>}
-      <Text style={{ paddingHorizontal: 12, paddingTop: 4, fontSize: 11, color: theme.colors.textSecondary, backgroundColor: theme.colors.surface }}>
-        JPEG, PNG, or WebP · up to 3 MB. Images go directly to Google or your Mac. Avoid private documents.
-      </Text>
-      <View style={[styles.inputContainer, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }]}>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Attach image" disabled={isLoading} onPress={pickImage} style={{ padding: 8, marginRight: 4 }}>
-          <Ionicons name="image-outline" size={24} color={isLoading ? theme.colors.textTertiary : theme.colors.primary} />
-        </TouchableOpacity>
-        <TextInput
-          style={[styles.input, { color: theme.colors.textPrimary, backgroundColor: theme.colors.bg }]}
-          placeholder="Ask or attach a notice..."
-          placeholderTextColor={theme.colors.textTertiary}
-          value={input}
-          onChangeText={setInput}
-          onSubmitEditing={sendMessage}
-          returnKeyType="send"
-        />
-        <TouchableOpacity 
-          style={[styles.sendButton, { backgroundColor: (input.trim() || attachment) ? theme.colors.primary : theme.colors.border }]}
-          onPress={sendMessage}
-          accessibilityRole="button"
-          accessibilityLabel="Send message"
-          disabled={(!input.trim() && !attachment) || isLoading}
-        >
-          <Ionicons name="send" size={18} color="#fff" />
-        </TouchableOpacity>
+        {attachmentMenu && <View style={[styles.attachmentMenu, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add image" onPress={() => { setAttachmentMenu(false); void pickImage(); }} style={styles.menuItem}>
+            <View style={[styles.menuIcon, { backgroundColor: theme.colors.primaryLight }]}><Ionicons name="image-outline" size={22} color={theme.colors.primary} /></View>
+            <View style={{ flex: 1 }}><Text style={[theme.textStyles.bodyMedium, { color: theme.colors.textPrimary }]}>{attachment ? 'Replace image' : 'Add image'}</Text><Text style={[theme.textStyles.small, { color: theme.colors.textSecondary, marginTop: 3 }]}>Choose a photo or screenshot</Text></View>
+          </TouchableOpacity>
+        </View>}
       </View>
     </KeyboardAvoidingView>
   );
@@ -220,8 +229,7 @@ const styles = StyleSheet.create({
     marginLeft: -8,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+
   },
   titleContainer: {
     alignItems: 'center',
@@ -233,9 +241,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   offlineText: {
-    fontSize: 10,
     color: '#000',
-    fontWeight: '600',
   },
   headerRight: {
     width: 40,
@@ -263,29 +269,19 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 4,
   },
   messageText: {
-    fontSize: 15,
-    lineHeight: 22,
+
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    paddingBottom: Platform.OS === 'ios' ? 32 : 12,
-    borderTopWidth: 1,
-  },
-  input: {
-    flex: 1,
-    height: 40,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    fontSize: 15,
-    marginRight: 12,
-  },
-  sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  composerDock: { paddingHorizontal: 12, paddingTop: 8, paddingBottom: Platform.OS === 'ios' ? 30 : 14, zIndex: 30 },
+  composer: { borderWidth: 1, borderRadius: 26, padding: 6 },
+  composerRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  input: { flex: 1, minWidth: 0, height: 44, paddingHorizontal: 4 },
+  addButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
+  sendButton: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', marginRight: 2 },
+  attachmentTray: { padding: 8, paddingBottom: 5, flexDirection: 'row' },
+  attachmentTile: { width: 76, height: 76, borderRadius: 14, borderWidth: 1 },
+  attachmentImage: { width: '100%', height: '100%', borderRadius: 13 },
+  removeAttachment: { position: 'absolute', top: -5, right: -5, width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  attachmentMenu: { position: 'absolute', left: 12, bottom: Platform.OS === 'ios' ? 96 : 80, width: 270, borderWidth: 1, borderRadius: 18, padding: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 12 },
+  menuItem: { flexDirection: 'row', gap: 12, alignItems: 'center', padding: 10, minHeight: 60 },
+  menuIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
 });
