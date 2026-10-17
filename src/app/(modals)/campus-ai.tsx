@@ -9,6 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Animated,
+  Easing,
   Image,
   Pressable,
 } from 'react-native';
@@ -47,6 +49,18 @@ export default function CampusAIModal() {
   const [attachment, setAttachment] = useState<(AIImage & { uri: string }) | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [attachmentMenu, setAttachmentMenu] = useState(false);
+  const [attachmentRotation] = useState(() => new Animated.Value(0));
+
+  useEffect(() => {
+    const animation = Animated.timing(attachmentRotation, {
+      toValue: attachmentMenu ? 1 : 0,
+      duration: 180,
+      easing: Easing.inOut(Easing.ease),
+      useNativeDriver: Platform.OS !== 'web',
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [attachmentMenu, attachmentRotation]);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const [provider, setProvider] = useState<AIProvider | null>(null);
@@ -150,6 +164,7 @@ export default function CampusAIModal() {
             style={[
               styles.messageBubble,
               msg.role === 'user' ? styles.userBubble : styles.assistantBubble,
+              msg.id === 'welcome' && styles.welcomeBubble,
               { 
                 backgroundColor: msg.role === 'user' ? theme.colors.primary : theme.colors.surface,
                 borderColor: theme.colors.borderLight,
@@ -159,7 +174,7 @@ export default function CampusAIModal() {
             {msg.imageUri && <Image source={{ uri: msg.imageUri }} accessibilityLabel="Attached image" style={{ width: 180, height: 130, borderRadius: 12, marginBottom: 8 }} resizeMode="contain" />}
             {msg.role === 'assistant' ? <>
               {msg.provider && <Text style={[theme.textStyles.smallMedium, { color: theme.colors.textSecondary, marginBottom: 10 }]}>{msg.provider === 'gemma-api' ? 'Gemma · Google' : msg.provider === 'gemma-local' ? 'Gemma · Your Mac' : 'Calculated from saved data'}</Text>}
-              <AssistantAnswer content={msg.content} />
+              {msg.id === 'welcome' ? <Text style={[theme.textStyles.body, { color: theme.colors.textPrimary }]}>{msg.content}</Text> : <AssistantAnswer content={msg.content} />}
               {msg.notice && <Text style={[theme.textStyles.small, { color: theme.colors.textSecondary, marginTop: 14 }]}>{msg.notice}</Text>}
             </> : <Text
               style={[
@@ -191,8 +206,10 @@ export default function CampusAIModal() {
             </View>
           </View>}
           <View style={styles.composerRow}>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add attachment" accessibilityState={{ expanded: attachmentMenu }} disabled={isLoading} onPress={() => setAttachmentMenu(!attachmentMenu)} style={styles.addButton}>
-              <Ionicons name={attachmentMenu ? 'close' : 'add'} size={26} color={isLoading ? theme.colors.textTertiary : theme.colors.textSecondary} />
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={attachmentMenu ? 'Close attachment menu' : 'Add attachment'} accessibilityState={{ expanded: attachmentMenu }} disabled={isLoading} onPress={() => setAttachmentMenu(!attachmentMenu)} style={styles.addButton}>
+              <Animated.View style={{ transform: [{ rotate: attachmentRotation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '45deg'] }) }] }}>
+                <Ionicons name="add" size={26} color={isLoading ? theme.colors.textTertiary : theme.colors.textSecondary} />
+              </Animated.View>
             </TouchableOpacity>
             <TextInput
               accessibilityLabel="Message CampusIQ"
@@ -279,6 +296,13 @@ const styles = StyleSheet.create({
     minWidth: 0,
     padding: 16,
     borderRadius: 16,
+  },
+  welcomeBubble: {
+    alignSelf: 'flex-start',
+    maxWidth: '90%',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomLeftRadius: 6,
   },
   messageText: {
 
