@@ -14,7 +14,7 @@ export default function ImageDropZone({ children, disabled, onImage, onError }: 
   useEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
   useEffect(() => { if (disabled) { request.current++; depth.current = 0; setDragging(false); } }, [disabled]);
   const hasFiles = (event: React.DragEvent) => Array.from(event.dataTransfer.types).includes('Files');
-  return <div style={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0, position: 'relative' }}
+  return <div data-campus-chat="true" style={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0, position: 'relative' }}
     onDragEnter={event => {
       if (!hasFiles(event)) return;
       event.preventDefault(); depth.current++;
@@ -41,6 +41,14 @@ export default function ImageDropZone({ children, disabled, onImage, onError }: 
         if (active.current && !blocked.current && request.current === id) onError(error instanceof Error ? error.message : 'Could not attach image.');
       });
     }}>
+    <style>{`
+      [data-campus-chat] input[aria-label="Message CampusIQ"],
+      [data-campus-chat] input[aria-label="Message CampusIQ"]:focus,
+      [data-campus-chat] input[aria-label="Message CampusIQ"]:focus-visible {
+        outline: none !important;
+        box-shadow: none !important;
+      }
+    `}</style>
     {children}
     {dragging && <div role="status" style={{ position: 'absolute', inset: 12, zIndex: 40, pointerEvents: 'none', border: `2px dashed ${theme.colors.primary}`, borderRadius: 20, background: theme.colors.surface, opacity: 0.96, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, fontFamily: 'Inter_500Medium', color: theme.colors.textPrimary }}>
       <span style={{ fontSize: 17 }}>Drop an image here</span>

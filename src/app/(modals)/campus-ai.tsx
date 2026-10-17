@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  type TextStyle,
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
@@ -197,7 +196,7 @@ export default function CampusAIModal() {
             </TouchableOpacity>
             <TextInput
               accessibilityLabel="Message CampusIQ"
-              style={[theme.textStyles.body, styles.input, Platform.OS === 'web' && webInputStyle, { color: theme.colors.textPrimary }]}
+              style={[theme.textStyles.body, styles.input, { color: theme.colors.textPrimary }]}
               placeholder="Message CampusIQ…"
               placeholderTextColor={theme.colors.textTertiary}
               value={input}
@@ -225,9 +224,6 @@ export default function CampusAIModal() {
     </ImageDropZone>
   );
 }
-
-// React Native's outline type omits the browser-only 'none' value.
-const webInputStyle = { outlineStyle: 'none', outlineWidth: 0, boxShadow: 'none' } as unknown as TextStyle;
 
 const styles = StyleSheet.create({
   container: {
