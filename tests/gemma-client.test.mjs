@@ -243,7 +243,7 @@ test('stream errors and incomplete local answers do not falsely report success',
   }
 });
 
-test('greetings and general questions reach Gemma without saved academic records', async () => {
+test('greetings and general questions use the real model with optional personalization context', async () => {
   for (const question of ['hello', 'Hi there!', 'hello how are you', 'What is photosynthesis?', 'Explain CGPA', 'Write a poem']) {
     let prompt;
     const result = await client(settings, async (_url, options) => {
@@ -252,9 +252,11 @@ test('greetings and general questions reach Gemma without saved academic records
     })(question);
     assert.equal(result.provider, 'gemma-api');
     assert.equal(result.reply, 'Model answer');
-    assert.ok(!prompt.includes('"subjects":'));
+    assert.ok(prompt.includes('"subjects":'));
+    assert.ok(prompt.includes('If none are relevant, answer normally without mentioning the saved data.'));
     assert.ok(prompt.includes(`Student question:\n${question}`));
-    assert.ok(prompt.includes('For a greeting, greet briefly'));
+    assert.ok(prompt.includes('For greetings such as "hello", give a brief friendly greeting'));
+    assert.ok(prompt.includes('Summarize the whole profile only if explicitly requested.'));
   }
 });
 test('personal academic questions still receive saved facts', async () => {
@@ -265,11 +267,13 @@ test('personal academic questions still receive saved facts', async () => {
     })(question);
   }
 });
-test('image extraction does not attach unrelated records; explicit saved-data comparison does', async () => {
+test('image questions include personalization but prioritize visible image content', async () => {
   for (const question of ['Extract the timetable from this image', 'Compare this image with my saved grades']) {
     await client({ ...settings, cloudAiEnabled: false }, async (_url, options) => {
       const prompt = JSON.parse(options.body).messages[0].content;
-      assert.equal(prompt.includes('"subjects":[]'), question.includes('my saved'));
+      assert.ok(prompt.includes('"subjects":[]'));
+      assert.ok(prompt.includes('Do not replace image content with saved facts.'));
+      assert.ok(prompt.includes('Compare with saved records only when asked.'));
       return success({ message: { content: 'Model answer' } });
     })(question, false, { mimeType: 'image/png', data: 'iVBORw0KGgo=' });
   }

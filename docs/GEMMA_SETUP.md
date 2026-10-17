@@ -48,8 +48,8 @@ A provider switch clears any unfinished answer before displaying the backup resp
 
 References: [Google streaming API](https://ai.google.dev/api/generate-content#method:-models.streamgeneratecontent), [Ollama streaming](https://docs.ollama.com/api/streaming).
 
-## When saved records are included
+## Personalization with saved records
 
-The request builder uses a conservative keyword check for personal academic questions. Requests such as “What is my attendance?”, “How many classes can I skip?”, and “Show my academic summary” include saved academic context. Greetings and general questions such as “Explain CGPA” omit it. Image requests omit records unless the question explicitly refers to the user's saved academic data for comparison. This check is a routing heuristic, not model-based intent classification.
+Every model request includes the current saved academic snapshot as optional reference context, including greetings, general questions, and images. The prompt tells Gemma to use only facts relevant to the latest question and to answer normally without mentioning irrelevant records. Greetings should receive a brief greeting; a full academic summary is requested only when the student asks for one. Image extraction must use the image, with saved-data comparisons only when requested. There is no keyword gate or canned greeting response.
 
-Context contains the current semester name, SGPA, CGPA, subject names and credits, grades, and attendance counts, percentages and targets. It is labeled “Optional saved academic facts (reference only)” in the prompt. The prompt directs Gemma to answer the actual question and only summarize records when requested. The request does not include microphone recordings or prior chat messages.
+Context contains the current semester name, SGPA, CGPA, subject names and credits, grades, and attendance counts, percentages and targets. It is enclosed in `saved_academic_facts_reference_only` markers and treated as data, never instructions. Saved records remain in the app; this is request-time personalization, not model training or persistent provider memory. The request does not include microphone recordings or prior chat messages. The provider handling the request receives the saved academic snapshot each time.
