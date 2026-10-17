@@ -31,6 +31,8 @@ interface Message {
   imageUri?: string;
   provider?: AIProvider;
   notice?: string;
+  pending?: boolean;
+  status?: string;
 }
 
 export default function CampusAIModal() {
@@ -97,32 +99,36 @@ export default function CampusAIModal() {
       imageUri: selectedImage?.uri,
     };
     
-    setMessages((prev) => [...prev, userMessage]);
+    const answerId = `${userMessage.id}-answer`;
+    const status = selectedImage ? 'Preparing your image response…' : 'Preparing your answer…';
+    setMessages((prev) => [...prev, userMessage, { id: answerId, role: 'assistant', content: '', pending: true, status }]);
     setInput('');
     setAttachment(null);
     setIsLoading(true);
     
     try {
-      const { reply, isFallback, provider, notice } = await askCampusIQAI(userMessage.content, false, selectedImage ?? undefined);
+      const { reply, isFallback, provider, notice } = await askCampusIQAI(userMessage.content, false, selectedImage ?? undefined, progress => {
+        setMessages(prev => prev.map(msg => msg.id === answerId ? { ...msg, content: progress.content, provider: progress.provider, status: progress.status } : msg));
+      });
       setProvider(provider);
       setIsOfflineMode(isFallback);
       
       const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: answerId,
         role: 'assistant',
         content: reply,
         provider,
         notice,
       };
-      setMessages((prev) => [...prev, assistantMessage]);
+      setMessages(prev => prev.map(msg => msg.id === answerId ? assistantMessage : msg));
     } catch (error) {
       setProvider(null);
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: answerId,
         role: 'assistant',
         content: error instanceof Error ? error.message : 'Could not connect to Gemma. Check your Google key or Mac connection in Settings.',
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages(prev => prev.map(msg => msg.id === answerId ? errorMessage : msg));
     } finally {
       setIsLoading(false);
     }
@@ -164,7 +170,7 @@ export default function CampusAIModal() {
             style={[
               styles.messageBubble,
               msg.role === 'user' ? styles.userBubble : styles.assistantBubble,
-              msg.id === 'welcome' && styles.welcomeBubble,
+              (msg.id === 'welcome' || (msg.pending && !msg.content)) && styles.welcomeBubble,
               { 
                 backgroundColor: msg.role === 'user' ? theme.colors.primary : theme.colors.surface,
                 borderColor: theme.colors.borderLight,
@@ -174,7 +180,11 @@ export default function CampusAIModal() {
             {msg.imageUri && <Image source={{ uri: msg.imageUri }} accessibilityLabel="Attached image" style={{ width: 180, height: 130, borderRadius: 12, marginBottom: 8 }} resizeMode="contain" />}
             {msg.role === 'assistant' ? <>
               {msg.provider && <Text style={[theme.textStyles.smallMedium, { color: theme.colors.textSecondary, marginBottom: 10 }]}>{msg.provider === 'gemma-api' ? 'Gemma · Google' : msg.provider === 'gemma-local' ? 'Gemma · Your Mac' : 'Calculated from saved data'}</Text>}
-              {msg.id === 'welcome' ? <Text style={[theme.textStyles.body, { color: theme.colors.textPrimary }]}>{msg.content}</Text> : <AssistantAnswer content={msg.content} />}
+              {msg.pending && !msg.content ? null : msg.id === 'welcome' ? <Text style={[theme.textStyles.body, { color: theme.colors.textPrimary }]}>{msg.content}</Text> : <AssistantAnswer content={msg.content} />}
+              {msg.pending && <View accessibilityLiveRegion="polite" style={styles.answerStatus}>
+                <ActivityIndicator size="small" color={theme.colors.textSecondary} />
+                <Text style={[theme.textStyles.small, { color: theme.colors.textSecondary }]}>{msg.status}</Text>
+              </View>}
               {msg.notice && <Text style={[theme.textStyles.small, { color: theme.colors.textSecondary, marginTop: 14 }]}>{msg.notice}</Text>}
             </> : <Text
               style={[
@@ -187,11 +197,6 @@ export default function CampusAIModal() {
             </Text>}
           </View>
         ))}
-        {isLoading && (
-          <View style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: theme.colors.surface, alignSelf: 'flex-start' }]}>
-            <ActivityIndicator size="small" color={theme.colors.primary} />
-          </View>
-        )}
       </ScrollView>
 
       {attachmentMenu && <Pressable accessibilityRole="button" accessibilityLabel="Close attachment menu" onPress={() => setAttachmentMenu(false)} style={[StyleSheet.absoluteFill, { zIndex: 20 }]} />}
@@ -297,6 +302,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
   },
+  answerStatus: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
   welcomeBubble: {
     alignSelf: 'flex-start',
     maxWidth: '90%',

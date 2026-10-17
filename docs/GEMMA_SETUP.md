@@ -39,3 +39,11 @@ Quit Ollama. Delete `~/Documents/CampusIQ-Gemma` to remove downloaded weights. R
 Answer preference selects Automatic, Google only, or My Mac only in one step. Google key and Mac address setup live in separate cards. A saved credential/address does not appear as verified until its check succeeds. Google checks use a short synthetic prompt with no academic records. Mac checks read `/api/tags` and confirm the expected model is installed, without running inference. Connection results describe the last check, not continuous monitoring. The address field accepts a bare Wi-Fi IP and adds HTTP/port 11434. Advanced connection and data-sharing explanations expand on demand.
 
 Basic offline help is separate from provider selection. Existing preferences migrate without deleting academic data.
+
+## Response progress and streaming
+
+Chat shows a preparation message before the first answer text, then updates the same answer as chunks arrive. Google uses `streamGenerateContent?alt=sse`; Ollama uses `/api/chat` with `stream: true`. Native builds use `expo/fetch` for response-body streaming. These status labels describe the request state, not the model's internal reasoning; thought fields remain excluded.
+
+A provider switch clears any unfinished answer before displaying the backup response. Interrupted streams require a completion marker and are never presented as a successful complete answer. Stream tests use mocked providers; a small local Ollama smoke test can verify chunks without Google quota.
+
+References: [Google streaming API](https://ai.google.dev/api/generate-content#method:-models.streamgeneratecontent), [Ollama streaming](https://docs.ollama.com/api/streaming).

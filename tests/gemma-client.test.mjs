@@ -13,6 +13,7 @@ const settings = { macOllamaUrl: 'http://192.168.1.52:11434', cloudAiEnabled: tr
 const success = data => ({ ok: true, json: async () => data });
 function client(preferences, fetchImpl, key = 'test-google-key') {
   return load('src/features/ai/services/aiService.ts', {
+    './streamAnswer': { streamAnswer: load('src/features/ai/services/streamAnswer.ts', { 'expo/fetch': { fetch: fetchImpl } }, { TextDecoder }).streamAnswer },
     './contextBuilder': { buildAcademicContext: () => ({ subjects: [] }) },
     './localAssistant': { askLocalAssistant: async () => ({ reply: 'Offline calculations', isFallback: true }) },
     '@/stores/useSettingsStore': { useSettingsStore: { getState: () => preferences } },
@@ -196,4 +197,48 @@ test('Google connection check uses a generic test without academic records', asy
     return success({ candidates: [{ content: { parts: [{ text: 'OK' }] } }] });
   } });
   assert.match(await checks.checkGoogleConnection('key'), /real Gemma response/);
+});
+
+function streamed(text, chunkSize = 7) {
+  const bytes = new TextEncoder().encode(text);
+  let offset = 0;
+  return { ok: true, body: { getReader: () => ({
+    read: async () => offset >= bytes.length ? { done: true } : { done: false, value: bytes.slice(offset, offset += chunkSize) },
+    releaseLock() {},
+  }) } };
+}
+test('Google SSE streams visible text across chunk and UTF-8 boundaries without thoughts', async () => {
+  const events = [];
+  const reply = await client(settings, async (url, options) => {
+    assert.ok(url.endsWith(':streamGenerateContent?alt=sse'));
+    assert.equal(options.headers['x-goog-api-key'], 'test-google-key');
+    return streamed(': keepalive\r\n\r\ndata: ' + JSON.stringify({ candidates: [{ content: { parts: [{ thought: true, text: 'hidden' }, { text: 'Hello 🎓' }] } }] }) + '\r\n\r\ndata: ' + JSON.stringify({ candidates: [{ content: { parts: [{ text: ' student' }] }, finishReason: 'STOP' }] }) + '\n\n', 1);
+  })('Hello', false, undefined, value => events.push(value));
+  assert.equal(reply.reply, 'Hello 🎓 student');
+  assert.ok(events.some(e => e.content === 'Hello 🎓'));
+  assert.ok(events.every(e => !e.content.includes('hidden')));
+});
+test('Ollama NDJSON streams answer content and ignores thinking fields', async () => {
+  const updates = [];
+  const reply = await client({ ...settings, cloudAiEnabled: false }, async (_url, options) => {
+    assert.equal(JSON.parse(options.body).stream, true);
+    return streamed('{"message":{"thinking":"private","content":"Your "},"done":false}\n{"message":{"content":"plan"},"done":true}', 3);
+  })('Plan', false, undefined, value => updates.push(value));
+  assert.equal(reply.reply, 'Your plan');
+  assert.equal(updates.at(-1).content, 'Your plan');
+});
+test('interrupted cloud stream is replaced by local answer, never combined with it', async () => {
+  let requests = 0;
+  const updates = [];
+  const reply = await client(settings, async () => ++requests === 1
+    ? streamed('data: {"candidates":[{"content":{"parts":[{"text":"Partial cloud"}]}}]}\n\n')
+    : streamed('{"message":{"content":"Complete local"},"done":true}\n'))('Plan', false, undefined, value => updates.push(value));
+  assert.equal(reply.reply, 'Complete local');
+  assert.ok(updates.some(e => e.provider === 'gemma-local' && e.content === ''));
+  assert.ok(!updates.at(-1).content.includes('Partial'));
+});
+test('stream errors and incomplete local answers do not falsely report success', async () => {
+  for (const response of ['{"error":"failed"}\n', '{"message":{"content":"Truncated"},"done":false}\n']) {
+    await assert.rejects(client({ ...settings, cloudAiEnabled: false, basicOfflineHelp: false }, async () => streamed(response))('Hello', false, undefined, () => {}), /Cannot reach Ollama/);
+  }
 });
