@@ -24,6 +24,12 @@ import ImageDropZone from '@/platform/ImageDropZone';
 import { AssistantAnswer } from '@/features/ai/components/AssistantAnswer';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 
+const providerLabels: Record<AIProvider, string> = {
+  'gemma-api': 'Gemma · API',
+  'gemma-local': 'Gemma · Local',
+  calculations: 'Saved data · Calculations',
+};
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -105,9 +111,11 @@ export default function CampusAIModal() {
     setInput('');
     setAttachment(null);
     setIsLoading(true);
+    setProvider(null);
     
     try {
       const { reply, isFallback, provider, notice } = await askCampusIQAI(userMessage.content, false, selectedImage ?? undefined, progress => {
+        setProvider(progress.provider ?? null);
         setMessages(prev => prev.map(msg => msg.id === answerId ? { ...msg, content: progress.content, provider: progress.provider, status: progress.status } : msg));
       });
       setProvider(provider);
@@ -152,7 +160,7 @@ export default function CampusAIModal() {
           <Text style={[theme.textStyles.h3, styles.headerTitle, { color: theme.colors.textPrimary }]}>CampusIQ AI</Text>
           {provider && (
             <View style={styles.offlineBadge}>
-              <Text style={[theme.textStyles.small, { color: theme.colors.textSecondary }]}>{provider === 'gemma-api' ? 'Gemma · Google' : provider === 'gemma-local' ? 'Gemma · Local' : 'Saved data'}</Text>
+              <Text style={[theme.textStyles.small, { color: theme.colors.textSecondary }]}>{providerLabels[provider]}</Text>
             </View>
           )}
         </View>
@@ -179,7 +187,7 @@ export default function CampusAIModal() {
           >
             {msg.imageUri && <Image source={{ uri: msg.imageUri }} accessibilityLabel="Attached image" style={{ width: 180, height: 130, borderRadius: 12, marginBottom: 8 }} resizeMode="contain" />}
             {msg.role === 'assistant' ? <>
-              {msg.provider && <Text style={[theme.textStyles.smallMedium, { color: theme.colors.textSecondary, marginBottom: 10 }]}>{msg.provider === 'gemma-api' ? 'Gemma · Google' : msg.provider === 'gemma-local' ? 'Gemma · Your Mac' : 'Calculated from saved data'}</Text>}
+              {msg.provider && <Text style={[theme.textStyles.smallMedium, { color: theme.colors.textSecondary, marginBottom: 10 }]}>{providerLabels[msg.provider]}</Text>}
               {msg.pending && !msg.content ? null : msg.id === 'welcome' ? <Text style={[theme.textStyles.body, { color: theme.colors.textPrimary }]}>{msg.content}</Text> : <AssistantAnswer content={msg.content} />}
               {msg.pending && <View accessibilityLiveRegion="polite" style={styles.answerStatus}>
                 <ActivityIndicator size="small" color={theme.colors.textSecondary} />
