@@ -1,223 +1,98 @@
 <div align="center">
-
 <img src="assets/images/logo-transparent.png" alt="CampusIQ Logo" width="150"/>
 
 # CampusIQ 🎓
 
-### The ultimate intelligent campus companion — manage academics, track attendance, and chat with your personalized AI assistant.
+Your campus companion for attendance, timetables, grades, assignments, and academic guidance powered by Gemma.
 
-[![React Native](https://img.shields.io/badge/React_Native-0.74-61DAFB?logo=react&logoColor=black)](https://reactnative.dev)
-[![Expo](https://img.shields.io/badge/Expo-51.x-000020?logo=expo&logoColor=white)](https://expo.dev)
-[![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
-[![AWS Bedrock](https://img.shields.io/badge/AWS_Bedrock-GenAI-FF9900?logo=amazonwebservices&logoColor=white)](https://aws.amazon.com/bedrock/)
-[![Strands SDK](https://img.shields.io/badge/Strands_Agents-SDK-blue?logo=awsorganizations&logoColor=white)](https://github.com/awslabs/strands-agents)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
+React Native · Expo · TypeScript · Zustand · Gemma 4 · MIT
 </div>
 
----
+## What it does
 
-## Browser demo deployment
+- Track attendance and calculate how many classes you can miss while meeting a target.
+- Manage subjects, timetables, assignments, and exams.
+- Forecast SGPA and track CGPA.
+- Ask an assistant about saved academic data, with an optional notice or timetable image attachment.
+- Keep academic records locally on your device or browser.
 
-CampusIQ also runs in the browser using the mobile app's existing onboarding, Home screen, tabs, and visual design. An optional `/?demo=1` link opens sample data directly, and the browser assistant uses local calculations. Deploy it to Render as a **Static Site** using the step-by-step [Render deployment guide](docs/RENDER_DEPLOYMENT.md). No backend or AI keys are required for this demo. The browser build uses platform-specific adapters so the native app keeps its existing integrations.
+## Gemma: API first, local fallback
 
-> The Agent Server sections below describe an intended architecture. This repository currently has no `agent-server` directory; the native AI service calls providers directly. The public browser demo uses local calculations instead.
+The assistant uses this fixed order:
 
----
+1. **Gemma API:** `gemma-4-26b-a4b-it` through Google's Gemini API.
+2. **Gemma on your Mac:** `gemma4:e4b-it-qat` through local Ollama, if fallback is enabled.
+3. **Offline calculations:** clearly labeled attendance, timetable, and grade summaries if neither model is reachable and fallback is enabled.
 
-## 📖 Overview
+Gemma and Gemini are different model families. The Gemini API hosts Gemma too. This app's model server only calls Gemma; there are no AWS or OpenAI fallbacks. There are no simulated model responses. Each answer identifies its source. Every new question retries the API first.
 
-**CampusIQ** is a comprehensive, AI-powered academic management platform designed to streamline the modern student experience. By centralizing timetable scheduling, attendance tracking, SGPA forecasting, and assignment management, CampusIQ eliminates the friction of university life. 
+A small Node server holds the Google API key. The app sends its question and an academic summary to that server; with Cloud AI enabled, the server sends them to Google. With Cloud AI off, only local Gemma is attempted. Image attachments (JPEG/PNG/WebP, up to 3 MB) follow the same provider order; the chat shows a preview before sending. Images are held in chat memory, not persisted in academic records. Failed image requests produce an explicit error, never a calculation pretending to understand the image. Offline calculations don't send data to a model. Academic summaries currently contain subjects, recorded attendance, grades, semester, and GPA; model chat does not yet include assignment deadlines or timetable entries. The offline calculator can read the timetable. The assistant cannot modify your saved records.
 
-What truly sets CampusIQ apart is its **Local AI Agent**, built entirely on the open-source AWS Strands Agents SDK and powered by AWS Bedrock. This context-aware assistant securely reads your local academic data to answer questions like *"How many classes can I skip today?"* or *"What is my predicted SGPA if I score an A in Physics?"* — providing instant, personalized insights.
+Google currently lists Gemma API input/output as free, subject to quota and availability. Use an AI Studio project on the **free tier**, without enabling billing. The code cannot inspect your Google billing status or promise future pricing. Local Ollama inference has no API fees and requires a model download, disk space, memory, and a running Mac.
 
----
+## Run locally
 
-## ❓ Why CampusIQ?
+Use Node.js 22 or newer, npm, and (for local inference) [Ollama](https://ollama.com/download).
 
-University life is chaotic. Students are forced to juggle multiple portals, spreadsheets, and messaging apps just to keep track of their classes, attendance requirements, and impending deadlines. 
-
-We built CampusIQ to solve this fragmentation. It's not just another calendar app; it's a proactive assistant that knows your schedule better than you do. It warns you before your attendance drops below the required threshold, helps you strategize your grades for the semester, and uses Generative AI to answer hyper-specific questions about your academic standing.
-
----
-
-## 🎥 Video Demo
-
-<div align="center">
-  <video src="[INSERT_DEMO_VIDEO_LINK_HERE]" controls="controls" style="max-width: 100%; height: auto;"></video>
-  <p><em>(Replace with your 3-minute hackathon demo video link)</em></p>
-</div>
-
----
-
-## ✨ Key Features In-Depth
-
-### 🤖 Context-Aware AI Assistant
-Ask natural language questions about your schedule, attendance, and grades. Powered by AWS Bedrock and the Strands SDK, our agent understands the nuances of university life and gives actionable advice based on your real-time data.
-
-### 📊 Smart Attendance Tracking
-Log your presence in classes with a single tap. The app calculates your current percentage dynamically and tells you exactly how many classes you can afford to miss without falling below the mandatory limit (e.g., 75%).
-
-### 📅 Dynamic Timetable
-An interactive, beautiful calendar view allows you to track upcoming lectures, labs, and extra classes. It handles bi-weekly schedules and one-off events seamlessly.
-
-### 📈 SGPA Forecaster
-Play with a "What-If" grading wizard. Adjust your expected grades on an intuitive glass-slider to predict your semester SGPA. Understand exactly what grades you need in upcoming finals to achieve your target GPA.
-
-### 📝 Assignment & Exam Manager
-Never miss a deadline. Track pending assignments, project due dates, and upcoming midterms or finals. Prioritize tasks visually with color-coded tags.
-
-### 🎨 Polished UI/UX
-Enjoy stunning glassmorphism design, smooth micro-animations powered by Reanimated and Moti, rich haptic feedback, and a fully customizable subject color palette that makes the app a joy to use.
-
-### 🔒 Local-First Privacy
-Your academic data belongs to you. It stays on your device using encrypted local storage (Zustand + AsyncStorage). The AI only accesses the context needed for your specific query.
-
----
-
-## 🧠 Agent Capabilities
-
-Our AI Assistant is designed to be your personalized academic advisor. Here are some examples of what you can ask it:
-
-- **Attendance Queries:** 
-  - *"I missed Math today. What's my new attendance percentage?"*
-  - *"How many more Physics classes can I bunk before I drop below 75%?"*
-- **Schedule Inquiries:**
-  - *"What classes do I have tomorrow morning?"*
-  - *"Do I have any labs scheduled for Friday?"*
-- **Grade Strategy:**
-  - *"If I get a 'B' in Chemistry and an 'A' in Math, what will my SGPA be this semester?"*
-  - *"What grades do I need to maintain an overall SGPA of 8.5?"*
-
-The agent uses a ReAct (Reasoning and Acting) framework, utilizing custom tools to query your local state, calculate projections, and return a comprehensive answer.
-
----
-
-## 🛠️ Tech Stack
-
-### Frontend (Mobile App)
-- **React Native (Expo)**: Cross-platform mobile framework for iOS/Android.
-- **TypeScript**: Ensuring type safety across the entire application.
-- **Zustand**: Fast, scalable, and lightweight reactive state management.
-- **Expo Router**: File-based routing for seamless navigation.
-- **Reanimated & Moti**: For fluid, 60fps animations and gesture handling.
-- **AsyncStorage**: Persistent local data storage.
-
-### Backend (Agent Server)
-- **Node.js + Express**: High-performance API server.
-- **AWS Bedrock SDK**: Access to powerful Foundation Models for AI inference.
-- **Strands Agents SDK**: Agentic orchestration, tool binding, and multi-turn reasoning workflows.
-- **Zod**: Runtime schema validation to ensure robust AI inputs and outputs.
-- **dotenv**: Secure environment variable management.
-
----
-
-## 🏗️ System Architecture
-
-```mermaid
-graph TD
-    %% Styling
-    classDef mobile fill:#E3F2FD,stroke:#1565C0,stroke-width:2px,color:#0D47A1,rx:5,ry:5
-    classDef server fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20,rx:5,ry:5
-    classDef aws fill:#FFF3E0,stroke:#E65100,stroke-width:2px,color:#E65100,rx:5,ry:5
-    classDef data fill:#F3E5F5,stroke:#6A1B9A,stroke-width:2px,color:#4A148C,rx:5,ry:5
-
-    subgraph Client ["📱 Mobile Application (Expo)"]
-        UI[React Native UI]:::mobile
-        State[Zustand Local Store]:::data
-        UI <--> State
-    end
-
-    subgraph Backend ["🖥️ Agent Server (Node.js)"]
-        API[Express API]:::server
-        Strands[Strands Agents SDK]:::server
-        Tools[Custom Agent Tools]:::server
-        
-        API <--> Strands
-        Strands <--> Tools
-    end
-
-    subgraph Cloud ["☁️ AWS Infrastructure"]
-        Bedrock[AWS Bedrock Foundation Models]:::aws
-        IAM[AWS IAM Auth]:::aws
-    end
-
-    UI -- "REST (Context + Query)" --> API
-    Strands -- "Model Inference" --> Bedrock
-    Bedrock -. "Auth" .- IAM
-```
-
----
-
-## 🚀 Getting Started
-
-Follow these steps to get CampusIQ running on your local machine.
-
-### Prerequisites
-- [Node.js](https://nodejs.org/) (v20 or higher)
-- [Expo CLI](https://docs.expo.dev/get-started/installation/)
-- An AWS Account with access to Bedrock Foundation Models (e.g., Claude 3, Llama 3)
-- iOS Simulator (Mac) or Android Studio Emulator
-
-### 1. Clone the repository
 ```bash
-git clone https://github.com/priyanshusharan-cmd/campusiq.git
-cd campusiq
+npm ci
+cp server/.env.example server/.env
 ```
 
-### 2. Start the Agent Server (Backend)
-The backend handles the AI orchestration via AWS Bedrock and the Strands SDK.
+Put your Google AI Studio key in `server/.env` as `GEMINI_API_KEY`. Never put provider secrets in `EXPO_PUBLIC_*`, source files, or chat. The server config is ignored by Git.
+
+Start the model server:
+
 ```bash
-cd agent-server
-npm install
-
-# Create your .env file
-cp .env.example .env
-
-# Add your AWS credentials and region to the .env file
-# Ensure your IAM user has bedrock:InvokeModel permissions
-npm run dev
+npm run start:ai
 ```
 
-### 3. Start the Mobile App (Frontend)
-Open a new terminal window at the project root to start the React Native application.
+For the optional offline model, in separate terminals:
+
 ```bash
-# From the root directory (campusiq)
-npm install
-npx expo start
+OLLAMA_NO_CLOUD=1 ollama serve
 ```
-Scan the QR code with the Expo Go app on your physical device (iOS/Android), or press `i` to launch it in the iOS Simulator.
 
----
+```bash
+ollama pull gemma4:e4b-it-qat
+```
 
-## 🛣️ Roadmap
+The quantized local model is approximately 6.1 GB. It runs on the server Mac, not inside each user's phone. Quit it when unused to free memory. Ollama must be running when fallback is needed.
 
-We have big plans for CampusIQ post-hackathon:
-- [ ] **Cloud Sync:** Optional AWS DynamoDB integration to back up data across multiple devices.
-- [ ] **Push Notifications:** Reminders for upcoming classes and assignment deadlines using AWS SNS.
-- [ ] **Multi-University Support:** Pre-loaded grading schemas for different global universities.
-- [ ] **More Agent Tools:** Allowing the agent to directly add tasks to your calendar or schedule study sessions.
+Start the app:
 
----
+```bash
+npm start
+```
 
-## 🤝 Contributing
+Or build and preview the browser app:
 
-We welcome contributions! If you have suggestions for improvements or bug fixes:
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+```bash
+npm run build:web
+npm run preview:web
+```
 
----
+Open **Settings → AI Assistant → AI Server URL**, enter `http://127.0.0.1:8787` for a browser or iOS simulator on the same Mac, and leave the token empty for the default loopback-only server. Enable Cloud AI and Allow Local Fallback for API-first behavior. Save a URL only for a server you trust with your academic summary.
 
-## 📄 License
+For a physical phone on the same Wi-Fi, use your Mac's LAN IP instead of `localhost`. Set `AI_HOST=0.0.0.0` and a strong `AI_SERVER_TOKEN` in `server/.env`, restart the server, and enter that token in app Settings. Keep Ollama itself bound to loopback. A hosted HTTPS browser cannot generally call a Mac's HTTP backend; use the local browser preview for this setup. Native HTTP LAN access may require platform-specific development transport settings; test your installed build on your phone. Do not expose this development server publicly.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+See [Gemma setup and verification](docs/GEMMA_SETUP.md) for diagnostics and [browser deployment](docs/RENDER_DEPLOYMENT.md) for the optional static demo. A static deployment alone does not run the model server. Without a configured reachable server, the app retains labeled offline calculations.
 
----
+## Checks
 
-<div align="center">
-  <sub>Built with ❤️ for students.</sub>
-</div>
+```bash
+npx tsc --noEmit
+npm run test:ai
+npm run test:web
+npm run test:layout
+npm run test:security
+npm run build:web
+```
+
+AI tests mock providers to verify API priority, quota/timeout fallback, local-only privacy, disabled fallback, honest labeling, authentication, CORS, and input limits. No paid inference is used by the automated tests.
+
+## Contributing and license
+
+Contributions are welcome: open an issue or submit a pull request with a focused change and validation notes. CampusIQ is licensed under [MIT](LICENSE). Gemma model weights are distributed separately under their own terms.
+
+Model references: [Gemma via Gemini API](https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api), [pricing](https://ai.google.dev/gemini-api/docs/pricing#gemma-4), [Gemma with Ollama](https://ai.google.dev/gemma/docs/integrations/ollama).

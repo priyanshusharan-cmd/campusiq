@@ -23,7 +23,7 @@ export default function FloatingAIButton() {
     setPosition(p => ({ x: Math.min(p.x, maxX), y: Math.min(p.y, maxY) }));
   }, [maxX, maxY]);
   const open = () => router.push('/campus-ai');
-  return <button type="button" aria-label="Open demo assistant"
+  return <button type="button" aria-label="Open CampusIQ assistant"
     style={{ position: 'absolute', top: 0, left: 0, width: BUTTON_SIZE, height: BUTTON_SIZE, border: 0, borderRadius: '50%', backgroundColor: colors.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, cursor: dragging ? 'grabbing' : 'pointer', touchAction: 'none', zIndex: 9999, boxShadow: '0 4px 10px #0005', transform: `translate(${position.x}px, ${position.y}px) scale(${dragging ? 0.9 : 1})`, transition: dragging ? 'none' : 'transform 180ms ease-out' }}
     onPointerDown={e => {
       suppressClick.current = false;

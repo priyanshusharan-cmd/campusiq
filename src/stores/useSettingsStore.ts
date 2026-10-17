@@ -94,14 +94,8 @@ interface SettingsState {
   cloudAiEnabled: boolean;
   useOfflineAIFallback: boolean;
   aiOfflineMode: boolean;
-  demoModeEnabled: boolean;
-
-  // AI API Keys
-  geminiKey: string;
-  awsAccessKey: string;
-  awsSecretKey: string;
-  openaiKey: string;
-  aiModelPriority: string[];
+  aiServerUrl: string;
+  aiServerToken: string;
 
   // Actions
   setTheme: (theme: ThemeMode) => void;
@@ -116,7 +110,6 @@ interface SettingsState {
   toggleAppLock: () => void;
   toggleCloudAiEnabled: () => void;
   toggleOfflineAIFallback: () => void;
-  toggleDemoMode: () => void;
   updateStreak: (todayStr: string) => void;
   setReminderMinutes: (minutes: number) => void;
   setTargetCGPA: (target: number) => void;
@@ -125,11 +118,8 @@ interface SettingsState {
   setPassingMarks: (marks: number) => void;
   setTheoryConfig: (config: TheoryGradingConfig) => void;
   setPracticalConfig: (config: PracticalGradingConfig) => void;
-  setGeminiKey: (key: string) => void;
-  setAwsAccessKey: (key: string) => void;
-  setAwsSecretKey: (key: string) => void;
-  setOpenaiKey: (key: string) => void;
-  setAiModelPriority: (priority: string[]) => void;
+  setAiServerUrl: (url: string) => void;
+  setAiServerToken: (token: string) => void;
   setAiOfflineMode: (offline: boolean) => void;
   resetSettings: () => void;
 }
@@ -182,10 +172,8 @@ const initialState = {
   cloudAiEnabled: true,
   useOfflineAIFallback: true,
   aiOfflineMode: false,
-  demoModeEnabled: process.env.EXPO_PUBLIC_DEMO_MODE === 'true' || false,
 
   ...aiDefaults,
-  aiModelPriority: ['gemini', 'aws', 'openai', 'local'],
 };
 
 // ─── Store ──────────────────────────────────────────────────────────────────────
@@ -219,7 +207,6 @@ export const useSettingsStore = create<SettingsState>()(
 
       toggleOfflineAIFallback: () => set((s) => ({ useOfflineAIFallback: !s.useOfflineAIFallback })),
 
-      toggleDemoMode: () => set((s) => ({ demoModeEnabled: !s.demoModeEnabled })),
 
       setReminderMinutes: (minutes) => set({ reminderMinutesBefore: minutes }),
 
@@ -269,15 +256,25 @@ export const useSettingsStore = create<SettingsState>()(
         labMaxExternalMarks: Math.max(1, config.labMaxExternalMarks),
       }),
 
-      setGeminiKey: (key) => set({ geminiKey: key, aiOfflineMode: false }),  // reset offline when key changes
-      setAwsAccessKey: (key) => set({ awsAccessKey: key, aiOfflineMode: false }),
-      setAwsSecretKey: (key) => set({ awsSecretKey: key, aiOfflineMode: false }),
-      setOpenaiKey: (key) => set({ openaiKey: key, aiOfflineMode: false }),
-      setAiModelPriority: (priority) => set({ aiModelPriority: priority }),
+      setAiServerUrl: (url) => set({ aiServerUrl: url.trim().replace(/\/+$/, ''), aiOfflineMode: false }),
+      setAiServerToken: (token) => set({ aiServerToken: token.trim() }),
       setAiOfflineMode: (offline) => set({ aiOfflineMode: offline }),
     }),
     {
       name: 'settings-storage',
+      version: 1,
+      migrate: (persisted) => {
+        const saved = (persisted ?? {}) as Record<string, unknown>;
+        return { ...initialState, ...Object.fromEntries(Object.keys(initialState)
+          .filter(key => key in saved).map(key => [key, saved[key]])) } as SettingsState;
+      },
+      // Keep recognized preferences only; old client-side provider keys are discarded.
+      merge: (persisted, current) => {
+        const saved = (persisted ?? {}) as Record<string, unknown>;
+        const preferences = Object.fromEntries(Object.keys(initialState)
+          .filter(key => key in saved).map(key => [key, saved[key]]));
+        return { ...current, ...preferences };
+      },
       storage: createJSONStorage(() => zustandStorage),
     }
   )

@@ -55,9 +55,9 @@ test('file importer accepts only local document URLs', async () => {
   await assert.rejects(adapter.readAsStringAsync('https://example.com/private'), /local JSON/);
 });
 
-test('browser build defaults never access environment credentials', () => {
+test('browser connection defaults contain no provider credentials', () => {
   const adapter = load('src/platform/aiDefaults.web.ts');
-  assert.deepEqual(Object.values(adapter.aiDefaults), ['', '', '', '']);
+  assert.deepEqual(Object.values(adapter.aiDefaults), ['', '']);
 });
 
 test('JSON sharing downloads a named file and releases its temporary contents', async () => {
@@ -106,17 +106,17 @@ test('Render configuration includes the SPA rewrite and a secret-free build', ()
 test('demo assistant uses the saved attendance target and never calls a provider', async () => {
   const context = { currentSemester: 'Semester 4', sgpa: 8.5, cgpa: 8.2, subjects: [{ name: 'Mathematics', credits: 4, grade: 'A', attendance: { present: 18, totalClasses: 20, absent: 2, percentage: 90, target: 75 } }] };
   const pure = load('src/lib/pureAttendanceUtils.ts');
-  const service = load('src/features/ai/services/aiService.web.ts', { fetch() { throw new Error('Cloud request must not occur'); } }, {
+  const service = load('src/features/ai/services/localAssistant.ts', { fetch() { throw new Error('Cloud request must not occur'); } }, {
     './contextBuilder': { buildAcademicContext: () => context },
     '@/lib/pureAttendanceUtils': pure,
     '@/stores/useTimetableStore': { useTimetableStore: { getState: () => ({ entries: [], events: {} }) } },
     '@/stores/useSubjectStore': { useSubjectStore: { getState: () => ({ subjects: [] }) } },
   });
-  const answer = await service.askCampusIQAI('How many Mathematics classes can I skip?');
+  const answer = await service.askLocalAssistant('How many Mathematics classes can I skip?');
   assert.equal(answer.isFallback, true);
   assert.match(answer.reply, /target 75%/);
   assert.match(answer.reply, /miss 4 more classes/);
   assert.match(answer.reply, /without a cloud AI model/);
-  const unknown = await service.askCampusIQAI('Write my essay');
-  assert.match(unknown.reply, /does not connect to a cloud AI model/);
+  const unknown = await service.askLocalAssistant('Write my essay');
+  assert.match(unknown.reply, /connect your Gemma server/);
 });

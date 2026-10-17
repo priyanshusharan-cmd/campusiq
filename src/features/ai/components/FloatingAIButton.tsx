@@ -3,7 +3,6 @@ import { StyleSheet, Dimensions, Platform, Animated, PanResponder, View } from '
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
-import { useSettingsStore } from '@/stores/useSettingsStore';
 
 const { width, height } = Dimensions.get('window');
 const BUTTON_SIZE = 60;
@@ -21,8 +20,6 @@ export default function FloatingAIButton() {
   const router = useRouter();
   const theme = useTheme();
   
-  // Hide the button if Cloud AI is disabled
-  const cloudAiEnabled = useSettingsStore(s => s.cloudAiEnabled);
   const [pan] = React.useState(() => new Animated.ValueXY({
     x: INITIAL_LEFT,
     y: height - BUTTON_SIZE - INITIAL_BOTTOM,
@@ -95,10 +92,6 @@ export default function FloatingAIButton() {
       },
     })
   );
-
-  if (!cloudAiEnabled) {
-    return null;
-  }
 
   return (
     <Animated.View

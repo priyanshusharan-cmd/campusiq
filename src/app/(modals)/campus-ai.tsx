@@ -9,17 +9,21 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useRouter } from '@/platform/router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
-import { askCampusIQAI } from '@/features/ai/services/aiService';
+import * as ImagePicker from 'expo-image-picker';
+import { Alert } from '@/platform/alert';
+import { askCampusIQAI, type AIProvider, type AIImage } from '@/features/ai/services/aiService';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  imageUri?: string;
 }
 
 export default function CampusAIModal() {
@@ -30,31 +34,55 @@ export default function CampusAIModal() {
     {
       id: 'welcome',
       role: 'assistant',
-      content: Platform.OS === 'web' ? "Hi! I'm the CampusIQ demo assistant. Ask about your attendance, timetable, or grade summary. I use local calculations, without a cloud AI model." : "Hi! I'm CampusIQ AI. Ask me anything about your attendance, CIEs, grades, SGPA, CGPA, or timetable.",
+      content: "Hi! I'm CampusIQ. Connect your Gemma server in Settings for AI answers: cloud API first, then Gemma on your Mac. Without a server I can calculate attendance and grade summaries. Questions and academic summaries are sent to your server, and to Google when Cloud AI is enabled.",
     },
   ]);
   const [input, setInput] = useState('');
+  const [attachment, setAttachment] = useState<(AIImage & { uri: string }) | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const isOfflineMode = useSettingsStore((s) => s.aiOfflineMode);
+  const [provider, setProvider] = useState<AIProvider | null>(null);
   const setIsOfflineMode = useSettingsStore((s) => s.setAiOfflineMode);
 
+  const pickImage = async () => {
+    try {
+      // Browsers require the picker to open directly from the user's click.
+      if (Platform.OS !== 'web') {
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) { Alert.alert('Photo access needed', 'Allow photo access to select an image.'); return; }
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], base64: true, quality: 0.65 });
+      if (result.canceled) return;
+      const asset = result.assets[0];
+      const data = asset.base64;
+      if (!data) throw new Error('Could not read this image. Try a JPEG or PNG file.');
+      if (data.length > 4194304) throw new Error('Choose an image smaller than 3 MB.');
+      const mimeType = data.startsWith('/9j/') ? 'image/jpeg' : data.startsWith('iVBORw0KGgo') ? 'image/png' : data.startsWith('UklGR') ? 'image/webp' : null;
+      if (!mimeType) throw new Error('Choose a JPEG, PNG, or WebP image.');
+      setAttachment({ uri: asset.uri, data, mimeType });
+    } catch (error) { Alert.alert('Could not attach image', error instanceof Error ? error.message : 'Try another image.'); }
+  };
+
   const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && !attachment) || isLoading) return;
+    const selectedImage = attachment;
     
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input.trim(),
+      content: input.trim() || 'Describe this image and explain any academic tasks or deadlines it contains.',
+      imageUri: selectedImage?.uri,
     };
     
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
+    setAttachment(null);
     setIsLoading(true);
     
     try {
-      const { reply, isFallback } = await askCampusIQAI(userMessage.content, isOfflineMode);
+      const { reply, isFallback, provider } = await askCampusIQAI(userMessage.content, false, selectedImage ?? undefined);
+      setProvider(provider);
       setIsOfflineMode(isFallback);
       
       const assistantMessage: Message = {
@@ -64,10 +92,11 @@ export default function CampusAIModal() {
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
+      setProvider(null);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "Sorry, I'm having trouble connecting right now, and offline fallback is disabled. Please check your settings or server connection.",
+        content: error instanceof Error ? error.message : 'Could not connect to Gemma. Check Settings and your server.',
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -90,9 +119,9 @@ export default function CampusAIModal() {
         </TouchableOpacity>
         <View style={styles.titleContainer}>
           <Text style={[styles.headerTitle, { color: theme.colors.textPrimary }]}>CampusIQ AI</Text>
-          {(isOfflineMode || Platform.OS === 'web') && (
+          {provider && (
             <View style={[styles.offlineBadge, { backgroundColor: theme.colors.warning }]}>
-              <Text style={styles.offlineText}>{Platform.OS === 'web' ? 'Demo Mode' : 'Offline Mode'}</Text>
+              <Text style={styles.offlineText}>{provider === 'gemma-api' ? 'Gemma API' : provider === 'gemma-local' ? 'Gemma on Mac' : 'Calculations'}</Text>
             </View>
           )}
         </View>
@@ -116,7 +145,8 @@ export default function CampusAIModal() {
               }
             ]}
           >
-            <Text 
+            {msg.imageUri && <Image source={{ uri: msg.imageUri }} accessibilityLabel="Attached image" style={{ width: 180, height: 130, borderRadius: 12, marginBottom: 8 }} resizeMode="contain" />}
+            <Text
               style={[
                 styles.messageText,
                 { color: msg.role === 'user' ? '#fff' : theme.colors.textPrimary }
@@ -133,10 +163,25 @@ export default function CampusAIModal() {
         )}
       </ScrollView>
 
+      {attachment && <View style={{ padding: 12, backgroundColor: theme.colors.surface }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <Image source={{ uri: attachment.uri }} accessibilityLabel="Image preview" style={{ width: 72, height: 72, borderRadius: 10 }} resizeMode="contain" />
+          <Text style={{ flex: 1, color: theme.colors.textSecondary }}>Image attached · sent only when you press Send</Text>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Remove attached image" onPress={() => setAttachment(null)} style={{ padding: 8 }}>
+            <Ionicons name="close-circle" size={24} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+      </View>}
+      <Text style={{ paddingHorizontal: 12, paddingTop: 4, fontSize: 11, color: theme.colors.textSecondary, backgroundColor: theme.colors.surface }}>
+        JPEG, PNG, or WebP · up to 3 MB. Images go to your server and, when enabled, Google. Avoid private documents.
+      </Text>
       <View style={[styles.inputContainer, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }]}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Attach image" disabled={isLoading} onPress={pickImage} style={{ padding: 8, marginRight: 4 }}>
+          <Ionicons name="image-outline" size={24} color={isLoading ? theme.colors.textTertiary : theme.colors.primary} />
+        </TouchableOpacity>
         <TextInput
           style={[styles.input, { color: theme.colors.textPrimary, backgroundColor: theme.colors.bg }]}
-          placeholder="Ask about your attendance or grades..."
+          placeholder="Ask or attach a notice..."
           placeholderTextColor={theme.colors.textTertiary}
           value={input}
           onChangeText={setInput}
@@ -144,9 +189,11 @@ export default function CampusAIModal() {
           returnKeyType="send"
         />
         <TouchableOpacity 
-          style={[styles.sendButton, { backgroundColor: input.trim() ? theme.colors.primary : theme.colors.border }]} 
+          style={[styles.sendButton, { backgroundColor: (input.trim() || attachment) ? theme.colors.primary : theme.colors.border }]}
           onPress={sendMessage}
-          disabled={!input.trim() || isLoading}
+          accessibilityRole="button"
+          accessibilityLabel="Send message"
+          disabled={(!input.trim() && !attachment) || isLoading}
         >
           <Ionicons name="send" size={18} color="#fff" />
         </TouchableOpacity>

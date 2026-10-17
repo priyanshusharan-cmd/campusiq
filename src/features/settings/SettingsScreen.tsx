@@ -7,9 +7,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from '@/platform/router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { Card, SectionHeader, ListRow } from '@/components/ui';
 import { useSettingsStore, useAcademicStore, useAttendanceStore, useAssignmentStore, useExamStore, useSubjectStore, useTimetableStore, useProfileStore } from '@/stores';
@@ -251,43 +249,7 @@ export default function SettingsScreen() {
   const [keyModal, setKeyModal] = React.useState<{ visible: boolean; label: string; value: string; secure: boolean; onSave: (v: string) => void }>({ visible: false, label: '', value: '', secure: false, onSave: () => {} });
   const [keyDraft, setKeyDraft] = React.useState('');
 
-  const [priorityModal, setPriorityModal] = React.useState(false);
-  const [localPriority, setLocalPriority] = React.useState(settings.aiModelPriority || ['aws', 'gemini', 'openai', 'local']);
-
-  const renderPriorityItem = ({ item, drag, isActive }: RenderItemParams<string>) => (
-    <ScaleDecorator>
-      <TouchableOpacity
-        activeOpacity={1}
-        onLongPress={drag}
-        disabled={isActive}
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor: isActive ? colors.surface : colors.bg,
-          padding: spacing.md,
-          borderRadius: 12,
-          marginBottom: spacing.sm,
-          borderWidth: 1,
-          borderColor: isActive ? colors.primary : colors.borderLight,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: isActive ? 4 : 0 },
-          shadowOpacity: isActive ? 0.2 : 0,
-          shadowRadius: isActive ? 5 : 0,
-          elevation: isActive ? 5 : 0,
-        }}
-      >
-        <Text style={[textStyles.bodyMedium, { flex: 1, color: colors.textPrimary, textTransform: 'capitalize', marginLeft: spacing.sm }]}>
-          {item === 'aws' ? 'Amazon AWS' : item === 'gemini' ? 'Google Gemini' : item === 'openai' ? 'OpenAI' : 'Local AI'}
-        </Text>
-        <MaterialIcons name="unfold-more" size={24} color={colors.textSecondary} style={{ marginLeft: spacing.md }} />
-      </TouchableOpacity>
-    </ScaleDecorator>
-  );
-
-  const explainBrowserAI = () => Alert.alert('Browser assistant', 'The browser version uses local attendance, timetable, and grade calculations. Cloud providers and API key configuration are available in the mobile app.');
-
   const openKeyModal = (label: string, currentValue: string, secure: boolean, onSave: (v: string) => void) => {
-    if (Platform.OS === 'web') { explainBrowserAI(); return; }
     setKeyDraft(currentValue);
     setKeyModal({ visible: true, label, value: currentValue, secure, onSave });
   };
@@ -416,95 +378,24 @@ export default function SettingsScreen() {
         <Animated.View entering={FadeInDown.delay(20).duration(80)}>
           <SectionHeader title="AI Assistant" />
           <Card variant="flat" padding={0}>
-            <ListRow 
-              icon="cloudy-outline" iconColor={colors.info} 
-              title="Enable Cloud AI" 
-              showChevron={false}
-              rightElement={
-                <Switch 
-                  value={Platform.OS === 'web' ? false : settings.cloudAiEnabled}
-                  onValueChange={() => {
-                    triggerHaptic('light');
-                    if (Platform.OS === 'web') { explainBrowserAI(); return; }
-                    settings.toggleCloudAiEnabled();
-                  }}
-                  trackColor={{ false: colors.border, true: colors.info }} 
-                />
-              } 
-            />
-            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-            <ListRow 
-              icon="videocam-outline" iconColor={colors.primary} 
-              title="Offline AI" 
-              showChevron={false}
-              rightElement={
-                <Switch 
-                  value={Platform.OS === 'web' ? true : settings.demoModeEnabled}
-                  onValueChange={() => {
-                    triggerHaptic('light');
-                    if (Platform.OS === 'web') { explainBrowserAI(); return; }
-                    settings.toggleDemoMode();
-                  }}
-                  trackColor={{ false: colors.border, true: colors.primary }} 
-                />
-              } 
-            />
-            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-            <ListRow 
-              icon="list-outline" iconColor={colors.primary} 
-              title="AI Model Priority"
-              showChevron={true}
-              onPress={() => {
-                triggerHaptic('light');
-                if (Platform.OS === 'web') { explainBrowserAI(); return; }
-                setLocalPriority(settings.aiModelPriority || ['aws', 'gemini', 'openai', 'local']);
-                setPriorityModal(true);
-              }}
-            />
-            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-            <ListRow 
-              icon="key-outline" iconColor={colors.primary} 
-              title="Gemini API Key" 
-              rightElement={renderKeyRightElement(settings.geminiKey)}
-              showChevron={false}
-              onPress={() => {
-                triggerHaptic('light');
-                openKeyModal('Gemini API Key', settings.geminiKey, true, (v) => settings.setGeminiKey(v));
-              }}
-            />
-            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-            <ListRow 
-              icon="key-outline" iconColor={colors.primary} 
-              title="OpenAI API Key" 
-              rightElement={renderKeyRightElement(settings.openaiKey)}
-              showChevron={false}
-              onPress={() => {
-                triggerHaptic('light');
-                openKeyModal('OpenAI API Key', settings.openaiKey || '', true, (v) => settings.setOpenaiKey(v));
-              }}
-            />
-            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-            <ListRow 
-              icon="key-outline" iconColor={colors.primary} 
-              title="AWS Access Key" 
-              rightElement={renderKeyRightElement(settings.awsAccessKey)}
-              showChevron={false}
-              onPress={() => {
-                triggerHaptic('light');
-                openKeyModal('AWS Access Key', settings.awsAccessKey || '', false, (v) => settings.setAwsAccessKey(v));
-              }}
-            />
-            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
-            <ListRow 
-              icon="key-outline" iconColor={colors.primary} 
-              title="AWS Secret Key" 
-              rightElement={renderKeyRightElement(settings.awsSecretKey)}
-              showChevron={false}
-              onPress={() => {
-                triggerHaptic('light');
-                openKeyModal('AWS Secret Key', settings.awsSecretKey || '', true, (v) => settings.setAwsSecretKey(v));
-              }}
-            />
+            <Text style={[textStyles.body, { color: colors.textSecondary, padding: spacing.md }]}>
+              Gemma API first, then Gemma on your Mac. Connecting sends your question and academic summary to your server; with Cloud AI enabled, it can send them to Google. Provider keys stay on the server.
+            </Text>
+            <ListRow icon="server-outline" iconColor={colors.primary} title="AI Server URL"
+              rightElement={<Text style={[textStyles.body, { color: colors.textSecondary, maxWidth: 180 }]} numberOfLines={1}>{settings.aiServerUrl || 'Not connected'}</Text>}
+              onPress={() => openKeyModal('AI Server URL', settings.aiServerUrl, false, settings.setAiServerUrl)} />
+            <ListRow icon="key-outline" iconColor={colors.primary} title="Server Access Token"
+              rightElement={renderKeyRightElement(settings.aiServerToken)} showChevron={false}
+              onPress={() => openKeyModal('Server Access Token', settings.aiServerToken, true, settings.setAiServerToken)} />
+            <ListRow icon="cloudy-outline" iconColor={colors.info} title="Enable Cloud AI" showChevron={false}
+              rightElement={<Switch value={settings.cloudAiEnabled} onValueChange={settings.toggleCloudAiEnabled}
+                trackColor={{ false: colors.border, true: colors.info }} />} />
+            <ListRow icon="desktop-outline" iconColor={colors.primary} title="Allow Local Fallback" showChevron={false}
+              rightElement={<Switch value={settings.useOfflineAIFallback} onValueChange={settings.toggleOfflineAIFallback}
+                trackColor={{ false: colors.border, true: colors.primary }} />} />
+            <Text style={[textStyles.body, { color: colors.textSecondary, padding: spacing.md }]}>
+              Turn Cloud AI off to use only local Gemma. Local fallback requires Ollama running on the server Mac. Without a connection, the assistant can show clearly labeled calculations when fallback is enabled.
+            </Text>
           </Card>
 
           <SectionHeader title="Account & Security" />
@@ -551,7 +442,7 @@ export default function SettingsScreen() {
             <TouchableOpacity activeOpacity={1} style={{ width: '100%', backgroundColor: colors.surface, borderRadius: 16, padding: spacing.xl }}>
               <Text style={[textStyles.h3, { color: colors.textPrimary, marginBottom: spacing.xs }]}>{keyModal.label}</Text>
               <Text style={[textStyles.caption, { color: colors.textSecondary, marginBottom: spacing.lg }]}>
-                {keyModal.secure ? 'Your key is stored securely on this device only.' : 'Paste or type your API key below.'}
+                {keyModal.secure ? 'Stored in this app’s local preferences. Use only your development server token here.' : 'Enter your server URL below.'}
               </Text>
               <TextInput
                 value={keyDraft}
@@ -598,35 +489,6 @@ export default function SettingsScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* ── Priority Modal ────────────────────────────────── */}
-      <Modal visible={priorityModal} transparent animationType="slide" onRequestClose={() => setPriorityModal(false)}>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
-            <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.xl, paddingBottom: spacing['4xl'] }}>
-              <Text style={[textStyles.h2, { color: colors.textPrimary, marginBottom: spacing.md }]}>AI Model Priority</Text>
-              <Text style={[textStyles.body, { color: colors.textSecondary, marginBottom: spacing.xl }]}>Hold and drag to arrange the models in order of preference. The app will try the top model first.</Text>
-
-              <View style={{ height: 260 }}>
-                <DraggableFlatList
-                  data={localPriority}
-                  onDragEnd={({ data }) => setLocalPriority(data)}
-                  keyExtractor={(item) => item}
-                  renderItem={renderPriorityItem}
-                />
-              </View>
-
-              <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl }}>
-                <TouchableOpacity onPress={() => setPriorityModal(false)} style={{ flex: 1, paddingVertical: spacing.md, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: 'center' }}>
-                  <Text style={[textStyles.body, { color: colors.textSecondary, fontWeight: '600' }]}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => { settings.setAiModelPriority(localPriority); setPriorityModal(false); triggerHaptic('light'); }} style={{ flex: 1, paddingVertical: spacing.md, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center' }}>
-                  <Text style={[textStyles.body, { color: '#fff', fontWeight: '700' }]}>Save Priority</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </GestureHandlerRootView>
-      </Modal>
 
     </SafeAreaView>
   );

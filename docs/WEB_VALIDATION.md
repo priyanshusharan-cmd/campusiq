@@ -38,7 +38,7 @@ The native subscription screens have since been removed. See the current cleanup
 
 Build success is not a substitute for testing the installed Android/iOS app on physical devices. Native adapters re-export the existing APIs, and native AI, notifications, and storage behavior remain in their original implementations.
 
-The web demo uses browser-local storage and a deterministic local assistant. Cloud AI, cross-device sync, scheduled background phone notifications, and biometric app locks are not implemented for the static website. Browser settings explain unavailable phone capabilities. PDF saving depends on the browser's print support.
+The web demo uses browser-local storage and a deterministic local assistant. Cloud AI, cross-device sync, scheduled background phone notifications, and biometric app locks are not implemented for the static website. Browser settings explain unavailable phone capabilities. This historical check predates the optional Gemma proxy; see GEMMA_SETUP.md for current AI configuration. PDF saving depends on the browser's print support.
 
 Use the final checklist in `docs/RENDER_DEPLOYMENT.md` on the deployed HTTPS URL and on your actual phone before sharing it publicly.
 
@@ -67,3 +67,16 @@ The billing SDK, initialization adapters, subscription routes, and paid-access c
 - `npm run test:web`, `npm run test:layout`, and `npm run test:security`: all 16 tests pass.
 - Production web export and Android/iOS JavaScript/Hermes exports: pass.
 - Installed native builds must be rebuilt to remove the old native SDK. Physical-device navigation has not been tested during this cleanup.
+
+
+## Gemma integration — 17 October 2026
+
+The shared assistant now connects to a separate model server: hosted Gemma first, local Ollama second, and labeled deterministic calculations last. Google credentials stay in the ignored server config. Browser settings support a server URL and access token; Cloud AI can be disabled for local-only requests. Legacy client-provider settings are discarded by a preference-preserving migration.
+
+- Real hosted Gemma responses verified through the proxy with synthetic data and in browser chat.
+- Image request routing, payload validation, and failure labeling verified with mocked models; no private image was uploaded for testing.
+- Downloaded local `gemma4:e4b-it-qat` (6.1 GB). With cloud disabled, real local image inference through the proxy identified a generated red PNG correctly in about ten seconds.
+- `npm run test:ai`: 19 tests pass. The existing web/layout/security suites add 16 passing tests.
+- TypeScript and ESLint for changed source files pass. Web and native bundle exports pass.
+- No provider API key found in the exported web, Android, or iOS bundles.
+- Browser interaction stopped at the user's request before image-picker UI testing; installed-phone testing remains outstanding.

@@ -3,11 +3,11 @@ import { calcCanMiss } from '@/lib/pureAttendanceUtils';
 import { useTimetableStore } from '@/stores/useTimetableStore';
 import { useSubjectStore } from '@/stores/useSubjectStore';
 
-// This public demo never sends academic data or credentials to an AI provider.
-export async function askCampusIQAI(query: string, _isAlreadyOffline = false): Promise<{ reply: string; isFallback: boolean }> {
+// Deterministic calculations used only when no model is reachable.
+export async function askLocalAssistant(query: string, _isAlreadyOffline = false): Promise<{ reply: string; isFallback: boolean }> {
   const context = buildAcademicContext();
   const q = query.toLowerCase();
-  const disclaimer = 'Demo assistant · calculated from your saved data, without a cloud AI model.\n\n';
+  const disclaimer = 'Offline calculations · calculated from your saved data, without a cloud AI model.\n\n';
   let reply: string;
   if (/schedule|timetable|tomorrow|today|class.*next/.test(q)) {
     const date = new Date();
@@ -32,7 +32,7 @@ export async function askCampusIQAI(query: string, _isAlreadyOffline = false): P
   } else if (/grade|sgpa|cgpa|performance|summary/.test(q)) {
     reply = `Semester: ${context.currentSemester}\nCGPA: ${context.cgpa > 0 ? context.cgpa.toFixed(2) : 'Not entered yet'}\nSGPA: ${context.sgpa != null ? context.sgpa.toFixed(2) : 'Not entered yet'}\n\n` + context.subjects.map(s => `${s.name} · ${s.credits} credits${s.grade ? ` · Grade ${s.grade}` : ''}`).join('\n') + '\n\nOpen the SGPA Forecaster to experiment with target marks and grade predictions.';
   } else {
-    reply = 'I can calculate attendance insights, show your schedule, and summarize your grades. Try “How many classes can I skip?”, “What classes do I have tomorrow?”, or “Show my academic summary”. For other questions, this demo does not connect to a cloud AI model.';
+    reply = 'I can calculate attendance insights, show your schedule, and summarize your grades. Try “How many classes can I skip?”, “What classes do I have tomorrow?”, or “Show my academic summary”. For other questions, connect your Gemma server in Settings.';
   }
   return { reply: disclaimer + reply, isFallback: true };
 }
