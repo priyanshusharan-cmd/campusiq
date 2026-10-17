@@ -7,7 +7,6 @@ import { useSubjectStore } from '@/stores/useSubjectStore';
 export async function askLocalAssistant(query: string, _isAlreadyOffline = false): Promise<{ reply: string; isFallback: boolean }> {
   const context = buildAcademicContext();
   const q = query.toLowerCase();
-  const disclaimer = 'Offline calculations · calculated from your saved data, without a cloud AI model.\n\n';
   let reply: string;
   if (/schedule|timetable|tomorrow|today|class.*next/.test(q)) {
     const date = new Date();
@@ -34,5 +33,5 @@ export async function askLocalAssistant(query: string, _isAlreadyOffline = false
   } else {
     reply = 'I can calculate attendance insights, show your schedule, and summarize your grades. Try “How many classes can I skip?”, “What classes do I have tomorrow?”, or “Show my academic summary”. For other questions, configure Gemma API or your Mac in Settings.';
   }
-  return { reply: disclaimer + reply, isFallback: true };
+  return { reply, isFallback: true };
 }

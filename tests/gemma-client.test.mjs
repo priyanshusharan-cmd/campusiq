@@ -32,6 +32,7 @@ test('phone calls Google directly with no Mac configured or contacted', async ()
   assert.equal(count, 1);
   assert.equal(reply.provider, 'gemma-api');
   assert.equal(reply.isFallback, false);
+  assert.ok(!reply.reply.includes('Gemma API ·'));
   assert.ok(!reply.reply.includes('hidden'));
 });
 for (const failure of ['quota', 'network', 'empty']) {
@@ -50,6 +51,8 @@ for (const failure of ['quota', 'network', 'empty']) {
     })('Plan my study week');
     assert.equal(count, 2);
     assert.equal(reply.provider, 'gemma-local');
+    assert.ok(!reply.reply.includes('gemma4:'));
+    assert.ok(!reply.reply.includes('Google AI is switched off'));
   });
 }
 test('manual local mode never calls Google', async () => {
@@ -70,7 +73,7 @@ test('disabling fallback prevents any Mac calls', async () => {
 test('no credentials or Mac gives labeled calculations without network requests', async () => {
   const reply = await client({ ...settings, macOllamaUrl: '' }, () => { throw new Error('must not call'); }, '')('Attendance');
   assert.equal(reply.provider, 'calculations');
-  assert.match(reply.reply, /Add your Google AI Studio key/);
+  assert.match(reply.notice, /Add your Google AI Studio key/);
 });
 test('images reach Google and Mac in their respective formats', async () => {
   const image = { mimeType: 'image/png', data: 'iVBORw0KGgo=' };

@@ -18,6 +18,7 @@ import { useTheme } from '@/theme';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from '@/platform/alert';
 import { askCampusIQAI, type AIProvider, type AIImage } from '@/features/ai/services/aiService';
+import { AssistantAnswer } from '@/features/ai/components/AssistantAnswer';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 
 interface Message {
@@ -25,6 +26,8 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   imageUri?: string;
+  provider?: AIProvider;
+  notice?: string;
 }
 
 export default function CampusAIModal() {
@@ -85,7 +88,7 @@ export default function CampusAIModal() {
     setIsLoading(true);
     
     try {
-      const { reply, isFallback, provider } = await askCampusIQAI(userMessage.content, false, selectedImage ?? undefined);
+      const { reply, isFallback, provider, notice } = await askCampusIQAI(userMessage.content, false, selectedImage ?? undefined);
       setProvider(provider);
       setIsOfflineMode(isFallback);
       
@@ -93,6 +96,8 @@ export default function CampusAIModal() {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: reply,
+        provider,
+        notice,
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
@@ -124,8 +129,8 @@ export default function CampusAIModal() {
         <View style={styles.titleContainer}>
           <Text style={[theme.textStyles.h3, styles.headerTitle, { color: theme.colors.textPrimary }]}>CampusIQ AI</Text>
           {provider && (
-            <View style={[styles.offlineBadge, { backgroundColor: theme.colors.warning }]}>
-              <Text style={[theme.textStyles.caption, styles.offlineText]}>{provider === 'gemma-api' ? 'Gemma API' : provider === 'gemma-local' ? 'Gemma on Mac' : 'Calculations'}</Text>
+            <View style={styles.offlineBadge}>
+              <Text style={[theme.textStyles.small, { color: theme.colors.textSecondary }]}>{provider === 'gemma-api' ? 'Gemma · Google' : provider === 'gemma-local' ? 'Gemma · Local' : 'Saved data'}</Text>
             </View>
           )}
         </View>
@@ -150,7 +155,11 @@ export default function CampusAIModal() {
             ]}
           >
             {msg.imageUri && <Image source={{ uri: msg.imageUri }} accessibilityLabel="Attached image" style={{ width: 180, height: 130, borderRadius: 12, marginBottom: 8 }} resizeMode="contain" />}
-            <Text
+            {msg.role === 'assistant' ? <>
+              {msg.provider && <Text style={[theme.textStyles.smallMedium, { color: theme.colors.textSecondary, marginBottom: 10 }]}>{msg.provider === 'gemma-api' ? 'Gemma · Google' : msg.provider === 'gemma-local' ? 'Gemma · Your Mac' : 'Calculated from saved data'}</Text>}
+              <AssistantAnswer content={msg.content} />
+              {msg.notice && <Text style={[theme.textStyles.small, { color: theme.colors.textSecondary, marginTop: 14 }]}>{msg.notice}</Text>}
+            </> : <Text
               style={[
                 theme.textStyles.body,
                 styles.messageText,
@@ -158,7 +167,7 @@ export default function CampusAIModal() {
               ]}
             >
               {msg.content}
-            </Text>
+            </Text>}
           </View>
         ))}
         {isLoading && (
@@ -238,12 +247,7 @@ const styles = StyleSheet.create({
   },
   offlineBadge: {
     marginTop: 2,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  offlineText: {
-    color: '#000',
+
   },
   headerRight: {
     width: 40,
@@ -267,8 +271,11 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   assistantBubble: {
-    alignSelf: 'flex-start',
-    borderBottomLeftRadius: 4,
+    alignSelf: 'stretch',
+    maxWidth: '100%',
+    minWidth: 0,
+    padding: 16,
+    borderRadius: 16,
   },
   messageText: {
 

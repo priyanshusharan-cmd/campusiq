@@ -116,7 +116,7 @@ test('demo assistant uses the saved attendance target and never calls a provider
   assert.equal(answer.isFallback, true);
   assert.match(answer.reply, /target 75%/);
   assert.match(answer.reply, /miss 4 more classes/);
-  assert.match(answer.reply, /without a cloud AI model/);
+  assert.ok(!answer.reply.includes('Offline calculations ·'));
   const unknown = await service.askLocalAssistant('Write my essay');
   assert.match(unknown.reply, /configure Gemma API or your Mac/);
 });
