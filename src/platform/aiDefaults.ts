@@ -1,2 +1,2 @@
-// Only connection settings belong in the client; provider keys stay on the server.
-export const aiDefaults = { aiServerUrl: '', aiServerToken: '' };
+// Optional local host address only; API keys are never bundled.
+export const aiDefaults = { macOllamaUrl: '' };

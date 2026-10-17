@@ -29,6 +29,7 @@
     "expo-notifications": "~57.0.20",
     "expo-print": "~57.0.2",
     "expo-router": "~57.0.22",
+    "expo-secure-store": "~57.0.4",
     "expo-sharing": "~57.0.21",
     "expo-splash-screen": "~57.0.9",
     "expo-sqlite": "~57.0.3",
@@ -71,7 +72,6 @@
     "test:web": "node --test tests/web-adapters.test.cjs",
     "test:security": "node --test tests/dependency-security.test.cjs",
     "test:layout": "node --test tests/web-layout.test.cjs",
-    "start:ai": "node server/index.mjs",
     "test:ai": "node --test tests/gemma*.test.mjs"
   },
   "private": true,

@@ -34,7 +34,7 @@ export default function CampusAIModal() {
     {
       id: 'welcome',
       role: 'assistant',
-      content: "Hi! I'm CampusIQ. Connect your Gemma server in Settings for AI answers: cloud API first, then Gemma on your Mac. Without a server I can calculate attendance and grade summaries. Questions and academic summaries are sent to your server, and to Google when Cloud AI is enabled.",
+      content: "Hi! I'm CampusIQ. Add your Google AI Studio key in Settings for direct Gemma API answers. Your Mac with Ollama is an optional backup. Without a model connection I can calculate attendance and grade summaries. Cloud requests go directly to Google; local requests go directly to Ollama on your Mac.",
     },
   ]);
   const [input, setInput] = useState('');
@@ -96,7 +96,7 @@ export default function CampusAIModal() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: error instanceof Error ? error.message : 'Could not connect to Gemma. Check Settings and your server.',
+        content: error instanceof Error ? error.message : 'Could not connect to Gemma. Check your Google key or Mac connection in Settings.',
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -173,7 +173,7 @@ export default function CampusAIModal() {
         </View>
       </View>}
       <Text style={{ paddingHorizontal: 12, paddingTop: 4, fontSize: 11, color: theme.colors.textSecondary, backgroundColor: theme.colors.surface }}>
-        JPEG, PNG, or WebP · up to 3 MB. Images go to your server and, when enabled, Google. Avoid private documents.
+        JPEG, PNG, or WebP · up to 3 MB. Images go directly to Google or your Mac. Avoid private documents.
       </Text>
       <View style={[styles.inputContainer, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }]}>
         <TouchableOpacity accessibilityRole="button" accessibilityLabel="Attach image" disabled={isLoading} onPress={pickImage} style={{ padding: 8, marginRight: 4 }}>

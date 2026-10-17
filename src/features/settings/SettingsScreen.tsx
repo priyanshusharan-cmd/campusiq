@@ -1,3 +1,4 @@
+import { getGoogleApiKey, setGoogleApiKey } from '@/platform/googleApiKey';
 import { Alert } from '@/platform/alert';
 // Campora — Settings Screen
 
@@ -22,6 +23,13 @@ export default function SettingsScreen() {
   const { colors, spacing, textStyles } = useTheme();
   const router = useRouter();
   const settings = useSettingsStore();
+  const [hasGoogleKey, setHasGoogleKey] = React.useState(false);
+  const [savingConnection, setSavingConnection] = React.useState(false);
+  React.useEffect(() => {
+    let mounted = true;
+    getGoogleApiKey().then(key => { if (mounted) setHasGoogleKey(Boolean(key)); }).catch(() => {});
+    return () => { mounted = false; };
+  }, []);
 
   const handleDeleteAccount = () => {
     Alert.alert('Delete Account', 'Are you sure you want to delete your account? All data and profile information will be permanently erased.', [
@@ -36,6 +44,7 @@ export default function SettingsScreen() {
           useProfileStore.getState().clearProfile();
           useSettingsStore.getState().resetSettings();
 
+          await setGoogleApiKey('');
           await AsyncStorage.clear();
 
           router.replace('/(onboarding)/welcome');
@@ -243,44 +252,17 @@ export default function SettingsScreen() {
     return 'Violet';
   };
 
-  const [showKeys, setShowKeys] = React.useState(false);
-
   // Key input modal state
-  const [keyModal, setKeyModal] = React.useState<{ visible: boolean; label: string; value: string; secure: boolean; onSave: (v: string) => void }>({ visible: false, label: '', value: '', secure: false, onSave: () => {} });
+  const [keyModal, setKeyModal] = React.useState<{ visible: boolean; label: string; value: string; secure: boolean; onSave: (v: string) => void | Promise<void> }>({ visible: false, label: '', value: '', secure: false, onSave: () => {} });
   const [keyDraft, setKeyDraft] = React.useState('');
 
-  const openKeyModal = (label: string, currentValue: string, secure: boolean, onSave: (v: string) => void) => {
+  const openKeyModal = (label: string, currentValue: string, secure: boolean, onSave: (v: string) => void | Promise<void>) => {
     setKeyDraft(currentValue);
     setKeyModal({ visible: true, label, value: currentValue, secure, onSave });
   };
 
-  const closeKeyModal = () => setKeyModal(m => ({ ...m, visible: false }));
+  const closeKeyModal = () => { setKeyModal(m => ({ ...m, visible: false })); setKeyDraft(''); };
 
-  const formatKey = (key: string) => {
-    if (!key) return 'Not Set';
-    if (showKeys) return key.substring(0, 15) + '...';
-    return '••••••••••••';
-  };
-
-  const renderKeyRightElement = (key: string) => (
-    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      <Text style={[textStyles.body, { color: key ? colors.textSecondary : colors.textTertiary, marginRight: spacing.sm }]}>
-        {formatKey(key)}
-      </Text>
-      {key ? (
-        <Ionicons 
-          name={showKeys ? "eye-off-outline" : "eye-outline"} 
-          size={20} 
-          color={colors.textSecondary} 
-          onPress={(e) => {
-            e.stopPropagation(); // prevent row click
-            triggerHaptic('light');
-            setShowKeys(!showKeys);
-          }} 
-        />
-      ) : null}
-    </View>
-  );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
@@ -379,14 +361,16 @@ export default function SettingsScreen() {
           <SectionHeader title="AI Assistant" />
           <Card variant="flat" padding={0}>
             <Text style={[textStyles.body, { color: colors.textSecondary, padding: spacing.md }]}>
-              Gemma API first, then Gemma on your Mac. Connecting sends your question and academic summary to your server; with Cloud AI enabled, it can send them to Google. Provider keys stay on the server.
+              Your phone calls Google directly. Your Mac is optional and is used only for local fallback. Questions, academic summaries, and attached images go to the provider that handles the request.
             </Text>
-            <ListRow icon="server-outline" iconColor={colors.primary} title="AI Server URL"
-              rightElement={<Text style={[textStyles.body, { color: colors.textSecondary, maxWidth: 180 }]} numberOfLines={1}>{settings.aiServerUrl || 'Not connected'}</Text>}
-              onPress={() => openKeyModal('AI Server URL', settings.aiServerUrl, false, settings.setAiServerUrl)} />
-            <ListRow icon="key-outline" iconColor={colors.primary} title="Server Access Token"
-              rightElement={renderKeyRightElement(settings.aiServerToken)} showChevron={false}
-              onPress={() => openKeyModal('Server Access Token', settings.aiServerToken, true, settings.setAiServerToken)} />
+            <ListRow icon="key-outline" iconColor={colors.primary} title="Google AI Studio API Key"
+              rightElement={<Text style={[textStyles.body, { color: colors.textSecondary }]}>{hasGoogleKey ? 'Configured' : 'Not set'}</Text>}
+              onPress={() => openKeyModal('Google AI Studio API Key', '', true, async key => {
+                await setGoogleApiKey(key); setHasGoogleKey(Boolean(key));
+              })} />
+            <ListRow icon="desktop-outline" iconColor={colors.primary} title="Mac Ollama URL (optional)"
+              rightElement={<Text style={[textStyles.body, { color: colors.textSecondary, maxWidth: 160 }]} numberOfLines={1}>{settings.macOllamaUrl || 'Not connected'}</Text>}
+              onPress={() => openKeyModal('Mac Ollama URL', settings.macOllamaUrl, false, settings.setMacOllamaUrl)} />
             <ListRow icon="cloudy-outline" iconColor={colors.info} title="Enable Cloud AI" showChevron={false}
               rightElement={<Switch value={settings.cloudAiEnabled} onValueChange={settings.toggleCloudAiEnabled}
                 trackColor={{ false: colors.border, true: colors.info }} />} />
@@ -394,7 +378,7 @@ export default function SettingsScreen() {
               rightElement={<Switch value={settings.useOfflineAIFallback} onValueChange={settings.toggleOfflineAIFallback}
                 trackColor={{ false: colors.border, true: colors.primary }} />} />
             <Text style={[textStyles.body, { color: colors.textSecondary, padding: spacing.md }]}>
-              Turn Cloud AI off to use only local Gemma. Local fallback requires Ollama running on the server Mac. Without a connection, the assistant can show clearly labeled calculations when fallback is enabled.
+              Cloud AI on: Google first, Mac as backup. Cloud AI off: Mac only. Your phone and Mac must be on the same Wi-Fi for local inference; the Mac must be awake with Ollama running. No separate backend is needed.
             </Text>
           </Card>
 
@@ -442,7 +426,7 @@ export default function SettingsScreen() {
             <TouchableOpacity activeOpacity={1} style={{ width: '100%', backgroundColor: colors.surface, borderRadius: 16, padding: spacing.xl }}>
               <Text style={[textStyles.h3, { color: colors.textPrimary, marginBottom: spacing.xs }]}>{keyModal.label}</Text>
               <Text style={[textStyles.caption, { color: colors.textSecondary, marginBottom: spacing.lg }]}>
-                {keyModal.secure ? 'Stored in this app’s local preferences. Use only your development server token here.' : 'Enter your server URL below.'}
+                {keyModal.secure ? (Platform.OS === 'web' ? 'Browser key is temporary and cleared on reload. Leave blank and save to remove it.' : 'Saved securely on this phone. Leave blank and save to remove the key. Never share a key in a public app build.') : 'Example: http://192.168.1.52:11434. Use your Mac’s Wi-Fi address, not localhost, on your phone.'}
               </Text>
               <TextInput
                 value={keyDraft}
@@ -474,10 +458,12 @@ export default function SettingsScreen() {
                   <Text style={[textStyles.body, { color: colors.textSecondary, fontWeight: '600' }]}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => {
-                    keyModal.onSave(keyDraft.trim());
-                    closeKeyModal();
-                    triggerHaptic('light');
+                  disabled={savingConnection}
+                  onPress={async () => {
+                    setSavingConnection(true);
+                    try { await keyModal.onSave(keyDraft.trim()); closeKeyModal(); setKeyDraft(''); triggerHaptic('light'); }
+                    catch { Alert.alert('Could not save', 'The setting could not be saved. Please try again.'); }
+                    finally { setSavingConnection(false); }
                   }}
                   style={{ flex: 1, paddingVertical: spacing.md, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center' }}
                 >

@@ -94,8 +94,7 @@ interface SettingsState {
   cloudAiEnabled: boolean;
   useOfflineAIFallback: boolean;
   aiOfflineMode: boolean;
-  aiServerUrl: string;
-  aiServerToken: string;
+  macOllamaUrl: string;
 
   // Actions
   setTheme: (theme: ThemeMode) => void;
@@ -118,8 +117,7 @@ interface SettingsState {
   setPassingMarks: (marks: number) => void;
   setTheoryConfig: (config: TheoryGradingConfig) => void;
   setPracticalConfig: (config: PracticalGradingConfig) => void;
-  setAiServerUrl: (url: string) => void;
-  setAiServerToken: (token: string) => void;
+  setMacOllamaUrl: (url: string) => void;
   setAiOfflineMode: (offline: boolean) => void;
   resetSettings: () => void;
 }
@@ -256,13 +254,12 @@ export const useSettingsStore = create<SettingsState>()(
         labMaxExternalMarks: Math.max(1, config.labMaxExternalMarks),
       }),
 
-      setAiServerUrl: (url) => set({ aiServerUrl: url.trim().replace(/\/+$/, ''), aiOfflineMode: false }),
-      setAiServerToken: (token) => set({ aiServerToken: token.trim() }),
+      setMacOllamaUrl: (url) => set({ macOllamaUrl: url.trim().replace(/\/+$/, ''), aiOfflineMode: false }),
       setAiOfflineMode: (offline) => set({ aiOfflineMode: offline }),
     }),
     {
       name: 'settings-storage',
-      version: 1,
+      version: 2,
       migrate: (persisted) => {
         const saved = (persisted ?? {}) as Record<string, unknown>;
         return { ...initialState, ...Object.fromEntries(Object.keys(initialState)

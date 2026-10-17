@@ -1,6 +1,6 @@
 # CampusIQ browser demo on Render
 
-Choose **Static Site**. The offline demo does not need a Web Service, database, login provider, or AI API keys. Real Gemma inference requires the separate model server described in GEMMA_SETUP.md.
+Choose **Static Site**. The offline demo does not need a Web Service, database, login provider, or AI API keys. Real Gemma inference uses a Google key entered in the app; optional fallback connects directly to Ollama as described in GEMMA_SETUP.md.
 
 ## What is included
 
@@ -11,7 +11,7 @@ Choose **Static Site**. The offline demo does not need a Web Service, database, 
 - Report export through the browser print menu: choose Save as PDF where the browser supports it.
 - A clearly labeled local demo assistant for attendance, timetable, and grade summaries.
 
-The static site alone provides offline calculations. A configured reachable Gemma server enables model answers. The static site does not provide biometric locks, scheduled background notifications, or cloud sync. These require mobile APIs or additional hosted services. Every visitor has their own browser storage; clearing site data removes it. Private browsing/storage restrictions may limit persistence.
+The static site alone provides offline calculations. A Google key entered in the app enables direct cloud answers; a configured Mac URL enables local Ollama fallback. The static site does not provide biometric locks, scheduled background notifications, or cloud sync. These require mobile APIs or additional hosted services. Every visitor has their own browser storage; clearing site data removes it. Private browsing/storage restrictions may limit persistence.
 
 ## 1. Put the changes on GitHub
 
@@ -82,7 +82,7 @@ Open http://localhost:4173/. The preview serves the production build with the sa
 
 ## How mobile behavior is preserved
 
-Browser adapters use `.web.ts` / `.web.tsx` files. Their native counterparts re-export the existing native APIs. Local storage, notification logic, and biometric functionality use native implementations. AI now uses a shared client and a separate Gemma proxy; provider credentials stay on the server. Shared edits route imports through these adapters, enable web picker buttons, add accessible form labels, and choose the browser-only layout/demo notices. The initial browser conversion kept native dependency versions unchanged. The subsequent security update refreshes dependencies within the existing declared version ranges and pins patched UUID 11.1.1 only for the Xcode and optional ngrok tooling; their used v4 APIs are covered by compatibility tests. React Native remains 0.86.3 and Expo remains on SDK 57.
+Browser adapters use `.web.ts` / `.web.tsx` files. Their native counterparts re-export the existing native APIs. Local storage, notification logic, and biometric functionality use native implementations. AI uses a shared client that calls Google or Ollama directly. Native keys use SecureStore; browser keys stay in memory. Shared edits route imports through these adapters, enable web picker buttons, add accessible form labels, and choose the browser-only layout/demo notices. The initial browser conversion kept native dependency versions unchanged. The subsequent security update refreshes dependencies within the existing declared version ranges and pins patched UUID 11.1.1 only for the Xcode and optional ngrok tooling; their used v4 APIs are covered by compatibility tests. React Native remains 0.86.3 and Expo remains on SDK 57.
 
 ## References
 

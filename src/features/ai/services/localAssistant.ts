@@ -32,7 +32,7 @@ export async function askLocalAssistant(query: string, _isAlreadyOffline = false
   } else if (/grade|sgpa|cgpa|performance|summary/.test(q)) {
     reply = `Semester: ${context.currentSemester}\nCGPA: ${context.cgpa > 0 ? context.cgpa.toFixed(2) : 'Not entered yet'}\nSGPA: ${context.sgpa != null ? context.sgpa.toFixed(2) : 'Not entered yet'}\n\n` + context.subjects.map(s => `${s.name} · ${s.credits} credits${s.grade ? ` · Grade ${s.grade}` : ''}`).join('\n') + '\n\nOpen the SGPA Forecaster to experiment with target marks and grade predictions.';
   } else {
-    reply = 'I can calculate attendance insights, show your schedule, and summarize your grades. Try “How many classes can I skip?”, “What classes do I have tomorrow?”, or “Show my academic summary”. For other questions, connect your Gemma server in Settings.';
+    reply = 'I can calculate attendance insights, show your schedule, and summarize your grades. Try “How many classes can I skip?”, “What classes do I have tomorrow?”, or “Show my academic summary”. For other questions, configure Gemma API or your Mac in Settings.';
   }
   return { reply: disclaimer + reply, isFallback: true };
 }

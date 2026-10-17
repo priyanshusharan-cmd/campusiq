@@ -8,77 +8,70 @@ Your campus companion for attendance, timetables, grades, assignments, and acade
 React Native · Expo · TypeScript · Zustand · Gemma 4 · MIT
 </div>
 
-## What it does
+## Features
 
-- Track attendance and calculate how many classes you can miss while meeting a target.
-- Manage subjects, timetables, assignments, and exams.
-- Forecast SGPA and track CGPA.
-- Ask an assistant about saved academic data, with an optional notice or timetable image attachment.
-- Keep academic records locally on your device or browser.
+Track attendance, calculate attendance targets, manage subjects and deadlines, view your timetable, forecast SGPA, and track CGPA. Ask Gemma about your academic summary or attach a college notice/timetable image.
 
-## Gemma: API first, local fallback
+## How AI works
 
-The assistant uses this fixed order:
+**Your phone → Google directly**, using `gemma-4-26b-a4b-it` through the Gemini API. Your Mac can be off. No CampusIQ backend is required.
 
-1. **Gemma API:** `gemma-4-26b-a4b-it` through Google's Gemini API.
-2. **Gemma on your Mac:** `gemma4:e4b-it-qat` through local Ollama, if fallback is enabled.
-3. **Offline calculations:** clearly labeled attendance, timetable, and grade summaries if neither model is reachable and fallback is enabled.
+If Google is unavailable and **Allow Local Fallback** is enabled, the phone calls **Ollama on your Mac directly**, using the downloaded `gemma4:e4b-it-qat`. Your Mac computes the answer and sends it to the phone. You can also turn Cloud AI off to choose the Mac manually. Both the Ollama desktop app and CLI provide the same model API.
 
-Gemma and Gemini are different model families. The Gemini API hosts Gemma too. This app's model server only calls Gemma; there are no AWS or OpenAI fallbacks. There are no simulated model responses. Each answer identifies its source. Every new question retries the API first.
+Text-only questions can use clearly labeled offline calculations if neither model is reachable. Images never receive a fabricated calculation-based answer. Every model answer identifies its provider, and every new cloud-enabled question retries Google first. No paid-provider fallbacks or simulated model responses exist.
 
-A small Node server holds the Google API key. The app sends its question and an academic summary to that server; with Cloud AI enabled, the server sends them to Google. With Cloud AI off, only local Gemma is attempted. Image attachments (JPEG/PNG/WebP, up to 3 MB) follow the same provider order; the chat shows a preview before sending. Images are held in chat memory, not persisted in academic records. Failed image requests produce an explicit error, never a calculation pretending to understand the image. Offline calculations don't send data to a model. Academic summaries currently contain subjects, recorded attendance, grades, semester, and GPA; model chat does not yet include assignment deadlines or timetable entries. The offline calculator can read the timetable. The assistant cannot modify your saved records.
+The assistant receives subjects, recorded attendance, grades, semester, and GPA. Timetables and assignment deadlines are not yet included in model context; the offline calculator can read the timetable. The assistant suggests actions but does not modify saved records. Images are JPEG/PNG/WebP, up to 3 MB, with preview/removal before sending. Chat images are not saved to academic records.
 
-Google currently lists Gemma API input/output as free, subject to quota and availability. Use an AI Studio project on the **free tier**, without enabling billing. The code cannot inspect your Google billing status or promise future pricing. Local Ollama inference has no API fees and requires a model download, disk space, memory, and a running Mac.
+## iPhone setup
 
-## Run locally
+1. Install dependencies with `npm ci` and run `npm start`, or build a new native iPhone version. The latest native version needs Expo SecureStore and local-network permissions; an older installed binary must be rebuilt.
+2. In **Settings → AI Assistant → Google AI Studio API Key**, enter your own free-tier Google key. It is stored in the iPhone Keychain through Expo SecureStore, not in source, exported bundles, or regular settings storage.
+3. Enable **Cloud AI**. The phone connects directly to Google over its own internet connection.
+4. Optionally configure the **Mac Ollama URL**, such as `http://192.168.1.52:11434`, and enable **Allow Local Fallback**. Use your Mac's actual current Wi-Fi IP, not `localhost`, on the phone.
 
-Use Node.js 22 or newer, npm, and (for local inference) [Ollama](https://ollama.com/download).
+Your Google key must belong to a project kept on Google's free tier. Gemma input/output is currently listed as free, subject to quota and availability. The app cannot inspect your Google billing tier or guarantee future pricing. Do not enable paid billing to resolve quota exhaustion.
 
-```bash
-npm ci
-cp server/.env.example server/.env
-```
+Each installation uses its owner's key. Never embed a shared developer key in a public app build. Google receives cloud questions, academic summaries, and attached images; free-tier content may be used to improve Google products. Local requests go only to your Mac.
 
-Put your Google AI Studio key in `server/.env` as `GEMINI_API_KEY`. Never put provider secrets in `EXPO_PUBLIC_*`, source files, or chat. The server config is ignored by Git.
+## Optional Mac fallback
 
-Start the model server:
-
-```bash
-npm run start:ai
-```
-
-For the optional offline model, in separate terminals:
-
-```bash
-OLLAMA_NO_CLOUD=1 ollama serve
-```
+Install the official [Ollama desktop app](https://ollama.com/download), or use the Ollama CLI. Download the local model once:
 
 ```bash
 ollama pull gemma4:e4b-it-qat
 ```
 
-The quantized local model is approximately 6.1 GB. It runs on the server Mac, not inside each user's phone. Quit it when unused to free memory. Ollama must be running when fallback is needed.
-
-Start the app:
+For the desktop app, configure its local-network listener from Terminal, replacing the example with your Mac's actual Wi-Fi address, then quit/reopen Ollama:
 
 ```bash
-npm start
+launchctl setenv OLLAMA_HOST '192.168.1.52:11434'
+launchctl setenv OLLAMA_NO_CLOUD '1'
 ```
 
-Or build and preview the browser app:
+Alternatively, quit the desktop app and run the CLI listener:
+
+```bash
+OLLAMA_HOST=192.168.1.52:11434 OLLAMA_NO_CLOUD=1 ollama serve
+```
+
+Use one listener at a time. Your Mac must be awake and reachable, and Ollama must be running. The phone and Mac can communicate over the same Wi-Fi without internet. Guest Wi-Fi isolation or a firewall can block the connection. Allow local-network access when iOS asks. Ollama's API has no built-in authentication; use only your trusted private network and do not publish its port to the internet. If the Wi-Fi IP changes, update both the listener and phone setting.
+
+The desktop app and CLI share model files. On this development Mac, **Ollama.app is in `/Applications`** and the 6.1 GB Gemma model lives in **`~/Documents/CampusIQ-Gemma/models`**, linked from `~/.ollama/models`. Quit Ollama before deleting the model folder after the hackathon. No retraining or second download is required.
+
+See [Gemma setup and verification](docs/GEMMA_SETUP.md) for details.
+
+## Browser demo
 
 ```bash
 npm run build:web
 npm run preview:web
 ```
 
-Open **Settings → AI Assistant → AI Server URL**, enter `http://127.0.0.1:8787` for a browser or iOS simulator on the same Mac, and leave the token empty for the default loopback-only server. Enable Cloud AI and Allow Local Fallback for API-first behavior. Save a URL only for a server you trust with your academic summary.
+The browser uses the same direct Google/local Ollama routing. A browser API key is held only in module memory and cleared by a page reload; it is never persisted in browser storage. Set it in Settings after each reload. Native iPhone keys remain securely stored between launches.
 
-For a physical phone on the same Wi-Fi, use your Mac's LAN IP instead of `localhost`. Set `AI_HOST=0.0.0.0` and a strong `AI_SERVER_TOKEN` in `server/.env`, restart the server, and enter that token in app Settings. Keep Ollama itself bound to loopback. A hosted HTTPS browser cannot generally call a Mac's HTTP backend; use the local browser preview for this setup. Native HTTP LAN access may require platform-specific development transport settings; test your installed build on your phone. Do not expose this development server publicly.
+A hosted HTTPS browser may block HTTP calls to a local Mac. Use the local browser preview or the native phone app for local fallback. See the [static deployment guide](docs/RENDER_DEPLOYMENT.md).
 
-See [Gemma setup and verification](docs/GEMMA_SETUP.md) for diagnostics and [browser deployment](docs/RENDER_DEPLOYMENT.md) for the optional static demo. A static deployment alone does not run the model server. Without a configured reachable server, the app retains labeled offline calculations.
-
-## Checks
+## Validation
 
 ```bash
 npx tsc --noEmit
@@ -89,10 +82,10 @@ npm run test:security
 npm run build:web
 ```
 
-AI tests mock providers to verify API priority, quota/timeout fallback, local-only privacy, disabled fallback, honest labeling, authentication, CORS, and input limits. No paid inference is used by the automated tests.
+AI tests use mocked providers without consuming Google quota. They verify direct Google access with no Mac configured, fallback, local-only mode, disabled fallback, images, credential isolation, secure storage, and settings migration.
 
 ## Contributing and license
 
-Contributions are welcome: open an issue or submit a pull request with a focused change and validation notes. CampusIQ is licensed under [MIT](LICENSE). Gemma model weights are distributed separately under their own terms.
+Contributions are welcome through focused issues and pull requests. CampusIQ is licensed under [MIT](LICENSE). Gemma model weights are distributed separately under their own terms.
 
-Model references: [Gemma via Gemini API](https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api), [pricing](https://ai.google.dev/gemini-api/docs/pricing#gemma-4), [Gemma with Ollama](https://ai.google.dev/gemma/docs/integrations/ollama).
+References: [Gemma API](https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api), [pricing](https://ai.google.dev/gemini-api/docs/pricing#gemma-4), [Ollama networking](https://docs.ollama.com/faq), [Expo SecureStore](https://docs.expo.dev/versions/latest/sdk/securestore/).

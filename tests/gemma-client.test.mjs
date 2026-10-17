@@ -3,77 +3,131 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
-
-function client(settings, fetchImpl) {
-  const source = ts.transpileModule(readFileSync('src/features/ai/services/aiService.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-  const dependencies = {
+function load(path, dependencies, globals = {}) {
+  const source = ts.transpileModule(readFileSync(path, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const exports = {};
+  vm.runInNewContext(source, { exports, require: name => { if (!(name in dependencies)) throw new Error(`Unexpected import: ${name}`); return dependencies[name]; }, Error, URL, AbortController, setTimeout, clearTimeout, ...globals });
+  return exports;
+}
+const settings = { macOllamaUrl: 'http://192.168.1.52:11434', cloudAiEnabled: true, useOfflineAIFallback: true };
+const success = data => ({ ok: true, json: async () => data });
+function client(preferences, fetchImpl, key = 'test-google-key') {
+  return load('src/features/ai/services/aiService.ts', {
     './contextBuilder': { buildAcademicContext: () => ({ subjects: [] }) },
     './localAssistant': { askLocalAssistant: async () => ({ reply: 'Offline calculations', isFallback: true }) },
-    '@/stores/useSettingsStore': { useSettingsStore: { getState: () => settings } },
-  };
-  const exports = {};
-  vm.runInNewContext(source, { exports, require: name => dependencies[name], fetch: fetchImpl, Error, URL, AbortController, setTimeout, clearTimeout });
-  return exports.askCampusIQAI;
+    '@/stores/useSettingsStore': { useSettingsStore: { getState: () => preferences } },
+    '@/platform/googleApiKey': { getGoogleApiKey: async () => key },
+  }, { fetch: fetchImpl }).askCampusIQAI;
 }
-const settings = { aiServerUrl: 'http://127.0.0.1:8787', aiServerToken: 'access', cloudAiEnabled: true, useOfflineAIFallback: true };
 
-test('client always retries API after fallback and sends preferences to backend only', async () => {
-  const ask = client({ ...settings, cloudAiEnabled: false }, async (url, options) => {
-    assert.equal(url, settings.aiServerUrl + '/api/chat');
-    assert.equal(options.headers.Authorization, 'Bearer access');
-    assert.equal(JSON.parse(options.body).allowCloud, false);
-    assert.equal(JSON.parse(options.body).allowLocal, true);
-    return { ok: true, json: async () => ({ reply: 'Plan', provider: 'gemma-local', model: 'gemma4:e4b-it-qat' }) };
-  });
-  const reply = await ask('Plan my week', true);
-  assert.equal(reply.provider, 'gemma-local');
-  assert.match(reply.reply, /Gemma on your Mac/);
-});
-
-test('unconfigured app makes no network request and labels deterministic fallback', async () => {
-  const ask = client({ ...settings, aiServerUrl: '' }, () => { throw new Error('must not call'); });
-  const reply = await ask('Attendance');
-  assert.equal(reply.provider, 'calculations');
-  assert.match(reply.reply, /Connect an AI Server URL/);
-});
-
-test('fallback disabled exposes connection failure instead of fabricating model output', async () => {
-  const ask = client({ ...settings, useOfflineAIFallback: false }, async () => { throw new Error('Server down'); });
-  await assert.rejects(ask('hello'), /Server down/);
-});
-
-test('non-local HTTP is rejected before sending academic data or token', async () => {
-  const ask = client({ ...settings, aiServerUrl: 'http://example.com', useOfflineAIFallback: false }, () => { throw new Error('must not call'); });
-  await assert.rejects(ask('hello'), /Use HTTPS/);
-});
-
-test('a genuine cloud response is labeled as Gemma API', async () => {
-  const reply = await client(settings, async () => ({ ok: true, json: async () => ({ reply: 'Hi', provider: 'gemma-api' }) }))('hello');
+test('phone calls Google directly with no Mac configured or contacted', async () => {
+  let count = 0;
+  const reply = await client({ ...settings, macOllamaUrl: '' }, async (url, options) => {
+    count++;
+    assert.equal(url, 'https://generativelanguage.googleapis.com/v1beta/models/gemma-4-26b-a4b-it:generateContent');
+    assert.equal(options.headers['x-goog-api-key'], 'test-google-key');
+    assert.ok(!options.body.includes('test-google-key'));
+    return success({ candidates: [{ content: { parts: [{ thought: true, text: 'hidden' }, { text: 'Hello' }] } }] });
+  })('Hello', true);
+  assert.equal(count, 1);
+  assert.equal(reply.provider, 'gemma-api');
   assert.equal(reply.isFallback, false);
-  assert.match(reply.reply, /Gemma API/);
+  assert.ok(!reply.reply.includes('hidden'));
 });
-
-test('settings migration preserves academic preferences and removes legacy provider secrets', () => {
-  const source = ts.transpileModule(readFileSync('src/stores/useSettingsStore.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+for (const failure of ['quota', 'network', 'empty']) {
+  test(`${failure} on Google falls back directly to Mac without sending Google key`, async () => {
+    let count = 0;
+    const reply = await client(settings, async (url, options) => {
+      if (++count === 1) {
+        if (failure === 'network') throw new Error('No internet');
+        return failure === 'empty' ? success({}) : { ok: false, status: 429 };
+      }
+      assert.equal(url, settings.macOllamaUrl + '/api/chat');
+      assert.equal(options.headers['x-goog-api-key'], undefined);
+      assert.ok(!options.body.includes('test-google-key'));
+      assert.equal(JSON.parse(options.body).model, 'gemma4:e4b-it-qat');
+      return success({ message: { content: 'Local plan' } });
+    })('Plan my study week');
+    assert.equal(count, 2);
+    assert.equal(reply.provider, 'gemma-local');
+  });
+}
+test('manual local mode never calls Google', async () => {
+  const reply = await client({ ...settings, cloudAiEnabled: false }, async url => {
+    assert.ok(url.startsWith(settings.macOllamaUrl));
+    return success({ message: { content: 'Local only' } });
+  })('Hello');
+  assert.equal(reply.provider, 'gemma-local');
+});
+test('disabling fallback prevents any Mac calls', async () => {
+  let count = 0;
+  await assert.rejects(client({ ...settings, useOfflineAIFallback: false }, async url => {
+    count++; assert.ok(url.startsWith('https://generativelanguage.googleapis.com/'));
+    return { ok: false, status: 429 };
+  })('Hello'), /HTTP 429/);
+  assert.equal(count, 1);
+});
+test('no credentials or Mac gives labeled calculations without network requests', async () => {
+  const reply = await client({ ...settings, macOllamaUrl: '' }, () => { throw new Error('must not call'); }, '')('Attendance');
+  assert.equal(reply.provider, 'calculations');
+  assert.match(reply.reply, /Add your Google AI Studio key/);
+});
+test('images reach Google and Mac in their respective formats', async () => {
+  const image = { mimeType: 'image/png', data: 'iVBORw0KGgo=' };
+  let count = 0;
+  const reply = await client(settings, async (_url, options) => {
+    const body = JSON.parse(options.body);
+    if (++count === 1) {
+      assert.deepEqual(body.contents[0].parts[1].inline_data, { mime_type: image.mimeType, data: image.data });
+      return { ok: false, status: 429 };
+    }
+    assert.deepEqual(body.messages[0].images, [image.data]);
+    return success({ message: { content: 'A notice' } });
+  })('Read image', false, image);
+  assert.equal(reply.provider, 'gemma-local');
+});
+test('failed images are never answered using deterministic calculations', async () => {
+  await assert.rejects(client({ ...settings, macOllamaUrl: '' }, () => {}, '')('Read image', false,
+    { mimeType: 'image/png', data: 'iVBORw0KGgo=' }), /image was not analyzed/);
+});
+test('invalid image types are rejected before contacting any provider', async () => {
+  await assert.rejects(client(settings, () => { throw new Error('must not call'); })('Read image', false,
+    { mimeType: 'image/svg+xml', data: 'abcd' }), /JPEG, PNG, or WebP/);
+});
+test('non-local HTTP cannot receive academic data', async () => {
+  const reply = await client({ ...settings, cloudAiEnabled: false, macOllamaUrl: 'http://example.com' }, () => { throw new Error('must not call'); })('Hello');
+  assert.equal(reply.provider, 'calculations');
+});
+test('settings migration preserves preferences and removes old backend configuration', () => {
   let options;
-  const dependencies = {
-    '@/platform/aiDefaults': { aiDefaults: { aiServerUrl: '', aiServerToken: '' } },
+  load('src/stores/useSettingsStore.ts', {
+    '@/platform/aiDefaults': { aiDefaults: { macOllamaUrl: '' } },
     'zustand': { create: () => initializer => initializer },
     'zustand/middleware': { persist: (initializer, config) => { options = config; return initializer; }, createJSONStorage: fn => fn() },
     '@/constants': { DEFAULTS: { attendanceTarget: 75, reminderMinutesBefore: 10 } },
     './storage': { zustandStorage: {} },
-  };
-  vm.runInNewContext(source, { exports: {}, require: name => dependencies[name] });
-  const migrated = options.migrate({ attendanceTarget: 80, theme: 'dark', geminiKey: 'old-key', awsSecretKey: 'old-secret', aiModelPriority: ['aws'], demoModeEnabled: true });
+  });
+  const migrated = options.migrate({ attendanceTarget: 80, theme: 'dark', aiServerUrl: 'http://localhost:8787', aiServerToken: 'old-token', geminiKey: 'old-key' });
   assert.equal(migrated.attendanceTarget, 80);
   assert.equal(migrated.theme, 'dark');
-  assert.equal(migrated.aiServerUrl, '');
-  for (const key of ['geminiKey', 'awsSecretKey', 'aiModelPriority', 'demoModeEnabled']) assert.ok(!(key in migrated));
-  const setTheme = () => {};
-  assert.equal(options.merge(migrated, { setTheme }).setTheme, setTheme);
+  assert.equal(migrated.macOllamaUrl, '');
+  for (const key of ['geminiKey', 'aiServerUrl', 'aiServerToken']) assert.ok(!(key in migrated));
 });
-
-test('image failures never produce deterministic calculations pretending to analyze the image', async () => {
-  const ask = client({ ...settings, aiServerUrl: '' }, () => { throw new Error('must not call'); });
-  await assert.rejects(ask('Read the image', false, { mimeType: 'image/png', data: 'iVBORw0KGgo=' }), /image was not analyzed/);
+test('native Google key is stored in SecureStore and can be removed', async () => {
+  const values = new Map();
+  const keys = load('src/platform/googleApiKey.ts', { 'expo-secure-store': {
+    WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'device-only', getItemAsync: async key => values.get(key),
+    setItemAsync: async (key, value, options) => { assert.equal(options.keychainAccessible, 'device-only'); values.set(key, value); },
+    deleteItemAsync: async key => values.delete(key),
+  } });
+  await keys.setGoogleApiKey(' my-key ');
+  assert.equal(await keys.getGoogleApiKey(), 'my-key');
+  await keys.setGoogleApiKey('');
+  assert.equal(await keys.getGoogleApiKey(), '');
+});
+test('browser Google key stays in memory and is cleared by reload', async () => {
+  const first = load('src/platform/googleApiKey.web.ts', {});
+  await first.setGoogleApiKey('test-key');
+  assert.equal(await first.getGoogleApiKey(), 'test-key');
+  assert.equal(await load('src/platform/googleApiKey.web.ts', {}).getGoogleApiKey(), '');
 });

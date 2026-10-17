@@ -1,35 +1,35 @@
-# Gemma setup
+# Gemma setup: direct Google, optional Mac
 
-CampusIQ uses a Node proxy at port 8787, hosted Gemma first, and a quantized local Gemma model as fallback. See the root README for startup commands.
+There is no CampusIQ model backend. Google calls originate on the phone; local fallback calls go directly to Ollama on the Mac. See the README for startup and network settings.
 
-## Free Google API
+## Google API key
 
-1. Open https://aistudio.google.com/api-keys and create/select a project and key.
-2. Check the project's billing/usage tier in AI Studio. Keep it on Free. Do not enable paid billing to resolve quotas.
-3. Put the key only in `server/.env`, using `GEMINI_API_KEY=...`.
-4. Run `npm run start:ai` and configure the server URL in app Settings.
+Create/select a key at https://aistudio.google.com/api-keys using a project on the Free tier. Enter it once in the native app's Settings. Expo SecureStore saves it to the iOS Keychain/Android encrypted storage. No developer key is compiled into the app. The current model is pinned to `gemma-4-26b-a4b-it`; the Google key is sent only to Google's HTTPS endpoint.
 
-The model is pinned to `gemma-4-26b-a4b-it`. An error or exhausted quota moves to local Gemma if allowed, never another cloud model. The app doesn't verify billing status; check it in Google's console. Free-tier data may be used to improve Google products: use sample records for public demos.
+The old proxy is removed. Its development key was preserved in the ignored root `.env` under `GEMINI_API_KEY`, not an `EXPO_PUBLIC_*` variable. It is not automatically transferred to the phone; enter your own key locally. Do not paste it into chat or publish it. Browser keys are session-memory only and clear on reload. Saving an empty key removes it. Deleting app data through Settings removes the key too.
 
-## Local fallback on your Mac
+## Ollama desktop app and CLI
 
-Install Ollama, start `OLLAMA_NO_CLOUD=1 ollama serve`, and download `ollama pull gemma4:e4b-it-qat`. The explicit quantized tag avoids selecting a larger hardware-specific default. Model files live in `~/.ollama/models`, outside this Git repository. No fine-tuning or training is needed.
+Both serve the same HTTP API. On this Mac the official app is `/Applications/Ollama.app`, while the Homebrew CLI remains available as `ollama`. Use only one listener at a time. The model is `gemma4:e4b-it-qat`, approximately 6.1 GB. Its files are in `~/Documents/CampusIQ-Gemma/models`; `~/.ollama/models` is a directory symlink pointing there. The app and CLI reuse this model.
 
-Local inference requires enough free RAM. Close unused apps and keep prompts modest. The server uses a 4096-token context and 512-token local output cap to limit memory and waiting time. Google has a 45-second request timeout; Ollama has 90 seconds, including loading. If neither responds, the app can use deterministic calculations. Restarting Ollama may be necessary after a Mac restart; installation doesn't enable automatic login services.
+To use the phone, configure the desktop app's `OLLAMA_HOST` to the Mac's Wi-Fi address, quit/reopen Ollama, and use that same URL in phone Settings. This Mac's address during setup was `192.168.1.52`. `localhost` on an iPhone refers to the iPhone, not your Mac. Keep `OLLAMA_NO_CLOUD=1` for Ollama. Your phone and Mac must be on the same trusted Wi-Fi, the Mac must be awake, and the local network must allow device-to-device connections. iOS local-network access and Mac firewall permission may need approval on your devices. No internet is needed for this local path.
 
-## Verify both paths
+The app requests a 4096-token local context and up to 512 output tokens. Cloud requests time out after 45 seconds; local requests after 90 seconds. No repeated background inference or automatic paid retries occur.
 
-- With the server URL set and both switches enabled, ask about your academic summary. Expect **Gemma API** with the hosted model ID.
-- Switch **Enable Cloud AI** off, ask again, and expect **Gemma on Mac** with the local model ID. This makes no Google inference request.
-- Re-enable Cloud AI and ask another question. It retries the API first.
-- Attach a JPEG, PNG, or WebP image using the image button, check the preview, then send a question. The same API-first/local fallback order applies.
-- Stop the model server and ask about attendance. Expect **Calculations**, a connection explanation, and an explicit statement that no model generated the result.
-- Disable **Allow Local Fallback** and stop the server. The app must report the connection failure instead of generating a fallback answer.
+## Verify routing
 
-## Connectivity
+1. Add a Google key, enable Cloud AI, and leave the Mac URL blank. A successful answer shows **Gemma API**, proving no Mac dependency.
+2. Set the optional Mac URL and turn Cloud AI off. Expect **Gemma on Mac**, including for image questions.
+3. Re-enable Cloud AI. The next question tries Google first again.
+4. With no reachable provider, text questions can get **Calculations** when fallback is allowed. Image questions get an explicit error.
+5. With fallback off, Google failure is shown without contacting the Mac.
 
-`GET /health` confirms the proxy is running and whether a key is configured, without revealing it. A configured key is not proof that it is valid or that Google has quota. `POST /api/chat` returns the actual provider/model used.
+Existing real hosted inference and local image inference were verified before the routing change. The new direct routing and image serialization are covered by automated mocked tests; physical-iPhone network and permission testing is still needed. No new Google requests or UI screen sharing were used for this change.
 
-The proxy defaults to `127.0.0.1`, permits only local development browser origins, limits academic context to 32 KB and the full body to about 4.2 MB (one image up to 3 MB), caps questions at 2000 characters, handles one generation at a time, and allows ten model requests per minute. LAN binding requires an access token; set trusted browser origins explicitly with `AI_ALLOWED_ORIGINS` if needed. The Google key never goes to the app or Ollama. Browser HTTPS and native transport policies may prevent reaching a plain HTTP LAN server; public deployment needs a properly secured HTTPS backend.
+## Native builds
 
-This is a local development server, not a multi-user hosting service. API availability depends on internet/quota; local fallback depends on reaching the Mac. Downloading the model does not make it run on a disconnected phone.
+Rebuild installed native versions for Expo SecureStore and local-network transport configuration. iOS gets a local-network explanation and ATS local-network support. Android permits cleartext transport for the local Ollama endpoint; app URL validation accepts HTTP only for loopback/private network hosts. Google always uses HTTPS. Do not expose Ollama to the public internet: it has no built-in API authentication.
+
+## Remove after the hackathon
+
+Quit Ollama. Delete `~/Documents/CampusIQ-Gemma` to remove downloaded weights. Remove the `~/.ollama/models` symlink if it remains broken. Remove `/Applications/Ollama.app` if no longer needed. The Homebrew CLI is a separate installation; `brew uninstall ollama` removes it. `launchctl unsetenv OLLAMA_HOST` and `launchctl unsetenv OLLAMA_NO_CLOUD` clear the app listener settings. These operations don't delete CampusIQ academic records.

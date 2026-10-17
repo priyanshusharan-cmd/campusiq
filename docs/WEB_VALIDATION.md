@@ -80,3 +80,14 @@ The shared assistant now connects to a separate model server: hosted Gemma first
 - TypeScript and ESLint for changed source files pass. Web and native bundle exports pass.
 - No provider API key found in the exported web, Android, or iOS bundles.
 - Browser interaction stopped at the user's request before image-picker UI testing; installed-phone testing remains outstanding.
+
+
+## Direct phone routing update — 17 October 2026
+
+This supersedes the proxy architecture described in the historical validation above. The Node model server has been removed. The native phone calls Google directly with a user-provided SecureStore key and calls Ollama on the Mac only as fallback or in local-only mode. The browser uses the same routing, with a memory-only key. Old proxy settings are removed by a preference-preserving migration.
+
+Ollama.app is installed in Applications. The model was moved to Documents/CampusIQ-Gemma/models and linked from the default Ollama model directory. The desktop app is configured for the current Mac Wi-Fi IP with Ollama cloud features disabled. Physical-iPhone connectivity and system-permission prompts remain untested. Browser automation remains stopped at the user's request.
+
+- Updated routing/storage tests: all 14 AI tests pass; all 16 existing web/layout/security tests pass (30 total).
+- TypeScript, changed-source ESLint, and web/Android/iOS bundle exports pass. The private Google key is absent from all three exports.
+- No live Google request was made for this routing change.

@@ -57,7 +57,7 @@ test('file importer accepts only local document URLs', async () => {
 
 test('browser connection defaults contain no provider credentials', () => {
   const adapter = load('src/platform/aiDefaults.web.ts');
-  assert.deepEqual(Object.values(adapter.aiDefaults), ['', '']);
+  assert.deepEqual(Object.values(adapter.aiDefaults), ['']);
 });
 
 test('JSON sharing downloads a named file and releases its temporary contents', async () => {
@@ -118,5 +118,5 @@ test('demo assistant uses the saved attendance target and never calls a provider
   assert.match(answer.reply, /miss 4 more classes/);
   assert.match(answer.reply, /without a cloud AI model/);
   const unknown = await service.askLocalAssistant('Write my essay');
-  assert.match(unknown.reply, /connect your Gemma server/);
+  assert.match(unknown.reply, /configure Gemma API or your Mac/);
 });
