@@ -35,9 +35,10 @@ export default function CampusAIModal() {
     {
       id: 'welcome',
       role: 'assistant',
-      content: "Ask about your attendance, grades, or semester. You can also attach an image.",
+      content: "Hello there. How can I help you today?",
     },
   ]);
+  const [inputFocused, setInputFocused] = useState(false);
   const [input, setInput] = useState('');
   const [attachment, setAttachment] = useState<(AIImage & { uri: string }) | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -169,7 +170,7 @@ export default function CampusAIModal() {
 
       {attachmentMenu && <Pressable accessibilityRole="button" accessibilityLabel="Close attachment menu" onPress={() => setAttachmentMenu(false)} style={[StyleSheet.absoluteFill, { zIndex: 20 }]} />}
       <View style={[styles.composerDock, { backgroundColor: theme.colors.bg }]}>
-        <View style={[styles.composer, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+        <View style={[styles.composer, { backgroundColor: theme.colors.surface, borderColor: inputFocused ? theme.colors.textTertiary : theme.colors.border }]}>
           {attachment && <View style={styles.attachmentTray}>
             <View style={[styles.attachmentTile, { borderColor: theme.colors.borderLight, backgroundColor: theme.colors.bg }]}>
               <Image source={{ uri: attachment.uri }} accessibilityLabel="Image preview" style={styles.attachmentImage} resizeMode="cover" />
@@ -184,12 +185,13 @@ export default function CampusAIModal() {
             </TouchableOpacity>
             <TextInput
               accessibilityLabel="Message CampusIQ"
-              style={[theme.textStyles.body, styles.input, { color: theme.colors.textPrimary }]}
+              style={[theme.textStyles.body, styles.input, Platform.OS === 'web' && styles.webInput, { color: theme.colors.textPrimary }]}
               placeholder="Message CampusIQ…"
               placeholderTextColor={theme.colors.textTertiary}
               value={input}
               onChangeText={setInput}
-              onFocus={() => setAttachmentMenu(false)}
+              onFocus={() => { setAttachmentMenu(false); setInputFocused(true); }}
+              onBlur={() => setInputFocused(false)}
               onKeyPress={event => { if (event.nativeEvent.key === 'Escape') setAttachmentMenu(false); }}
               onSubmitEditing={sendMessage}
               returnKeyType="send"
@@ -275,6 +277,7 @@ const styles = StyleSheet.create({
   composer: { borderWidth: 1, borderRadius: 26, padding: 6 },
   composerRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   input: { flex: 1, minWidth: 0, height: 44, paddingHorizontal: 4 },
+  webInput: { outlineWidth: 0 },
   addButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
   sendButton: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', marginRight: 2 },
   attachmentTray: { padding: 8, paddingBottom: 5, flexDirection: 'row' },
