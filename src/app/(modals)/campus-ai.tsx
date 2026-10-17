@@ -19,6 +19,7 @@ import { useTheme } from '@/theme';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from '@/platform/alert';
 import { askCampusIQAI, type AIProvider, type AIImage } from '@/features/ai/services/aiService';
+import ImageDropZone from '@/platform/ImageDropZone';
 import { AssistantAnswer } from '@/features/ai/components/AssistantAnswer';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 
@@ -119,6 +120,7 @@ export default function CampusAIModal() {
   }, [messages, isLoading]);
 
   return (
+    <ImageDropZone disabled={isLoading} onImage={image => { setAttachment(image); setAttachmentMenu(false); }} onError={message => Alert.alert('Could not attach image', message)}>
     <KeyboardAvoidingView 
       style={[styles.container, { backgroundColor: theme.colors.bg }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -220,6 +222,7 @@ export default function CampusAIModal() {
         </View>}
       </View>
     </KeyboardAvoidingView>
+    </ImageDropZone>
   );
 }
 
