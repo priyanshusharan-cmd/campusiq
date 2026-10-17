@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   TextInput,
+  type TextStyle,
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
@@ -194,7 +195,7 @@ export default function CampusAIModal() {
             </TouchableOpacity>
             <TextInput
               accessibilityLabel="Message CampusIQ"
-              style={[theme.textStyles.body, styles.input, Platform.OS === 'web' && styles.webInput, { color: theme.colors.textPrimary }]}
+              style={[theme.textStyles.body, styles.input, Platform.OS === 'web' && webInputStyle, { color: theme.colors.textPrimary }]}
               placeholder="Message CampusIQ…"
               placeholderTextColor={theme.colors.textTertiary}
               value={input}
@@ -221,6 +222,9 @@ export default function CampusAIModal() {
     </KeyboardAvoidingView>
   );
 }
+
+// React Native's outline type omits the browser-only 'none' value.
+const webInputStyle = { outlineStyle: 'none', outlineWidth: 0, boxShadow: 'none' } as unknown as TextStyle;
 
 const styles = StyleSheet.create({
   container: {
@@ -284,7 +288,6 @@ const styles = StyleSheet.create({
   composer: { borderWidth: 1, borderRadius: 26, padding: 6 },
   composerRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   input: { flex: 1, minWidth: 0, height: 44, paddingHorizontal: 4 },
-  webInput: { outlineWidth: 0 },
   addButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
   sendButton: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', marginRight: 2 },
   attachmentTray: { padding: 8, paddingBottom: 5, flexDirection: 'row' },
