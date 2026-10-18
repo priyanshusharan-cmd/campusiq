@@ -14,7 +14,7 @@ A college companion that turns scattered timetables, attendance records, and mar
 ![Gemma](https://img.shields.io/badge/AI-Gemma_4-8B5CF6?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-10B981?style=flat-square)
 
-[Explore the app](#a-look-inside) · [What it does](#built-around-your-semester) · [AI workflow](#from-a-screenshot-to-a-reviewable-proposal) · [Run locally](#run-campusiq) · [Documentation](#go-deeper)
+[Explore the app](#a-look-inside) · [What it does](#built-around-your-semester) · [AI workflow](#from-a-screenshot-to-a-reviewable-proposal) · [Architecture](#architecture) · [Tech stack](#tech-stack) · [Run locally](#run-campusiq) · [Documentation](#go-deeper)
 
 </div>
 
@@ -231,34 +231,97 @@ npm run preview:web
 
 A user-entered browser API key stays in page memory and clears on reload. Native user-saved keys use Expo SecureStore. An HTTPS-hosted browser may block an HTTP connection to your local Mac; use a compatible local setup or the native app for that route.
 
+## Put it online with Render
+
+Connect this repository in **Render → New → Static Site**, then use:
+
+| Setting | Value |
+| :--- | :--- |
+| Branch | `main` |
+| Root directory | Leave blank |
+| Build command | `npm ci && npm run build:web` |
+| Publish directory | `dist` |
+| Environment | `NODE_VERSION=22.16.0` |
+| Rewrite | `/*` → `/index.html` |
+
+The included [`render.yaml`](render.yaml) also supports Blueprint deployment. After deployment, open the published URL and test navigation, a page refresh, local record persistence and an optional cloud connection. Enter AI credentials in the app's Settings; do not embed private keys in the frontend build. See the [full deployment guide](docs/RENDER_DEPLOYMENT.md).
+
 ## Privacy, plainly
 
 Core academic records live in app/browser storage, and ordinary calculations run locally. **Optional AI requests send your message, recent context, relevant saved academic information, and attached source images to the selected destination.** Local Ollama sends that information to the configured machine; cloud processing sends it to Google.
 
 Review what you attach, use a trusted endpoint, and keep credentials out of screenshots and commits. Provider policies govern provider-side processing and retention. Exports and backups create independent copies. The in-app [Privacy Policy source](src/app/%28modals%29/privacy-policy.tsx) documents current storage, permissions, AI routing, key handling, and deletion behavior.
 
-## Under the hood
+## Architecture
 
-```text
-Expo Router screens
-        │
-        ├── Zustand stores ── Local academic records
-        │
-        ├── Academic engines ── Attendance, grade bounds, SGPA / CGPA
-        │
-        └── AI services ── Google API / Ollama
-                    │
-                    └── Parsed proposal → validation → editable review → confirmed save
+One shared application serves iOS, Android, and the browser. Academic calculations and saved records stay local; optional AI requests travel directly to the chosen provider. Render serves the browser build without running a model or an application backend.
+
+```mermaid
+flowchart TD
+    Student[Student on iOS, Android or Web] --> UI[Expo Router screens]
+    UI <--> Stores[Zustand stores]
+    Stores <--> Storage[AsyncStorage on native / localStorage on web]
+    Stores --> Engines[Attendance, grading and GPA engines]
+    Engines --> UI
+    UI --> Chat[AI chat and source attachments]
+    Chat --> Context[Recent conversation and relevant academic context]
+    Context --> Client[Shared AI client]
+    Client --> Google[Google API / Gemma Cloud]
+    Client --> Ollama[Ollama / Gemma on a reachable machine]
+    Google --> Response[Streamed reply or structured proposal]
+    Ollama --> Response
+    Response --> Review[Editable review and validation]
+    Review --> Confirm{User confirms?}
+    Confirm -->|Yes| Apply[Apply reviewed changes]
+    Confirm -->|No| Draft[Keep editing or dismiss]
+    Apply --> Stores
 ```
 
-| Layer | Tools |
+### How an import becomes saved data
+
+| Stage | Responsibility |
 | :--- | :--- |
-| App & navigation | Expo 57, React Native 0.86, Expo Router |
-| Language & state | TypeScript 6, Zustand |
-| UI | React Native Reanimated, Expo LinearGradient, light/dark themes |
-| AI | Gemma through Google API or Ollama; shared review and action planner |
-| Device integration | SecureStore, system pickers, native image paste, sharing, supported notifications |
-| Validation | Type checking, mocked AI/stream tests, academic-engine tests, browser adapters, layout and dependency checks |
+| **Source & context** | Send the selected image, request, relevant records and recent conversation to the chosen provider. |
+| **Extraction** | Request structured subject, class or result fields rather than relying on a prose promise. |
+| **Normalization** | Reuse matching subjects, clean exact duplicates and resolve uniquely ordered time headers. |
+| **Validation** | Identify missing fields, overlaps, ambiguous mappings and replacement scope before saving. |
+| **Review** | Let the student correct rows, approve suggested lab mappings and confirm the destination semester. |
+| **Apply** | Update the relevant stores after confirmation; saving uses a coordinated plan with rollback on failure. |
+
+### Deployment and data boundaries
+
+```mermaid
+flowchart LR
+    Repo[GitHub main branch] --> Build[Render static build]
+    Build --> Site[Public HTTPS website]
+    Site --> Browser[Visitor browser]
+    Browser <--> Local[Visitor-local academic records]
+    Browser -->|User-entered API key| Cloud[Google API / Gemma]
+    Native[Native CampusIQ app] -->|Configured local endpoint| Mac[Mac running Ollama]
+```
+
+There is no shared hosted database or bundled public AI key in this setup. Each visitor has separate browser records and supplies a key for cloud AI. A shared-key experience would require an additional backend with private credentials and usage controls. HTTPS browser access to local Ollama depends on browser security and endpoint configuration.
+
+## Tech stack
+
+| Layer | Technology | Role in CampusIQ |
+| :--- | :--- | :--- |
+| **App runtime** | Expo SDK 57 · React Native 0.86 · React 19 | Shared mobile and browser application. |
+| **Language** | TypeScript 6 | Typed models, action proposals and academic logic. |
+| **Navigation** | Expo Router · React Navigation | File-based routes, tabs, drawers and modal screens. |
+| **State** | Zustand · Immer | Academic records, settings, profile and coordinated updates. |
+| **Persistence** | AsyncStorage · browser localStorage | Local records with platform-specific storage adapters. |
+| **Cloud AI** | Gemma via Google API | Optional streamed answers and document extraction. |
+| **Local AI** | Gemma via Ollama | Optional inference on a reachable configured machine. |
+| **Motion & visuals** | Reanimated · LinearGradient · Expo icons · SVG · Gifted Charts | Animated details, themed cards and academic visualizations. |
+| **Images & documents** | Expo Image Picker · Document Picker · Clipboard · native paste | Source attachments and supported file/image input. |
+| **Device features** | SecureStore · Notifications · Local Authentication | Native credential storage and supported device integrations. |
+| **Export** | Expo Print · Sharing · browser adapters | Reports, downloads and supported sharing workflows. |
+| **Dates & calendars** | date-fns · React Native Calendars · date/time pickers | Weekly schedules, dated classes and attendance calendars. |
+| **Web hosting** | React Native Web · Expo export · Render Static Site | A browser build published from `dist`. |
+| **Checks** | TypeScript · Node test runner | Mocked AI tests, academic-engine checks and platform validation. |
+
+### Repository map
 
 ```text
 src/app/                  Routes and modal screens

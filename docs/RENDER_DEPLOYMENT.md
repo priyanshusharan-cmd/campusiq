@@ -21,7 +21,7 @@ Render builds the committed GitHub version, not your local files. The browser de
 
 1. Sign in at https://dashboard.render.com/.
 2. Click **New**, then **Static Site**.
-3. Connect your GitHub account if needed and select `priyanshusharan-cmd/campusiq`.
+3. Connect your GitHub account if needed and select `priyanshusharan-cmd/hacktoberfest-2026`.
 4. Select **`main`** as the branch.
 5. Enter these settings:
 
