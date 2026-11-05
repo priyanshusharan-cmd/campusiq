@@ -306,6 +306,8 @@ export default function MoreScreen() {
         <SectionTitle title="College Configuration" />
         <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.lg }}>
           <Card variant="flat" padding={0}>
+            <ListRow icon="school" iconColor="#10B981" iconBackgroundColor="#10B98120" title="Import Subjects" subtitle="Load subject presets for your college" onPress={() => handleNav('/(modals)/import-subjects')} />
+            <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
             <ListRow icon="calculator" iconColor={colors.primary} iconBackgroundColor={colors.primary + '20'} title="College Grading Scheme" subtitle="Setup internal and external marks" onPress={openGradingScheme} />
             <View style={{ height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.xl }} />
             <ListRow icon="time" iconColor="#F59E0B" iconBackgroundColor="#F59E0B20" title="College Timings" subtitle="Set daily start and end times" onPress={() => {
