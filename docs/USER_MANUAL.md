@@ -87,7 +87,7 @@ With a free Apple ID, sideloaded apps must be refreshed every 7 days (AltStore c
 
 ### Web
 
-Open **<https://campusiq-web.onrender.com>** in any browser. The free host may take a few seconds to wake up on the first visit. On a phone you can use **Share → Add to Home Screen** to get an app-like icon.
+Open **<https://priyanshusharan-cmd.github.io/campusiq/>** in any browser. On a phone you can use **Share → Add to Home Screen** to get an app-like icon.
 
 ### Building from source
 
@@ -491,12 +491,6 @@ Allow *install unknown apps* for the app you opened the APK from. If an older bu
 <summary><strong>The iOS app stopped opening after a week</strong></summary>
 
 Apps sideloaded with a free Apple ID expire after 7 days. Refresh it in AltStore or reinstall with Sideloadly.
-</details>
-
-<details>
-<summary><strong>The website is slow to load the first time</strong></summary>
-
-The free host sleeps when idle and wakes on the first visit. Give it a few seconds.
 </details>
 
 [↑ Back to contents](#top)

@@ -50,7 +50,7 @@ const sections: InformationSection[] = [
     title: 'No backend, by design',
     icon: 'cloud-offline-outline',
     paragraphs: [
-      'CampusIQ has no CampusIQ server, account or database. Records live in app or browser storage on your device, and every calculation runs locally. The web version is a static site; the Android and iOS apps are self-contained.',
+      'CampusIQ has no CampusIQ server, account or database. Records live in app or browser storage on your device, and every calculation runs locally. The web version is a static site on GitHub Pages; the Android and iOS apps are self-contained.',
       'The only network traffic is what you choose: AI requests go directly to the provider you selected, and exports go where you send them. Read the Privacy Policy for the full data flow.',
     ],
   },
