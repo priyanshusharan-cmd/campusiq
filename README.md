@@ -4,20 +4,6 @@
 
 <img src="assets/readme/hero.svg" alt="CampusIQ — Your semester. Your schedule. Your next move." width="100%" />
 
-<br />
-
-<table>
-  <tr>
-    <th>Start with your day</th>
-    <th>See your schedule</th>
-    <th>Stay on track</th>
-  </tr>
-  <tr>
-    <td align="center"><img src="hacktoberfest-screenshots/home-screen-light.png" alt="CampusIQ Home in light mode with academic stats and quick access" width="230" /></td>
-    <td align="center"><img src="hacktoberfest-screenshots/timetable-dark.png" alt="Dark-mode timetable with colored class blocks and weekday selection" width="230" /></td>
-    <td align="center"><img src="hacktoberfest-screenshots/subject-specific-attendance.png" alt="Separate theory and lab attendance with a class calendar" width="230" /></td>
-  </tr>
-</table>
 
 <br />
 
@@ -88,6 +74,25 @@ Add information by hand, or let Gemma prepare an import from a photo — then **
 ## 📱 Screenshots
 
 <p align="center"><strong>Less hunting through screenshots. More understanding what comes next.</strong></p>
+
+<details open>
+<summary><strong>🏠 Start with your day · schedule · attendance</strong></summary>
+<br />
+
+<table>
+  <tr>
+    <th>Start with your day</th>
+    <th>See your schedule</th>
+    <th>Stay on track</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="hacktoberfest-screenshots/home-screen-light.png" alt="CampusIQ Home in light mode with academic stats and quick access" width="230" /></td>
+    <td align="center"><img src="hacktoberfest-screenshots/timetable-dark.png" alt="Dark-mode timetable with colored class blocks and weekday selection" width="230" /></td>
+    <td align="center"><img src="hacktoberfest-screenshots/subject-specific-attendance.png" alt="Separate theory and lab attendance with a class calendar" width="230" /></td>
+  </tr>
+</table>
+
+</details>
 
 <details>
 <summary><strong>✨ AI import: ask, enable, review</strong></summary>
