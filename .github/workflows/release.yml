@@ -1,0 +1,140 @@
+name: Release
+
+# Builds the Android APK, the iOS IPA and the static web app on GitHub's
+# free runners and publishes them as a GitHub Release. No backend, no Expo
+# account and no bundled API key: CampusIQ is bring-your-own-key only.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g. 1.0.0)"
+        required: true
+        default: "1.0.0"
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "22"
+  VERSION: ${{ inputs.version || github.ref_name }}
+
+jobs:
+  checks:
+    name: Type-check & tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: node --test tests/*.test.mjs tests/*.test.cjs
+
+  web:
+    name: Web app
+    needs: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - run: npm ci
+      - run: npm run build:web
+      - name: Package
+        run: |
+          V="${VERSION#v}"
+          cd dist && zip -qr "../CampusIQ-${V}-web.zip" .
+      - uses: actions/upload-artifact@v4
+        with: { name: web, path: "CampusIQ-*-web.zip" }
+
+  android:
+    name: Android APK
+    needs: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm ci
+      - name: Generate native project
+        run: npx expo prebuild --platform android --no-install
+        env: { CI: "1" }
+      - name: Build release APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,armeabi-v7a -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"
+      - name: Rename
+        run: |
+          V="${VERSION#v}"
+          cp android/app/build/outputs/apk/release/app-release.apk "CampusIQ-${V}.apk"
+      - uses: actions/upload-artifact@v4
+        with: { name: android, path: "CampusIQ-*.apk" }
+
+  ios:
+    name: iOS IPA (unsigned)
+    needs: checks
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - run: npm ci
+      - name: Generate native project (+ CocoaPods)
+        run: npx expo prebuild --platform ios
+        env: { CI: "1" }
+      - name: Build unsigned app
+        run: |
+          WORKSPACE=$(ls -d ios/*.xcworkspace | head -1)
+          SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+          xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build | tail -n 40
+          echo "SCHEME=$SCHEME" >> "$GITHUB_ENV"
+      - name: Package IPA
+        run: |
+          V="${VERSION#v}"
+          mkdir Payload
+          cp -R "build/Build/Products/Release-iphoneos/${SCHEME}.app" Payload/
+          zip -qr "CampusIQ-${V}.ipa" Payload
+      - uses: actions/upload-artifact@v4
+        with: { name: ios, path: "CampusIQ-*.ipa" }
+
+  release:
+    name: Publish release
+    needs: [web, android, ios]
+    if: ${{ always() && needs.web.result == 'success' && needs.android.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: artifacts, merge-multiple: true }
+      - name: Checksums
+        run: cd artifacts && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - name: Tag name
+        run: |
+          V="${VERSION#v}"
+          echo "TAG=v${V}" >> "$GITHUB_ENV"
+          echo "V=${V}" >> "$GITHUB_ENV"
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          target_commitish: ${{ github.sha }}
+          name: "CampusIQ ${{ env.V }}"
+          body_path: .github/RELEASE_NOTES.md
+          make_latest: true
+          fail_on_unmatched_files: false
+          files: |
+            artifacts/*.apk
+            artifacts/*.ipa
+            artifacts/*-web.zip
+            artifacts/SHA256SUMS.txt

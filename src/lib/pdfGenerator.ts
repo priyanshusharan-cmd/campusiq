@@ -50,10 +50,9 @@ export async function generatePDFReport({ semester, subjects, scheme }: PDFRepor
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Academic Report</title>
       <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         
         body {
-          font-family: 'Inter', sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
           color: #1F2937;
           background-color: #F9FAFB;
           margin: 0;

@@ -4,9 +4,7 @@ const KEY = 'campusiq.google-api-key';
 export async function getGoogleApiKey(): Promise<string> {
   const saved = (await SecureStore.getItemAsync(KEY)) ?? '';
   if (saved) return saved;
-  if (typeof process !== 'undefined' && process.env) {
-    return (process.env.EXPO_PUBLIC_GEMINI_API_KEY ?? process.env.GEMINI_API_KEY ?? '').trim();
-  }
+  // Bring-your-own-key only: never fall back to a build-time key, so no key can be baked into a build.
   return '';
 }
 export async function setGoogleApiKey(value: string): Promise<void> {

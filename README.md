@@ -1,3 +1,5 @@
+<a id="readme-top"></a>
+
 <div align="center">
 
 <img src="assets/readme/hero.svg" alt="CampusIQ — Your semester. Your schedule. Your next move." width="100%" />
@@ -22,7 +24,7 @@
 
 <br />
 
-[**Explore**](#-a-look-inside) · [**Features**](#-built-around-your-semester) · [**AI imports**](#-from-a-screenshot-to-a-reviewable-proposal) · [**The math**](#-the-math-behind-the-numbers) · [**Gemma modes**](#-choose-where-gemma-runs) · [**Run it**](#-run-campusiq) · [**Architecture**](#-architecture) · [**Docs**](#-go-deeper)
+[**Download**](#-download) · [**Why**](#-why-campusiq) · [**Screens**](#-a-look-inside) · [**Explore**](#-explore-campusiq) · [**User manual**](docs/USER_MANUAL.md) · [**Privacy**](docs/PRIVACY_POLICY.md)
 
 <br />
 
@@ -32,31 +34,27 @@
 
 <br />
 
-## 📖 Table of contents
+## 📥 Download
 
-<details>
-<summary><strong>Click to expand</strong></summary>
+<div align="center">
 
-- [Why CampusIQ](#-why-campusiq)
-- [A look inside](#-a-look-inside)
-- [Built around your semester](#-built-around-your-semester)
-- [From a screenshot to a reviewable proposal](#-from-a-screenshot-to-a-reviewable-proposal)
-- [The math behind the numbers](#-the-math-behind-the-numbers)
-- [Grades you can explore](#-grades-you-can-explore)
-- [More screens, two personalities](#-more-screens-two-personalities)
-- [Choose where Gemma runs](#-choose-where-gemma-runs)
-- [Run CampusIQ](#-run-campusiq)
-- [Put it online with Render](#-put-it-online-with-render)
-- [Privacy, plainly](#-privacy-plainly)
-- [Architecture](#-architecture)
-- [Tech stack](#-tech-stack)
-- [Repository map](#-repository-map)
-- [Quality checks](#-quality-checks)
-- [FAQ](#-faq)
-- [Contributing](#-contributing)
-- [Go deeper](#-go-deeper)
+[![Android APK](https://img.shields.io/badge/Android-Download_APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/priyanshusharan-cmd/campusiq/releases/latest)
+[![iOS IPA](https://img.shields.io/badge/iOS-Download_IPA-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/priyanshusharan-cmd/campusiq/releases/latest)
+[![Web App](https://img.shields.io/badge/Web-Open_App-7C5CFC?style=for-the-badge&logo=googlechrome&logoColor=white)](https://campusiq-web.onrender.com)
+[![Latest release](https://img.shields.io/github/v/release/priyanshusharan-cmd/campusiq?style=for-the-badge&color=F59E0B&label=latest)](https://github.com/priyanshusharan-cmd/campusiq/releases/latest)
 
-</details>
+</div>
+
+| Platform | How to install |
+| :--- | :--- |
+| 🤖 **Android** | Download the `.apk` from the [latest release](https://github.com/priyanshusharan-cmd/campusiq/releases/latest), open it and allow *install unknown apps*. Updates install over the top and keep your data. |
+| 🍎 **iPhone / iPad** | Download the unsigned `.ipa` and install it with [AltStore](https://altstore.io) or [Sideloadly](https://sideloadly.io) using your Apple ID. |
+| 🌐 **Web** | Open **[campusiq-web.onrender.com](https://campusiq-web.onrender.com)**, no install needed. You can also self-host the `web.zip` from any release on any static host. |
+
+> [!NOTE]
+> **No backend, no account, no bundled AI key.** Every build is self-contained: your data stays on your device, and AI only runs when you add your own Google key or connect your own Mac. New to the app? Read the **[user manual →](docs/USER_MANUAL.md)**
+
+Every release is built automatically on GitHub's runners by the [Release workflow](.github/workflows/release.yml), straight from the source in this repository.
 
 <img src="assets/readme/divider.svg" width="100%" alt="" />
 
@@ -91,7 +89,14 @@ Add information by hand, or let Gemma prepare an import from a photo — then **
 
 <img src="assets/readme/divider.svg" width="100%" alt="" />
 
-## 🧭 Built around your semester
+## 📚 Explore CampusIQ
+
+Everything about the app, in one place. **Click any section to expand it.**
+
+<details>
+<summary><strong>🧭 Built around your semester</strong> — <em>Every feature at a glance</em></summary>
+
+<br />
 
 <img src="assets/readme/features.svg" alt="CampusIQ feature overview" width="100%" />
 
@@ -110,9 +115,14 @@ Add information by hand, or let Gemma prepare an import from a photo — then **
 
 Onboarding walks you through your profile and subjects; a grading wizard sets up your college's scheme. Calendar exceptions and analytics round out the toolkit. Availability of device services varies by platform.
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
+<br />
 
-## ✨ From a screenshot to a reviewable proposal
+</details>
+
+<details>
+<summary><strong>✨ From a screenshot to a reviewable proposal</strong> — <em>How AI imports work and how you stay in control</em></summary>
+
+<br />
 
 <img src="assets/readme/ai-pipeline.svg" alt="Attach → Ask → Gemma extracts → You review → Saved" width="100%" />
 
@@ -149,9 +159,14 @@ Supported proposals also include class edits, attendance ranges, assignment and 
 > [!WARNING]
 > **AI can make mistakes.** A section, batch, merged cell, faculty name or grading rule can be misread. CampusIQ leaves genuine ambiguities for review rather than claiming every document is understood perfectly. A chat explanation is not proof that data was saved.
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
+<br />
 
-## 🧮 The math behind the numbers
+</details>
+
+<details>
+<summary><strong>🧮 The math behind the numbers</strong> — <em>Attendance, SGPA/CGPA and forecasting formulas</em></summary>
+
+<br />
 
 <img src="assets/readme/attendance-math.svg" alt="Attendance math: can-miss, must-attend and what-if simulation" width="100%" />
 
@@ -195,9 +210,14 @@ Given your internal/lab marks, credits, maximum marks and grading scheme, the fo
 
 GPA calculations use the configured grading scheme and reviewed data. **Projections are estimates, not official college results.**
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
+<br />
 
-## 🏆 Grades you can explore
+</details>
+
+<details>
+<summary><strong>🏆 Grades you can explore</strong> — <em>Scorecards, forecasts and subject impact</em></summary>
+
+<br />
 
 <table>
   <tr><th>Your semester story</th><th>Your course forecast</th><th>Every point has context</th></tr>
@@ -210,9 +230,14 @@ GPA calculations use the configured grading scheme and reviewed data. **Projecti
 
 Keep a course-by-course record, explore a target and understand how each subject contributes to your semester.
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
+<br />
 
-## 🌗 More screens, two personalities
+</details>
+
+<details>
+<summary><strong>🌗 More screens, two personalities</strong> — <em>Full screenshot gallery in light and dark</em></summary>
+
+<br />
 
 <details>
 <summary><strong>☀️ Light & 🌙 dark — Home, Attendance, Timetable and GPA</strong></summary>
@@ -281,9 +306,14 @@ Keep a course-by-course record, explore a target and understand how each subject
 
 <sub>Screenshots show example records and the app state when captured. Displayed marks and attendance are not benchmark results or guaranteed outcomes. <a href="hacktoberfest-screenshots">Browse the screenshot files →</a></sub>
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
+<br />
 
-## 🤖 Choose where Gemma runs
+</details>
+
+<details>
+<summary><strong>🤖 Choose where Gemma runs</strong> — <em>Cloud, local Mac, automatic or offline</em></summary>
+
+<br />
 
 <img src="assets/readme/gemma-modes.svg" alt="Gemma Cloud via Google API or Gemma Local via Ollama on your Mac" width="100%" />
 
@@ -298,9 +328,14 @@ The current model identifiers are `gemma-4-26b-a4b-it` for Google and `gemma4:e4
 
 Cloud and local replies can stream. Closing AI chat cancels its active transport, and repeated model-output loops are stopped early. Provider processing or quota charges may still occur after cancellation. Cloud rate limits and model availability depend on your provider project.
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
+<br />
 
-## 🚀 Run CampusIQ
+</details>
+
+<details>
+<summary><strong>🚀 Run CampusIQ</strong> — <em>Install, develop and configure AI locally</em></summary>
+
+<br />
 
 ### Prerequisites
 
@@ -362,9 +397,14 @@ npm run preview:web
 
 A user-entered browser API key stays in page memory and clears on reload. Native user-saved keys use Expo SecureStore. An HTTPS-hosted browser may block an HTTP connection to your local Mac; use a compatible local setup or the native app for that route.
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
+<br />
 
-## 🌐 Put it online with Render
+</details>
+
+<details>
+<summary><strong>🌐 Put it online with Render</strong> — <em>Deploy the static web app</em></summary>
+
+<br />
 
 Connect this repository in **Render → New → Static Site**, then use:
 
@@ -379,9 +419,14 @@ Connect this repository in **Render → New → Static Site**, then use:
 
 The included [`render.yaml`](render.yaml) also supports Blueprint deployment. After deploying, open the published URL and test navigation, a page refresh, local record persistence and an optional cloud connection. Enter AI credentials in the app's Settings; never embed private keys in the frontend build. See the [full deployment guide](docs/RENDER_DEPLOYMENT.md).
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
+<br />
 
-## 🔒 Privacy, plainly
+</details>
+
+<details>
+<summary><strong>🔒 Privacy, plainly</strong> — <em>What stays on your device and what AI sends</em></summary>
+
+<br />
 
 | Stays on your device | Leaves your device (only when you use AI) |
 | :--- | :--- |
@@ -389,14 +434,20 @@ The included [`render.yaml`](render.yaml) also supports Blueprint deployment. Af
 | All attendance and GPA calculations | Relevant saved academic information |
 | Settings and preferences | Attached source images |
 | Native API keys (Expo SecureStore) | — sent **only** to the provider you selected |
+| No bundled key: CampusIQ is bring-your-own-key only | |
 
 Core academic records live in app/browser storage, and ordinary calculations run locally. Local Ollama sends AI requests to the machine you configured; cloud processing sends them to Google.
 
-Review what you attach, use a trusted endpoint, and keep credentials out of screenshots and commits. Provider policies govern provider-side processing and retention. Exports and backups create independent copies. The in-app [Privacy Policy source](src/app/%28modals%29/privacy-policy.tsx) documents current storage, permissions, AI routing, key handling and deletion behavior.
+Review what you attach, use a trusted endpoint, and keep credentials out of screenshots and commits. Provider policies govern provider-side processing and retention. Exports and backups create independent copies. The full [Privacy Policy](docs/PRIVACY_POLICY.md) (also in the app under *More → Privacy Policy*) documents current storage, permissions, AI routing, key handling and deletion behavior.
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
+<br />
 
-## 🏗️ Architecture
+</details>
+
+<details>
+<summary><strong>🏗️ Architecture</strong> — <em>Diagrams, import pipeline and data boundaries</em></summary>
+
+<br />
 
 One shared application serves iOS, Android and the browser. Academic calculations and saved records stay local; optional AI requests travel directly to the chosen provider. Render serves the browser build without running a model or an application backend.
 
@@ -446,9 +497,14 @@ flowchart LR
 
 There is no shared hosted database or bundled public AI key. Each visitor has separate browser records and supplies their own key for cloud AI. A shared-key experience would need an additional backend with private credentials and usage controls. HTTPS browser access to local Ollama depends on browser security and endpoint configuration.
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
+<br />
 
-## 🧰 Tech stack
+</details>
+
+<details>
+<summary><strong>🧰 Tech stack</strong> — <em>Every library and what it does</em></summary>
+
+<br />
 
 <p align="center">
   <img src="https://skillicons.dev/icons?i=react,ts,nodejs,js,html,css,github&theme=dark" alt="React, TypeScript, Node.js, JavaScript, HTML, CSS, GitHub" />
@@ -471,9 +527,14 @@ There is no shared hosted database or bundled public AI key. Each visitor has se
 | **Web hosting** | React Native Web · Expo export · Render Static Site | A browser build published from `dist`. |
 | **Checks** | TypeScript · Node test runner | Mocked AI tests, academic-engine checks and platform validation. |
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
+<br />
 
-## 🗂️ Repository map
+</details>
+
+<details>
+<summary><strong>🗂️ Repository map</strong> — <em>Where everything lives in the code</em></summary>
+
+<br />
 
 ```text
 campusiq/
@@ -500,9 +561,14 @@ campusiq/
 └── hacktoberfest-screenshots/  Screens used in this README
 ```
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
+<br />
 
-## 🧪 Quality checks
+</details>
+
+<details>
+<summary><strong>🧪 Quality checks</strong> — <em>Type-check, tests and what they cover</em></summary>
+
+<br />
 
 ```bash
 npx tsc --noEmit                                  # type-check
@@ -521,9 +587,14 @@ npm run build:web                                 # production web build
 
 AI tests use mocked providers and **do not consume Google quota**. Mocked tests verify application logic; they do not guarantee the accuracy of live model extraction.
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
+<br />
 
-## ❓ FAQ
+</details>
+
+<details>
+<summary><strong>❓ FAQ</strong> — <em>Quick answers to common questions</em></summary>
+
+<br />
 
 <details>
 <summary><strong>Do I need an API key to use CampusIQ?</strong></summary>
@@ -555,29 +626,45 @@ Your records stay in app or browser storage. Data leaves the device only when yo
 Yes. The grading wizard and grading settings let you configure grade boundaries and internal/external maximum marks, and all GPA math follows that scheme.
 </details>
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
+<br />
 
-## 🤝 Contributing
+</details>
+
+<details>
+<summary><strong>🤝 Contributing</strong> — <em>How to help improve CampusIQ</em></summary>
+
+<br />
 
 Contributions are welcome!
 
 1. **Fork** the repo and create a branch: `git checkout -b feat/your-idea`
 2. **Keep changes focused** on one fix or feature.
-3. **Run the checks** in [Quality checks](#-quality-checks) before opening a PR.
+3. **Run the checks** in [Quality checks](#-explore-campusiq) before opening a PR.
 4. **Open a pull request** that describes the problem and how you validated the fix.
 
 For document-extraction bugs, include a small **redacted** example and explain the expected interpretation. Found a bug? [Open an issue →](https://github.com/priyanshusharan-cmd/campusiq/issues)
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
+<br />
 
-## 📚 Go deeper
+</details>
+
+<details>
+<summary><strong>📚 Go deeper</strong> — <em>User manual, privacy policy and guides</em></summary>
+
+<br />
 
 | Guide | What's inside |
 | :--- | :--- |
+| 📘 [User manual](docs/USER_MANUAL.md) | Install, onboarding and every feature, step by step, plus troubleshooting |
+| 🔒 [Privacy policy](docs/PRIVACY_POLICY.md) | Exactly what stays local, what AI sends, keys, permissions and deletion |
 | [Gemma setup](docs/GEMMA_SETUP.md) | Cloud keys, Ollama setup, verification and troubleshooting |
 | [Render deployment](docs/RENDER_DEPLOYMENT.md) | Static-site and Blueprint deployment |
 | [Web validation](docs/WEB_VALIDATION.md) | Browser checks before release |
 | [Dependency security](docs/DEPENDENCY_SECURITY.md) | Dependency policy and audit notes |
+
+<br />
+
+</details>
 
 <img src="assets/readme/divider.svg" width="100%" alt="" />
 
@@ -608,6 +695,6 @@ CampusIQ is licensed under the **[MIT License](LICENSE)**. Model weights, depend
 
 If CampusIQ helps you, consider giving it a ⭐ — it really helps!
 
-[Back to top ↑](#)
+[Back to top ↑](#readme-top)
 
 </div>
