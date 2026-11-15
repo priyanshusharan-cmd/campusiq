@@ -13,7 +13,7 @@
 | :--- | :--- | :--- |
 | `CampusIQ-*.apk` | 🤖 Android 7+ | Open on your phone, allow *install unknown apps*, tap **Install**. Future versions update in place and keep your data. |
 | `CampusIQ-*.ipa` | 🍎 iPhone / iPad | **Unsigned.** Install with [AltStore](https://altstore.io) or [Sideloadly](https://sideloadly.io) using your Apple ID. |
-| `CampusIQ-*-web.zip` | 🌐 Any browser | Already live at **https://campusiq-web.onrender.com**, or unzip onto any static host (SPA rewrite `/*` → `/index.html`). |
+| `CampusIQ-*-web.zip` | 🌐 Any browser | Already live at **https://priyanshusharan-cmd.github.io/campusiq/**, or unzip onto any static host (SPA rewrite `/*` → `/index.html`). |
 | `SHA256SUMS.txt` | — | Checksums to verify your download. |
 
 ## ✨ What's inside

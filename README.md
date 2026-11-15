@@ -20,7 +20,7 @@
 
 ![Platforms](https://img.shields.io/badge/platforms-iOS_·_Android_·_Web-7C5CFC?style=flat-square)
 ![Tests](https://img.shields.io/badge/tests-mocked_AI_·_no_quota-34D399?style=flat-square)
-![Deploy](https://img.shields.io/badge/web-Render_Static_Site-46E3B7?style=flat-square&logo=render&logoColor=black)
+![Deploy](https://img.shields.io/github/actions/workflow/status/priyanshusharan-cmd/campusiq/pages.yml?style=flat-square&label=web%20deploy&logo=github)
 ![Stars](https://img.shields.io/github/stars/priyanshusharan-cmd/campusiq?style=flat-square&color=FCD34D)
 
 <br />
@@ -41,7 +41,7 @@
 
 [![Android APK](https://img.shields.io/badge/Android-Download_APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/priyanshusharan-cmd/campusiq/releases/latest)
 [![iOS IPA](https://img.shields.io/badge/iOS-Download_IPA-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/priyanshusharan-cmd/campusiq/releases/latest)
-[![Web App](https://img.shields.io/badge/Web-Open_App-7C5CFC?style=for-the-badge&logo=googlechrome&logoColor=white)](https://campusiq-web.onrender.com)
+[![Web App](https://img.shields.io/badge/Web-Open_App-7C5CFC?style=for-the-badge&logo=googlechrome&logoColor=white)](https://priyanshusharan-cmd.github.io/campusiq)
 [![Latest release](https://img.shields.io/github/v/release/priyanshusharan-cmd/campusiq?style=for-the-badge&color=F59E0B&label=latest)](https://github.com/priyanshusharan-cmd/campusiq/releases/latest)
 
 </div>
@@ -50,7 +50,7 @@
 | :--- | :--- |
 | 🤖 **Android** | Download the `.apk` from the [latest release](https://github.com/priyanshusharan-cmd/campusiq/releases/latest), open it and allow *install unknown apps*. Updates install over the top and keep your data. |
 | 🍎 **iPhone / iPad** | Download the unsigned `.ipa` and install it with [AltStore](https://altstore.io) or [Sideloadly](https://sideloadly.io) using your Apple ID. |
-| 🌐 **Web** | Open **[campusiq-web.onrender.com](https://campusiq-web.onrender.com)**, no install needed. You can also self-host the `web.zip` from any release on any static host. |
+| 🌐 **Web** | Open **[priyanshusharan-cmd.github.io/campusiq](https://priyanshusharan-cmd.github.io/campusiq)**, no install needed. You can also self-host the `web.zip` from any release on any static host. |
 
 > [!NOTE]
 > **No backend, no account, no bundled AI key.** Every build is self-contained: your data stays on your device, and AI only runs when you add your own Google key or connect your own Mac. New to the app? Read the **[user manual →](docs/USER_MANUAL.md)**
@@ -319,7 +319,7 @@ Cloud and local replies can stream. Closing AI chat cancels its active transport
 
 | Tool | Notes |
 | :--- | :--- |
-| **Node.js 22** | Matches the Render build (`NODE_VERSION=22.16.0`). |
+| **Node.js 22** | Matches the CI builds. |
 | **npm** | Uses the committed `package-lock.json` via `npm ci`. |
 | **Xcode / Android Studio** | Only for native development builds. |
 | **Ollama** *(optional)* | Only for Gemma Local. |
@@ -377,20 +377,17 @@ A user-entered browser API key stays in page memory and clears on reload. Native
 
 <img src="assets/readme/divider.svg" width="100%" alt="" />
 
-## 🌐 Put it online with Render
+## 🌐 Live on GitHub Pages
 
-Connect this repository in **Render → New → Static Site**, then use:
+The web app is deployed automatically to **[GitHub Pages](https://priyanshusharan-cmd.github.io/campusiq/)** by the [Deploy web app](.github/workflows/pages.yml) workflow on every push to `main`. You can see the latest deploy under **Deployments → CampusIQ** in the sidebar.
 
-| Setting | Value |
+| Step | What happens |
 | :--- | :--- |
-| Branch | `main` |
-| Root directory | Leave blank |
-| Build command | `npm ci && npm run build:web` |
-| Publish directory | `dist` |
-| Environment | `NODE_VERSION=22.16.0` |
-| Rewrite | `/*` → `/index.html` |
+| 1 | `npm ci` and `npm run build:web` with the base path `/campusiq` |
+| 2 | `index.html` is copied to `404.html` so in-app links survive a refresh |
+| 3 | `dist/` is deployed to the **CampusIQ** environment |
 
-The included [`render.yaml`](render.yaml) also supports Blueprint deployment. After deploying, open the published URL and test navigation, a page refresh, local record persistence and an optional cloud connection. Enter AI credentials in the app's Settings; never embed private keys in the frontend build. See the [full deployment guide](docs/RENDER_DEPLOYMENT.md).
+It's static files only: no server, no database and no API key in the build. Want to host it yourself? Grab `web.zip` from any [release](https://github.com/priyanshusharan-cmd/campusiq/releases/latest). See the [deployment guide](docs/DEPLOYMENT.md).
 
 <img src="assets/readme/divider.svg" width="100%" alt="" />
 
@@ -412,7 +409,7 @@ Review what you attach, use a trusted endpoint, and keep credentials out of scre
 
 ## 🏗️ Architecture
 
-One shared application serves iOS, Android and the browser. Academic calculations and saved records stay local; optional AI requests travel directly to the chosen provider. Render serves the browser build without running a model or an application backend.
+One shared application serves iOS, Android and the browser. Academic calculations and saved records stay local; optional AI requests travel directly to the chosen provider. GitHub Pages serves the browser build without running a model or an application backend.
 
 <img src="assets/readme/architecture.svg" alt="CampusIQ architecture: on-device app with optional AI going straight to Google or your Mac" width="100%" />
 
@@ -455,7 +452,7 @@ There is no shared hosted database or bundled public AI key. Each visitor has se
 | **Device features** | SecureStore · Notifications · Local Authentication | Native credential storage and supported device integrations. |
 | **Export** | Expo Print · Sharing · browser adapters | Reports, downloads and supported sharing workflows. |
 | **Dates & calendars** | date-fns · React Native Calendars · date/time pickers | Weekly schedules, dated classes and attendance calendars. |
-| **Web hosting** | React Native Web · Expo export · Render Static Site | A browser build published from `dist`. |
+| **Web hosting** | React Native Web · Expo export · GitHub Pages | A static browser build deployed by GitHub Actions. |
 | **Checks** | TypeScript · Node test runner | Mocked AI tests, academic-engine checks and platform validation. |
 
 <img src="assets/readme/divider.svg" width="100%" alt="" />
@@ -481,7 +478,7 @@ campusiq/
 │   ├── components/ theme/    Shared UI and design tokens
 │   └── types/ utils/         Shared types and helpers
 ├── tests/                    Node test-runner suites (mocked AI, engines, web)
-├── docs/                     Gemma, Render, web validation, dependency security
+├── docs/                     User manual, privacy, deployment, Gemma, web validation
 ├── scripts/                  Web build & preview
 ├── assets/                   App icons and README graphics
 └── hacktoberfest-screenshots/  Screens used in this README
@@ -564,7 +561,7 @@ For document-extraction bugs, include a small **redacted** example and explain t
 | 📘 [User manual](docs/USER_MANUAL.md) | Install, onboarding and every feature, step by step, plus troubleshooting |
 | 🔒 [Privacy policy](docs/PRIVACY_POLICY.md) | Exactly what stays local, what AI sends, keys, permissions and deletion |
 | [Gemma setup](docs/GEMMA_SETUP.md) | Cloud keys, Ollama setup, verification and troubleshooting |
-| [Render deployment](docs/RENDER_DEPLOYMENT.md) | Static-site and Blueprint deployment |
+| [Deployment](docs/DEPLOYMENT.md) | GitHub Pages workflow, releases and self-hosting |
 | [Web validation](docs/WEB_VALIDATION.md) | Browser checks before release |
 | [Dependency security](docs/DEPENDENCY_SECURITY.md) | Dependency policy and audit notes |
 

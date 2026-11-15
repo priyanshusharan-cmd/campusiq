@@ -94,11 +94,13 @@ test('unsupported phone capabilities never claim success on the web', async () =
   assert.equal(await notifications.requestNotificationPermissions(), false);
 });
 
-test('Render configuration includes the SPA rewrite and a secret-free build', () => {
-  const render = readFileSync('render.yaml', 'utf8');
-  assert.match(render, /runtime: static/);
-  assert.match(render, /npm ci && npm run build:web/);
-  assert.match(render, /destination: \/index.html/);
+test('GitHub Pages workflow builds a secret-free static site with an SPA fallback', () => {
+  const pages = readFileSync('.github/workflows/pages.yml', 'utf8');
+  assert.match(pages, /npm run build:web/);
+  assert.match(pages, /baseUrl:"\/campusiq"/);
+  assert.match(pages, /cp dist\/index.html dist\/404.html/);
+  assert.match(pages, /name: CampusIQ/);
+  assert.doesNotMatch(pages, /GEMINI|API_KEY/);
   const config = JSON.parse(readFileSync('app.json', 'utf8'));
   assert.equal(config.expo.web.output, 'single');
 });

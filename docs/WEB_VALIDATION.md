@@ -1,6 +1,6 @@
 # Browser demo validation
 
-Verified locally on 16 October 2026. Render has not yet been provisioned by this change.
+Verified locally on 16 October 2026. The app is now deployed to GitHub Pages; see `docs/DEPLOYMENT.md`.
 
 ## Passed
 
@@ -40,7 +40,7 @@ Build success is not a substitute for testing the installed Android/iOS app on p
 
 The web demo uses browser-local storage and a deterministic local assistant. Cloud AI, cross-device sync, scheduled background phone notifications, and biometric app locks are not implemented for the static website. Browser settings explain unavailable phone capabilities. This historical check predates the optional Gemma proxy; see GEMMA_SETUP.md for current AI configuration. PDF saving depends on the browser's print support.
 
-Use the final checklist in `docs/RENDER_DEPLOYMENT.md` on the deployed HTTPS URL and on your actual phone before sharing it publicly.
+Use the checklist in `docs/DEPLOYMENT.md` on the deployed HTTPS URL and on your actual phone before sharing it publicly.
 
 ## Mobile design alignment update
 
