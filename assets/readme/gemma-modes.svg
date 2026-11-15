@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="340" viewBox="0 0 1200 340" role="img" aria-label="Choose where Gemma runs: Google cloud or Ollama on your Mac">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#15102F"/><stop offset="1" stop-color="#0F1B2E"/></linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>
+    <style>
+      .t{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}
+      .d{stroke-dasharray:4 8;animation:f 1s linear infinite}
+      @keyframes f{to{stroke-dashoffset:-24}}
+      .bob{animation:bob 5s ease-in-out infinite}
+      @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    </style>
+  </defs>
+  <rect width="1200" height="340" rx="24" fill="url(#bg)"/>
+  <rect x="0.5" y="0.5" width="1199" height="339" rx="24" fill="none" stroke="#FCD34D" stroke-opacity="0.28"/>
+  <text x="600" y="42" text-anchor="middle" class="t" font-size="20" font-weight="700" fill="#FFFFFF">Your AI, your choice of where it runs</text>
+
+  <!-- links -->
+  <path id="up" d="M520 180 C440 180 400 110 300 110" fill="none" stroke="#FCD34D" stroke-opacity="0.25" stroke-width="4"/>
+  <path d="M520 180 C440 180 400 110 300 110" fill="none" stroke="#FCD34D" stroke-width="2" class="d"/>
+  <path id="dn" d="M680 180 C760 180 800 250 900 250" fill="none" stroke="#34D399" stroke-opacity="0.25" stroke-width="4"/>
+  <path d="M680 180 C760 180 800 250 900 250" fill="none" stroke="#34D399" stroke-width="2" class="d"/>
+
+  <g><circle r="7" fill="#FDE68A" filter="url(#glow)"/><circle r="4" fill="#FFF"/>
+    <animateMotion dur="2.6s" repeatCount="indefinite" path="M520 180 C440 180 400 110 300 110"/></g>
+  <g><circle r="7" fill="#6EE7B7" filter="url(#glow)"/><circle r="4" fill="#FFF"/>
+    <animateMotion dur="2.6s" begin="1.3s" repeatCount="indefinite" path="M680 180 C760 180 800 250 900 250"/></g>
+
+  <!-- phone -->
+  <g transform="translate(600 182)" class="t">
+    <g class="bob">
+      <rect x="-70" y="-110" width="140" height="220" rx="24" fill="#1F1747" stroke="#A78BFA" stroke-width="2.5"/>
+      <rect x="-24" y="-100" width="48" height="8" rx="4" fill="#A78BFA" fill-opacity="0.5"/>
+      <rect x="-54" y="-74" width="108" height="26" rx="8" fill="#7C5CFC" fill-opacity="0.35"/>
+      <rect x="-54" y="-40" width="80" height="26" rx="8" fill="#FFFFFF" fill-opacity="0.12"/>
+      <rect x="-26" y="-6" width="80" height="26" rx="8" fill="#7C5CFC" fill-opacity="0.35"/>
+      <rect x="-54" y="28" width="96" height="26" rx="8" fill="#FFFFFF" fill-opacity="0.12">
+        <animate attributeName="width" values="20;96;96" dur="3s" repeatCount="indefinite"/>
+      </rect>
+      <text y="90" text-anchor="middle" font-size="14" font-weight="700" fill="#DDD6FE">CampusIQ</text>
+    </g>
+    <text y="146" text-anchor="middle" font-size="13" fill="#94A3B8">phone · browser</text>
+  </g>
+
+  <!-- cloud -->
+  <g transform="translate(220 110)" class="t">
+    <path d="M-52 22 H52 A26 26 0 0 0 46 -28 A36 36 0 0 0 -22 -36 A28 28 0 0 0 -60 -6 A24 24 0 0 0 -52 22 Z" fill="#2A1D12" stroke="#FCD34D" stroke-width="2.5"/>
+    <path d="M0 -14 L4 -4 L14 0 L4 4 L0 14 L-4 4 L-14 0 L-4 -4 Z" fill="#FCD34D"><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="8s" repeatCount="indefinite"/></path>
+    <text x="0" y="64" text-anchor="middle" font-size="17" font-weight="800" fill="#FFFFFF">Gemma Cloud</text>
+    <text x="0" y="86" text-anchor="middle" font-size="13" fill="#FDE68A">Google API · your key</text>
+    <text x="0" y="104" text-anchor="middle" font-size="12" fill="#94A3B8">gemma-4-26b-a4b-it</text>
+  </g>
+
+  <!-- mac -->
+  <g transform="translate(980 236)" class="t">
+    <rect x="-56" y="-62" width="112" height="72" rx="8" fill="#0F2A22" stroke="#34D399" stroke-width="2.5"/>
+    <rect x="-46" y="-52" width="92" height="52" rx="4" fill="#34D399" fill-opacity="0.12"/>
+    <text x="-38" y="-30" font-size="11" fill="#6EE7B7" font-family="ui-monospace,Menlo,Consolas,monospace">$ ollama</text>
+    <rect x="-38" y="-20" width="7" height="12" fill="#6EE7B7"><animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/></rect>
+    <path d="M-70 10 H70 L62 20 H-62 Z" fill="#134E3A" stroke="#34D399" stroke-width="2"/>
+    <text x="0" y="46" text-anchor="middle" font-size="17" font-weight="800" fill="#FFFFFF">Gemma Local</text>
+    <text x="0" y="68" text-anchor="middle" font-size="13" fill="#A7F3D0">Ollama on your Mac · trusted Wi-Fi</text>
+    <text x="0" y="86" text-anchor="middle" font-size="12" fill="#94A3B8">gemma4:e4b-it-qat</text>
+  </g>
+
+  <!-- mode chips -->
+  <g class="t" font-size="13" font-weight="700">
+    <rect x="770" y="76" width="130" height="30" rx="15" fill="#FCD34D" fill-opacity="0.12" stroke="#FCD34D" stroke-opacity="0.5"/>
+    <text x="835" y="96" text-anchor="middle" fill="#FDE68A">⚡ Automatic</text>
+    <text x="915" y="96" font-size="12" font-weight="500" fill="#CBD5E1">cloud first → local fallback</text>
+    <rect x="160" y="262" width="150" height="30" rx="15" fill="#A78BFA" fill-opacity="0.12" stroke="#A78BFA" stroke-opacity="0.5"/>
+    <text x="235" y="282" text-anchor="middle" fill="#DDD6FE">📴 Offline help</text>
+    <text x="324" y="282" font-size="12" font-weight="500" fill="#CBD5E1">saved-data calculations</text>
+  </g>
+</svg>

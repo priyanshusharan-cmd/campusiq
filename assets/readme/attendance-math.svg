@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-label="Attendance math: CampusIQ shows how many classes you can miss or must attend to stay at your target">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0E1F1A"/><stop offset="1" stop-color="#121A33"/></linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34D399"/><stop offset="1" stop-color="#7C5CFC"/></linearGradient>
+    <style>
+      .t{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}
+      .m{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+      .fade{animation:fade 9s ease-in-out infinite}
+      .f2{animation-delay:3s}.f3{animation-delay:6s}
+      @keyframes fade{0%,4%{opacity:0;transform:translateY(8px)}10%,30%{opacity:1;transform:translateY(0)}36%,100%{opacity:0;transform:translateY(-8px)}}
+    </style>
+  </defs>
+  <rect width="1200" height="320" rx="24" fill="url(#bg)"/>
+  <rect x="0.5" y="0.5" width="1199" height="319" rx="24" fill="none" stroke="#34D399" stroke-opacity="0.3"/>
+
+  <!-- gauge -->
+  <g transform="translate(190 160)">
+    <circle r="100" fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="18"/>
+    <!-- target marker at 75% -->
+    <g transform="rotate(-90)"><line x1="0" y1="-84" x2="0" y2="-118" stroke="#FCD34D" stroke-width="3" stroke-linecap="round"/></g>
+    <circle r="100" fill="none" stroke="url(#ring)" stroke-width="18" stroke-linecap="round" transform="rotate(-90)" stroke-dasharray="0 629">
+      <animate attributeName="stroke-dasharray" values="0 629;440 629;534 629;440 629;0 629" keyTimes="0;0.25;0.5;0.8;1" dur="9s" repeatCount="indefinite"/>
+    </circle>
+    <text y="-6" text-anchor="middle" class="t" font-size="44" font-weight="800" fill="#FFFFFF">
+      <tspan>70%</tspan>
+      <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.3;0.34;0.92;1" dur="9s" repeatCount="indefinite"/>
+    </text>
+    <text y="-6" text-anchor="middle" class="t" font-size="44" font-weight="800" fill="#6EE7B7" opacity="0">
+      <tspan>85%</tspan>
+      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.34;0.38;0.72;0.76;1" dur="9s" repeatCount="indefinite"/>
+    </text>
+    <text y="-6" text-anchor="middle" class="t" font-size="44" font-weight="800" fill="#FFFFFF" opacity="0">
+      <tspan>70%</tspan>
+      <animate attributeName="opacity" values="0;0;1;1" keyTimes="0;0.76;0.8;1" dur="9s" repeatCount="indefinite"/>
+    </text>
+    <text y="26" text-anchor="middle" class="t" font-size="14" fill="#A7F3D0" font-weight="600">THEORY · LAB</text>
+    <text y="48" text-anchor="middle" class="t" font-size="13" fill="#FDE68A">target 75%</text>
+  </g>
+
+  <!-- explanation -->
+  <text x="370" y="72" class="t" font-size="24" font-weight="800" fill="#FFFFFF">Know exactly where you stand</text>
+  <text x="370" y="102" class="t" font-size="15" fill="#CBD5E1">Every subject tracks present, absent, cancelled and holiday records against your own target.</text>
+
+  <g class="t">
+    <g class="fade">
+      <rect x="370" y="128" width="780" height="140" rx="18" fill="#FFFFFF" fill-opacity="0.05" stroke="#F43F5E" stroke-opacity="0.4"/>
+      <text x="396" y="166" font-size="15" font-weight="700" fill="#FDA4AF">BELOW TARGET → attend the next</text>
+      <text x="396" y="214" font-size="32" font-weight="800" fill="#FFFFFF">⌈ (T·total − 100·present) / (100 − T) ⌉</text>
+      <text x="396" y="250" font-size="14" fill="#CBD5E1" class="m">calcNeedToAttend(present, total, target)</text>
+    </g>
+    <g class="fade f2" opacity="0">
+      <rect x="370" y="128" width="780" height="140" rx="18" fill="#FFFFFF" fill-opacity="0.05" stroke="#34D399" stroke-opacity="0.5"/>
+      <text x="396" y="166" font-size="15" font-weight="700" fill="#6EE7B7">ABOVE TARGET → safe to miss</text>
+      <text x="396" y="214" font-size="32" font-weight="800" fill="#FFFFFF">classes you can skip &amp; stay ≥ T</text>
+      <text x="396" y="250" font-size="14" fill="#CBD5E1" class="m">calcCanMiss(present, total, target)</text>
+    </g>
+    <g class="fade f3" opacity="0">
+      <rect x="370" y="128" width="780" height="140" rx="18" fill="#FFFFFF" fill-opacity="0.05" stroke="#A78BFA" stroke-opacity="0.5"/>
+      <text x="396" y="166" font-size="15" font-weight="700" fill="#C4B5FD">WHAT IF? → simulate before you decide</text>
+      <text x="396" y="214" font-size="32" font-weight="800" fill="#FFFFFF">miss 3 · attend 5 · see the new %</text>
+      <text x="396" y="250" font-size="14" fill="#CBD5E1" class="m">simulateAttendance() · simulateAttending()</text>
+    </g>
+  </g>
+</svg>

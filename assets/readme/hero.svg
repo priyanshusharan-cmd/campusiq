@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-label="CampusIQ — Your semester. Your schedule. Your next move.">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#140F2E"/>
+      <stop offset="0.55" stop-color="#1E1550"/>
+      <stop offset="1" stop-color="#0B1A2A"/>
+    </linearGradient>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#C4B5FD"/>
+      <stop offset="0.5" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#6EE7B7"/>
+      <animate attributeName="x1" values="-1;0;-1" dur="8s" repeatCount="indefinite"/>
+      <animate attributeName="x2" values="0;1;0" dur="8s" repeatCount="indefinite"/>
+    </linearGradient>
+    <radialGradient id="orbA"><stop offset="0" stop-color="#7C5CFC" stop-opacity="0.75"/><stop offset="1" stop-color="#7C5CFC" stop-opacity="0"/></radialGradient>
+    <radialGradient id="orbB"><stop offset="0" stop-color="#10B981" stop-opacity="0.55"/><stop offset="1" stop-color="#10B981" stop-opacity="0"/></radialGradient>
+    <radialGradient id="orbC"><stop offset="0" stop-color="#F59E0B" stop-opacity="0.45"/><stop offset="1" stop-color="#F59E0B" stop-opacity="0"/></radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#FFFFFF" stroke-opacity="0.045"/>
+    </pattern>
+    <clipPath id="card"><rect width="1200" height="400" rx="28"/></clipPath>
+    <style>
+      .t{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}
+      .float{animation:float 6s ease-in-out infinite}
+      .float2{animation:float 7s ease-in-out infinite reverse}
+      .pill{animation:rise 0.9s cubic-bezier(.2,.8,.2,1) both}
+      @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+      @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    </style>
+  </defs>
+
+  <g clip-path="url(#card)">
+    <rect width="1200" height="400" fill="url(#bg)"/>
+    <rect width="1200" height="400" fill="url(#grid)"/>
+
+    <circle cx="180" cy="80" r="260" fill="url(#orbA)">
+      <animate attributeName="cx" values="180;260;180" dur="14s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="80;140;80" dur="11s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="1050" cy="340" r="240" fill="url(#orbB)">
+      <animate attributeName="cx" values="1050;960;1050" dur="13s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="820" cy="40" r="160" fill="url(#orbC)">
+      <animate attributeName="cy" values="40;90;40" dur="10s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- twinkling particles -->
+    <g fill="#FFFFFF">
+      <circle cx="90" cy="320" r="1.6"><animate attributeName="opacity" values="0.1;0.9;0.1" dur="3s" repeatCount="indefinite"/></circle>
+      <circle cx="420" cy="60" r="1.4"><animate attributeName="opacity" values="0.8;0.1;0.8" dur="4s" repeatCount="indefinite"/></circle>
+      <circle cx="560" cy="350" r="1.8"><animate attributeName="opacity" values="0.2;1;0.2" dur="5s" repeatCount="indefinite"/></circle>
+      <circle cx="700" cy="110" r="1.2"><animate attributeName="opacity" values="1;0.2;1" dur="3.5s" repeatCount="indefinite"/></circle>
+      <circle cx="1130" cy="70" r="1.6"><animate attributeName="opacity" values="0.1;0.9;0.1" dur="4.5s" repeatCount="indefinite"/></circle>
+      <circle cx="300" cy="370" r="1.3"><animate attributeName="opacity" values="0.9;0.2;0.9" dur="6s" repeatCount="indefinite"/></circle>
+    </g>
+
+    <!-- graduation cap mark -->
+    <g transform="translate(110 138)"><g class="float">
+      <circle cx="62" cy="62" r="62" fill="#7C5CFC" fill-opacity="0.18" stroke="#A78BFA" stroke-opacity="0.5"/>
+      <circle cx="62" cy="62" r="62" fill="none" stroke="#C4B5FD" stroke-width="2" stroke-dasharray="40 350" stroke-linecap="round">
+        <animateTransform attributeName="transform" type="rotate" from="0 62 62" to="360 62 62" dur="6s" repeatCount="indefinite"/>
+      </circle>
+      <path d="M62 34 L102 52 L62 70 L22 52 Z" fill="#FFFFFF"/>
+      <path d="M38 60 V78 C38 86 50 92 62 92 C74 92 86 86 86 78 V60 L62 71 Z" fill="#DDD6FE"/>
+      <path d="M98 54 V80" stroke="#FCD34D" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="98" cy="84" r="5" fill="#FCD34D">
+        <animate attributeName="r" values="5;6.5;5" dur="2s" repeatCount="indefinite"/>
+      </circle>
+    </g></g>
+
+    <!-- title -->
+    <text x="276" y="196" class="t" font-size="84" font-weight="800" fill="url(#title)" letter-spacing="-2">CampusIQ</text>
+    <text x="280" y="242" class="t" font-size="26" font-weight="500" fill="#E9E5FF" fill-opacity="0.92">Your semester. Your schedule. Your next move.</text>
+
+    <!-- typing subtitle -->
+    <g>
+      <clipPath id="type"><rect x="280" y="258" width="0" height="34">
+        <animate attributeName="width" values="0;640;640;0" keyTimes="0;0.45;0.85;1" dur="7s" repeatCount="indefinite"/>
+      </rect></clipPath>
+      <text x="280" y="282" class="t" font-size="18" fill="#A7F3D0" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" clip-path="url(#type)">› timetable · attendance · SGPA/CGPA · Gemma AI imports</text>
+    </g>
+
+    <!-- pills -->
+    <g class="t" font-size="15" font-weight="600">
+      <g class="pill" style="animation-delay:.2s">
+        <rect x="280" y="314" width="132" height="36" rx="18" fill="#FFFFFF" fill-opacity="0.08" stroke="#A78BFA" stroke-opacity="0.6"/>
+        <text x="346" y="337" text-anchor="middle" fill="#DDD6FE">📱 iOS · Android</text>
+      </g>
+      <g class="pill" style="animation-delay:.35s">
+        <rect x="424" y="314" width="96" height="36" rx="18" fill="#FFFFFF" fill-opacity="0.08" stroke="#6EE7B7" stroke-opacity="0.6"/>
+        <text x="472" y="337" text-anchor="middle" fill="#A7F3D0">🌐 Web</text>
+      </g>
+      <g class="pill" style="animation-delay:.5s">
+        <rect x="532" y="314" width="204" height="36" rx="18" fill="#FFFFFF" fill-opacity="0.08" stroke="#FCD34D" stroke-opacity="0.6"/>
+        <text x="634" y="337" text-anchor="middle" fill="#FDE68A">✨ Gemma 4 · Cloud/Local</text>
+      </g>
+      <g class="pill" style="animation-delay:.65s">
+        <rect x="748" y="314" width="164" height="36" rx="18" fill="#FFFFFF" fill-opacity="0.08" stroke="#FDA4AF" stroke-opacity="0.6"/>
+        <text x="830" y="337" text-anchor="middle" fill="#FECDD3">🔒 Local-first data</text>
+      </g>
+    </g>
+
+    <!-- mini floating stat cards -->
+    <g transform="translate(920 96)"><g class="float2">
+      <rect width="210" height="84" rx="18" fill="#FFFFFF" fill-opacity="0.07" stroke="#FFFFFF" stroke-opacity="0.14"/>
+      <circle cx="44" cy="42" r="24" fill="none" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="7"/>
+      <circle cx="44" cy="42" r="24" fill="none" stroke="#10B981" stroke-width="7" stroke-linecap="round" stroke-dasharray="0 151" transform="rotate(-90 44 42)">
+        <animate attributeName="stroke-dasharray" values="0 151;128 151;128 151;0 151" keyTimes="0;0.3;0.85;1" dur="6s" repeatCount="indefinite"/>
+      </circle>
+      <text x="82" y="38" class="t" font-size="13" fill="#A7F3D0" font-weight="600">ATTENDANCE</text>
+      <text x="82" y="62" class="t" font-size="22" fill="#FFFFFF" font-weight="800">On track</text>
+    </g></g>
+    <g transform="translate(960 202)"><g class="float">
+      <rect width="190" height="84" rx="18" fill="#FFFFFF" fill-opacity="0.07" stroke="#FFFFFF" stroke-opacity="0.14"/>
+      <g transform="translate(20 22)">
+        <rect x="0" y="22" width="12" height="18" rx="3" fill="#A78BFA"><animate attributeName="height" values="18;30;18" dur="2.4s" repeatCount="indefinite"/><animate attributeName="y" values="22;10;22" dur="2.4s" repeatCount="indefinite"/></rect>
+        <rect x="18" y="12" width="12" height="28" rx="3" fill="#7C5CFC"><animate attributeName="height" values="28;16;28" dur="2.8s" repeatCount="indefinite"/><animate attributeName="y" values="12;24;12" dur="2.8s" repeatCount="indefinite"/></rect>
+        <rect x="36" y="4" width="12" height="36" rx="3" fill="#C4B5FD"><animate attributeName="height" values="36;24;36" dur="3.2s" repeatCount="indefinite"/><animate attributeName="y" values="4;16;4" dur="3.2s" repeatCount="indefinite"/></rect>
+      </g>
+      <text x="86" y="38" class="t" font-size="13" fill="#DDD6FE" font-weight="600">SGPA · CGPA</text>
+      <text x="86" y="62" class="t" font-size="22" fill="#FFFFFF" font-weight="800">Forecast</text>
+    </g></g>
+  </g>
+  <rect x="0.5" y="0.5" width="1199" height="399" rx="28" fill="none" stroke="#A78BFA" stroke-opacity="0.35"/>
+</svg>

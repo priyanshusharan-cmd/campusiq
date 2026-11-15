@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="24" viewBox="0 0 1200 24" role="presentation">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7C5CFC" stop-opacity="0"/>
+      <stop offset="0.3" stop-color="#7C5CFC"/>
+      <stop offset="0.5" stop-color="#FCD34D"/>
+      <stop offset="0.7" stop-color="#10B981"/>
+      <stop offset="1" stop-color="#10B981" stop-opacity="0"/>
+      <animate attributeName="x1" values="-0.4;0.4;-0.4" dur="6s" repeatCount="indefinite"/>
+      <animate attributeName="x2" values="0.6;1.4;0.6" dur="6s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+  <path d="M0 12 Q 75 2 150 12 T 300 12 T 450 12 T 600 12 T 750 12 T 900 12 T 1050 12 T 1200 12" fill="none" stroke="url(#g)" stroke-width="2.5">
+    <animate attributeName="d" dur="5s" repeatCount="indefinite" values="M0 12 Q 75 2 150 12 T 300 12 T 450 12 T 600 12 T 750 12 T 900 12 T 1050 12 T 1200 12;M0 12 Q 75 22 150 12 T 300 12 T 450 12 T 600 12 T 750 12 T 900 12 T 1050 12 T 1200 12;M0 12 Q 75 2 150 12 T 300 12 T 450 12 T 600 12 T 750 12 T 900 12 T 1050 12 T 1200 12"/>
+  </path>
+  <circle cx="600" cy="12" r="4" fill="#FCD34D"><animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite"/></circle>
+</svg>

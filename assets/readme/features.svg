@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-label="CampusIQ features: Home, Timetable, Attendance, SGPA and CGPA, Forecasting, AI assistant, Assignments and exams, Personalization">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#120E29"/><stop offset="1" stop-color="#101C30"/></linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/><stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.10"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <style>
+      .t{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}
+      .c{animation:in .8s cubic-bezier(.2,.8,.2,1) both}
+      @keyframes in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+      .ic{animation:pulse 4s ease-in-out infinite}
+      @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+    </style>
+    <symbol id="card" viewBox="0 0 270 170"><rect width="270" height="170" rx="20"/></symbol>
+  </defs>
+  <rect width="1200" height="420" rx="24" fill="url(#bg)"/>
+  <rect x="0.5" y="0.5" width="1199" height="419" rx="24" fill="none" stroke="#A78BFA" stroke-opacity="0.3"/>
+
+  <g class="t">
+    <!-- row 1 -->
+    <g transform="translate(30 30)"><g class="c" style="animation-delay:.05s">
+      <rect width="270" height="170" rx="20" fill="#7C5CFC" fill-opacity="0.10" stroke="#A78BFA" stroke-opacity="0.45"/>
+      <g transform="translate(46 50)"><g class="ic"><circle r="26" fill="#7C5CFC" fill-opacity="0.3"/><path d="M-12 2 L0 -10 L12 2 V12 H-12 Z" fill="none" stroke="#DDD6FE" stroke-width="2.5" stroke-linejoin="round"/></g></g>
+      <text x="22" y="112" font-size="19" font-weight="800" fill="#FFFFFF">Home</text>
+      <text x="22" y="136" font-size="13" fill="#C4B5FD">Today's classes, stats &amp;</text>
+      <text x="22" y="154" font-size="13" fill="#C4B5FD">quick access at a glance</text>
+    </g></g>
+    <g transform="translate(320 30)"><g class="c" style="animation-delay:.15s">
+      <rect width="270" height="170" rx="20" fill="#0EA5E9" fill-opacity="0.10" stroke="#7DD3FC" stroke-opacity="0.45"/>
+      <g transform="translate(46 50)"><g class="ic" style="animation-delay:.5s"><circle r="26" fill="#0EA5E9" fill-opacity="0.3"/><rect x="-12" y="-11" width="24" height="22" rx="3" fill="none" stroke="#BAE6FD" stroke-width="2.5"/><path d="M-12 -4 H12 M-5 -15 V-8 M5 -15 V-8" stroke="#BAE6FD" stroke-width="2.5" stroke-linecap="round"/></g></g>
+      <text x="22" y="112" font-size="19" font-weight="800" fill="#FFFFFF">Timetable</text>
+      <text x="22" y="136" font-size="13" fill="#BAE6FD">Mon–Sun · lecture &amp; lab</text>
+      <text x="22" y="154" font-size="13" fill="#BAE6FD">slots · rooms · dated extras</text>
+    </g></g>
+    <g transform="translate(610 30)"><g class="c" style="animation-delay:.25s">
+      <rect width="270" height="170" rx="20" fill="#10B981" fill-opacity="0.10" stroke="#6EE7B7" stroke-opacity="0.45"/>
+      <g transform="translate(46 50)"><g class="ic" style="animation-delay:1s"><circle r="26" fill="#10B981" fill-opacity="0.3"/><path d="M-10 0 L-3 8 L11 -8" fill="none" stroke="#A7F3D0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+      <text x="22" y="112" font-size="19" font-weight="800" fill="#FFFFFF">Attendance</text>
+      <text x="22" y="136" font-size="13" fill="#A7F3D0">Theory/lab split · targets</text>
+      <text x="22" y="154" font-size="13" fill="#A7F3D0">can-miss &amp; must-attend math</text>
+    </g></g>
+    <g transform="translate(900 30)"><g class="c" style="animation-delay:.35s">
+      <rect width="270" height="170" rx="20" fill="#F59E0B" fill-opacity="0.10" stroke="#FCD34D" stroke-opacity="0.45"/>
+      <g transform="translate(46 50)"><g class="ic" style="animation-delay:1.5s"><circle r="26" fill="#F59E0B" fill-opacity="0.3"/><path d="M-11 10 V2 M-3 10 V-4 M5 10 V-10 M13 10 V-1" stroke="#FDE68A" stroke-width="3.5" stroke-linecap="round"/></g></g>
+      <text x="22" y="112" font-size="19" font-weight="800" fill="#FFFFFF">SGPA &amp; CGPA</text>
+      <text x="22" y="136" font-size="13" fill="#FDE68A">Credit-weighted scorecards</text>
+      <text x="22" y="154" font-size="13" fill="#FDE68A">semester by semester</text>
+    </g></g>
+
+    <!-- row 2 -->
+    <g transform="translate(30 220)"><g class="c" style="animation-delay:.45s">
+      <rect width="270" height="170" rx="20" fill="#F43F5E" fill-opacity="0.10" stroke="#FDA4AF" stroke-opacity="0.45"/>
+      <g transform="translate(46 50)"><g class="ic" style="animation-delay:2s"><circle r="26" fill="#F43F5E" fill-opacity="0.3"/><circle r="11" fill="none" stroke="#FECDD3" stroke-width="2.5"/><circle r="4" fill="#FECDD3"/></g></g>
+      <text x="22" y="112" font-size="19" font-weight="800" fill="#FFFFFF">Grade forecasting</text>
+      <text x="22" y="136" font-size="13" fill="#FECDD3">Target SGPA → marks needed</text>
+      <text x="22" y="154" font-size="13" fill="#FECDD3">per subject, per component</text>
+    </g></g>
+    <g transform="translate(320 220)"><g class="c" style="animation-delay:.55s">
+      <rect width="270" height="170" rx="20" fill="#FCD34D" fill-opacity="0.08" stroke="#FCD34D" stroke-opacity="0.6"/>
+      <rect width="270" height="170" rx="20" fill="url(#shine)"><animate attributeName="x" values="-270;270" dur="3s" repeatCount="indefinite"/></rect>
+      <g transform="translate(46 50)"><g class="ic" style="animation-delay:2.5s"><circle r="26" fill="#FCD34D" fill-opacity="0.3"/><path d="M0 -13 L3 -3 L13 0 L3 3 L0 13 L-3 3 L-13 0 L-3 -3 Z" fill="#FDE68A"/></g></g>
+      <text x="22" y="112" font-size="19" font-weight="800" fill="#FFFFFF">Gemma AI assistant</text>
+      <text x="22" y="136" font-size="13" fill="#FDE68A">Chat · image imports · review</text>
+      <text x="22" y="154" font-size="13" fill="#FDE68A">before anything is saved</text>
+    </g></g>
+    <g transform="translate(610 220)"><g class="c" style="animation-delay:.65s">
+      <rect width="270" height="170" rx="20" fill="#8B5CF6" fill-opacity="0.10" stroke="#C4B5FD" stroke-opacity="0.45"/>
+      <g transform="translate(46 50)"><g class="ic" style="animation-delay:3s"><circle r="26" fill="#8B5CF6" fill-opacity="0.3"/><rect x="-10" y="-13" width="20" height="26" rx="3" fill="none" stroke="#DDD6FE" stroke-width="2.5"/><path d="M-5 -4 H5 M-5 3 H5" stroke="#DDD6FE" stroke-width="2.5" stroke-linecap="round"/></g></g>
+      <text x="22" y="112" font-size="19" font-weight="800" fill="#FFFFFF">Assignments &amp; exams</text>
+      <text x="22" y="136" font-size="13" fill="#DDD6FE">Due dates, countdowns,</text>
+      <text x="22" y="154" font-size="13" fill="#DDD6FE">reminders &amp; PDF exports</text>
+    </g></g>
+    <g transform="translate(900 220)"><g class="c" style="animation-delay:.75s">
+      <rect width="270" height="170" rx="20" fill="#14B8A6" fill-opacity="0.10" stroke="#5EEAD4" stroke-opacity="0.45"/>
+      <g transform="translate(46 50)"><g class="ic" style="animation-delay:3.5s"><circle r="26" fill="#14B8A6" fill-opacity="0.3"/>
+        <path d="M0 -12 A12 12 0 1 0 0 12 Z" fill="#99F6E4"/><circle r="12" fill="none" stroke="#99F6E4" stroke-width="2.5"/></g></g>
+      <text x="22" y="112" font-size="19" font-weight="800" fill="#FFFFFF">Personalization</text>
+      <text x="22" y="136" font-size="13" fill="#99F6E4">Light/dark · colors · icons</text>
+      <text x="22" y="154" font-size="13" fill="#99F6E4">timings · grading schemes</text>
+    </g></g>
+  </g>
+</svg>
