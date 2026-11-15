@@ -6,6 +6,21 @@
 
 <br />
 
+<table>
+  <tr>
+    <th>Start with your day</th>
+    <th>See your schedule</th>
+    <th>Stay on track</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="hacktoberfest-screenshots/home-screen-light.png" alt="CampusIQ Home in light mode with academic stats and quick access" width="230" /></td>
+    <td align="center"><img src="hacktoberfest-screenshots/timetable-dark.png" alt="Dark-mode timetable with colored class blocks and weekday selection" width="230" /></td>
+    <td align="center"><img src="hacktoberfest-screenshots/subject-specific-attendance.png" alt="Separate theory and lab attendance with a class calendar" width="230" /></td>
+  </tr>
+</table>
+
+<br />
+
 **A college companion that turns scattered timetables, attendance records and marksheets into one clear picture of student life — with Gemma AI you can run in the cloud or on your own Mac.**
 
 <br />
@@ -24,7 +39,7 @@
 
 <br />
 
-[**Download**](#-download) · [**Why**](#-why-campusiq) · [**Screens**](#-a-look-inside) · [**Explore**](#-explore-campusiq) · [**User manual**](docs/USER_MANUAL.md) · [**Privacy**](docs/PRIVACY_POLICY.md)
+[**Download**](#-download) · [**Why**](#-why-campusiq) · [**Screenshots**](#-screenshots) · [**Features**](#-built-around-your-semester) · [**User manual**](docs/USER_MANUAL.md) · [**Privacy**](docs/PRIVACY_POLICY.md)
 
 <br />
 
@@ -70,61 +85,13 @@ Add information by hand, or let Gemma prepare an import from a photo — then **
 
 <img src="assets/readme/divider.svg" width="100%" alt="" />
 
-## 📱 A look inside
-
-<table>
-  <tr>
-    <th>Start with your day</th>
-    <th>See your schedule</th>
-    <th>Stay on track</th>
-  </tr>
-  <tr>
-    <td align="center"><img src="hacktoberfest-screenshots/home-screen-light.png" alt="CampusIQ Home in light mode with academic stats and quick access" width="230" /></td>
-    <td align="center"><img src="hacktoberfest-screenshots/timetable-dark.png" alt="Dark-mode timetable with colored class blocks and weekday selection" width="230" /></td>
-    <td align="center"><img src="hacktoberfest-screenshots/subject-specific-attendance.png" alt="Separate theory and lab attendance with a class calendar" width="230" /></td>
-  </tr>
-</table>
+## 📱 Screenshots
 
 <p align="center"><strong>Less hunting through screenshots. More understanding what comes next.</strong></p>
 
-<img src="assets/readme/divider.svg" width="100%" alt="" />
-
-## 📚 Explore CampusIQ
-
-Everything about the app, in one place. **Click any section to expand it.**
-
 <details>
-<summary><strong>🧭 Built around your semester</strong> — <em>Every feature at a glance</em></summary>
-
+<summary><strong>✨ AI import: ask, enable, review</strong></summary>
 <br />
-
-<img src="assets/readme/features.svg" alt="CampusIQ feature overview" width="100%" />
-
-| Area | What you can do |
-| :--- | :--- |
-| 🏠 **Home** | Check academic stats, open your core tools and see today's classes at a glance, with a time-of-day greeting. |
-| 🗓️ **Timetable** | Organize Monday–Sunday schedules, lecture and lab slots, rooms, weekly classes and dated extra classes. |
-| 📚 **Subjects & Classes** | Keep course details together and browse classes grouped by subject in the Academic Hub. |
-| ✅ **Attendance** | Track present, absent, cancelled and holiday records; inspect subject-level theory/lab attendance against your targets. |
-| 📊 **SGPA & CGPA** | Maintain semester scorecards with course codes, credits, marks and grade points; track cumulative progress. |
-| 🎯 **Grade forecasting** | Explore assessment components, subject goals, score projections and each course's effect on SGPA. |
-| ✨ **AI assistance** | Ask academic questions, attach a timetable or marksheet and prepare supported app changes with conversation context. |
-| 📝 **Assignments & exams** | Track deadlines and exams with due-date urgency, countdowns and supported device reminders. |
-| 📤 **Exports** | Generate reports and share them through supported print, download and share flows. |
-| 🎨 **Personalization** | Choose light/dark appearance, course colors and icons, college timings, attendance targets and grading settings. |
-
-Onboarding walks you through your profile and subjects; a grading wizard sets up your college's scheme. Calendar exceptions and analytics round out the toolkit. Availability of device services varies by platform.
-
-<br />
-
-</details>
-
-<details>
-<summary><strong>✨ From a screenshot to a reviewable proposal</strong> — <em>How AI imports work and how you stay in control</em></summary>
-
-<br />
-
-<img src="assets/readme/ai-pipeline.svg" alt="Attach → Ask → Gemma extracts → You review → Saved" width="100%" />
 
 <table>
   <tr><th>Ask naturally</th><th>Enable app changes</th><th>Review the details</th></tr>
@@ -135,88 +102,10 @@ Onboarding walks you through your profile and subjects; a grading wizard sets up
   </tr>
 </table>
 
-1. **Attach the source.** Choose a photo, use supported image paste, or paste/drop an image in the browser. JPEG, PNG and WebP images are supported up to 3 MB.
-2. **Say what you need.** For example: *“Add the subjects and faculty from this timetable,”* *“Update my weekly classes,”* or *“Import this marksheet into Semester 3.”* No special command syntax is required.
-3. **Enable the ⚡ lightning control** for app changes. Ordinary questions can stay in regular chat.
-4. **Review the proposal.** Check the semester, extracted fields, lecture/lab slots, suggested mappings and any unresolved conflicts. Date/time pickers make manual corrections explicit.
-5. **Confirm and save.** The assistant prepares changes; the app validates and applies the reviewed proposal.
-
-### 🛡️ Helpful automation, with the final say in your hands
-
-| Behavior | Why it matters |
-| :--- | :--- |
-| **Reuses saved courses** through names, codes and unique abbreviations | No duplicate subjects after every import. |
-| **Keeps lecture and lab sessions distinct**, with confirmation for suggested lab-to-course mappings | Theory and lab attendance stay separate and accurate. |
-| **Checks ordered time headers** to resolve an unambiguous noon rollover when AM/PM is missing | `12, 1, 2` becomes afternoon only when the order proves it; ambiguous periods stay reviewable. |
-| **Cleans exact duplicates and explicit time formats** without shifting a class to hide a real conflict | Real clashes are shown, never silently “fixed”. |
-| **Shows issue counts and an *Issues only* filter** | Jump straight to the rows that need attention. |
-| **Replaces the selected semester's schedule** with weekly-only or weekly-plus-dated scope | You choose exactly how much gets overwritten. |
-| **Imports marksheet course rows independently** of the current Subjects list, including printed zero-credit courses | Zero-credit courses are recorded but don't affect GPA weighting. |
-| **Uses recent chat context and the latest shared image** for follow-ups | *“Now do the lab batches too”* just works while the chat is open. |
-
-Supported proposals also include class edits, attendance ranges, assignment and exam updates, semester results, calendar exceptions and allowlisted profile/preference changes. **Credentials, security controls, sharing, app-wide resets and custom grading configuration stay outside chat control.**
-
-> [!WARNING]
-> **AI can make mistakes.** A section, batch, merged cell, faculty name or grading rule can be misread. CampusIQ leaves genuine ambiguities for review rather than claiming every document is understood perfectly. A chat explanation is not proof that data was saved.
-
-<br />
-
 </details>
 
 <details>
-<summary><strong>🧮 The math behind the numbers</strong> — <em>Attendance, SGPA/CGPA and forecasting formulas</em></summary>
-
-<br />
-
-<img src="assets/readme/attendance-math.svg" alt="Attendance math: can-miss, must-attend and what-if simulation" width="100%" />
-
-CampusIQ's academic engine lives in [`src/lib`](src/lib) as small, pure, testable functions. No AI is involved in these calculations: they run locally and give the same answer every time.
-
-<details open>
-<summary><strong>✅ Attendance</strong> — <code>src/lib/attendanceUtils.ts</code></summary>
-<br />
-
-| Question | Calculation |
-| :--- | :--- |
-| Current percentage | `present / total × 100`, rounded to 2 decimals (100% before any class is recorded) |
-| Classes needed to reach target `T` | `⌈ (T × total − 100 × present) / (100 − T) ⌉` |
-| Classes you can still miss | The largest number of extra absences that keeps you at or above `T` |
-| *What if I miss / attend n?* | `simulateAttendance()` and `simulateAttending()` project the new percentage before you decide |
-
-**Example:** 21 present out of 30 (70%) with a 75% target → `⌈(75×30 − 100×21) / 25⌉ = 6` classes in a row to get back on track.
-
-</details>
-
-<details>
-<summary><strong>📊 SGPA, CGPA and targets</strong> — <code>src/lib/gradeUtils.ts</code></summary>
-<br />
-
-| Metric | Calculation |
-| :--- | :--- |
-| **SGPA** | `Σ(grade point × credits) / Σ credits` for the semester |
-| **CGPA** | `Σ(SGPA × semester credits) / Σ credits` across completed semesters |
-| **Required SGPA for a target CGPA** | `(target × credits after sem − current CGPA × completed credits) / this semester's credits`, flagged as unachievable above 10 |
-| **CGPA → percentage** | `(CGPA − 0.75) × 10` (approximate, a common conversion) |
-
-</details>
-
-<details>
-<summary><strong>🎯 Forecasting externals</strong> — <code>calculateRequiredExternals()</code></summary>
-<br />
-
-Given your internal/lab marks, credits, maximum marks and grading scheme, the forecaster starts every subject at a passing grade point, then raises targets step by step until the total credit-weighted points reach your target SGPA. The result is the **easiest path**: the external marks each subject needs, according to your college's grade boundaries.
-
-</details>
-
-GPA calculations use the configured grading scheme and reviewed data. **Projections are estimates, not official college results.**
-
-<br />
-
-</details>
-
-<details>
-<summary><strong>🏆 Grades you can explore</strong> — <em>Scorecards, forecasts and subject impact</em></summary>
-
+<summary><strong>📊 Grades: semester story, forecast, subject impact</strong></summary>
 <br />
 
 <table>
@@ -228,16 +117,7 @@ GPA calculations use the configured grading scheme and reviewed data. **Projecti
   </tr>
 </table>
 
-Keep a course-by-course record, explore a target and understand how each subject contributes to your semester.
-
-<br />
-
 </details>
-
-<details>
-<summary><strong>🌗 More screens, two personalities</strong> — <em>Full screenshot gallery in light and dark</em></summary>
-
-<br />
 
 <details>
 <summary><strong>☀️ Light & 🌙 dark — Home, Attendance, Timetable and GPA</strong></summary>
@@ -306,14 +186,112 @@ Keep a course-by-course record, explore a target and understand how each subject
 
 <sub>Screenshots show example records and the app state when captured. Displayed marks and attendance are not benchmark results or guaranteed outcomes. <a href="hacktoberfest-screenshots">Browse the screenshot files →</a></sub>
 
+<img src="assets/readme/divider.svg" width="100%" alt="" />
+
+## 🧭 Built around your semester
+
+<img src="assets/readme/features.svg" alt="CampusIQ feature overview" width="100%" />
+
+| Area | What you can do |
+| :--- | :--- |
+| 🏠 **Home** | Check academic stats, open your core tools and see today's classes at a glance, with a time-of-day greeting. |
+| 🗓️ **Timetable** | Organize Monday–Sunday schedules, lecture and lab slots, rooms, weekly classes and dated extra classes. |
+| 📚 **Subjects & Classes** | Keep course details together and browse classes grouped by subject in the Academic Hub. |
+| ✅ **Attendance** | Track present, absent, cancelled and holiday records; inspect subject-level theory/lab attendance against your targets. |
+| 📊 **SGPA & CGPA** | Maintain semester scorecards with course codes, credits, marks and grade points; track cumulative progress. |
+| 🎯 **Grade forecasting** | Explore assessment components, subject goals, score projections and each course's effect on SGPA. |
+| ✨ **AI assistance** | Ask academic questions, attach a timetable or marksheet and prepare supported app changes with conversation context. |
+| 📝 **Assignments & exams** | Track deadlines and exams with due-date urgency, countdowns and supported device reminders. |
+| 📤 **Exports** | Generate reports and share them through supported print, download and share flows. |
+| 🎨 **Personalization** | Choose light/dark appearance, course colors and icons, college timings, attendance targets and grading settings. |
+
+Onboarding walks you through your profile and subjects; a grading wizard sets up your college's scheme. Calendar exceptions and analytics round out the toolkit. Availability of device services varies by platform.
+
+<img src="assets/readme/divider.svg" width="100%" alt="" />
+
+## ✨ From a screenshot to a reviewable proposal
+
+<img src="assets/readme/ai-pipeline.svg" alt="Attach → Ask → Gemma extracts → You review → Saved" width="100%" />
+
+1. **Attach the source.** Choose a photo, use supported image paste, or paste/drop an image in the browser. JPEG, PNG and WebP images are supported up to 3 MB.
+2. **Say what you need.** For example: *“Add the subjects and faculty from this timetable,”* *“Update my weekly classes,”* or *“Import this marksheet into Semester 3.”* No special command syntax is required.
+3. **Enable the ⚡ lightning control** for app changes. Ordinary questions can stay in regular chat.
+4. **Review the proposal.** Check the semester, extracted fields, lecture/lab slots, suggested mappings and any unresolved conflicts. Date/time pickers make manual corrections explicit.
+5. **Confirm and save.** The assistant prepares changes; the app validates and applies the reviewed proposal.
+
+### 🛡️ Helpful automation, with the final say in your hands
+
+| Behavior | Why it matters |
+| :--- | :--- |
+| **Reuses saved courses** through names, codes and unique abbreviations | No duplicate subjects after every import. |
+| **Keeps lecture and lab sessions distinct**, with confirmation for suggested lab-to-course mappings | Theory and lab attendance stay separate and accurate. |
+| **Checks ordered time headers** to resolve an unambiguous noon rollover when AM/PM is missing | `12, 1, 2` becomes afternoon only when the order proves it; ambiguous periods stay reviewable. |
+| **Cleans exact duplicates and explicit time formats** without shifting a class to hide a real conflict | Real clashes are shown, never silently “fixed”. |
+| **Shows issue counts and an *Issues only* filter** | Jump straight to the rows that need attention. |
+| **Replaces the selected semester's schedule** with weekly-only or weekly-plus-dated scope | You choose exactly how much gets overwritten. |
+| **Imports marksheet course rows independently** of the current Subjects list, including printed zero-credit courses | Zero-credit courses are recorded but don't affect GPA weighting. |
+| **Uses recent chat context and the latest shared image** for follow-ups | *“Now do the lab batches too”* just works while the chat is open. |
+
+Supported proposals also include class edits, attendance ranges, assignment and exam updates, semester results, calendar exceptions and allowlisted profile/preference changes. **Credentials, security controls, sharing, app-wide resets and custom grading configuration stay outside chat control.**
+
+> [!WARNING]
+> **AI can make mistakes.** A section, batch, merged cell, faculty name or grading rule can be misread. CampusIQ leaves genuine ambiguities for review rather than claiming every document is understood perfectly. A chat explanation is not proof that data was saved.
+
+<img src="assets/readme/divider.svg" width="100%" alt="" />
+
+## 🧮 The math behind the numbers
+
+<img src="assets/readme/attendance-math.svg" alt="Attendance math: can-miss, must-attend and what-if simulation" width="100%" />
+
+CampusIQ's academic engine lives in [`src/lib`](src/lib) as small, pure, testable functions. No AI is involved in these calculations: they run locally and give the same answer every time.
+
+<details open>
+<summary><strong>✅ Attendance</strong> — <code>src/lib/attendanceUtils.ts</code></summary>
 <br />
+
+| Question | Calculation |
+| :--- | :--- |
+| Current percentage | `present / total × 100`, rounded to 2 decimals (100% before any class is recorded) |
+| Classes needed to reach target `T` | `⌈ (T × total − 100 × present) / (100 − T) ⌉` |
+| Classes you can still miss | The largest number of extra absences that keeps you at or above `T` |
+| *What if I miss / attend n?* | `simulateAttendance()` and `simulateAttending()` project the new percentage before you decide |
+
+**Example:** 21 present out of 30 (70%) with a 75% target → `⌈(75×30 − 100×21) / 25⌉ = 6` classes in a row to get back on track.
 
 </details>
 
 <details>
-<summary><strong>🤖 Choose where Gemma runs</strong> — <em>Cloud, local Mac, automatic or offline</em></summary>
-
+<summary><strong>📊 SGPA, CGPA and targets</strong> — <code>src/lib/gradeUtils.ts</code></summary>
 <br />
+
+| Metric | Calculation |
+| :--- | :--- |
+| **SGPA** | `Σ(grade point × credits) / Σ credits` for the semester |
+| **CGPA** | `Σ(SGPA × semester credits) / Σ credits` across completed semesters |
+| **Required SGPA for a target CGPA** | `(target × credits after sem − current CGPA × completed credits) / this semester's credits`, flagged as unachievable above 10 |
+| **CGPA → percentage** | `(CGPA − 0.75) × 10` (approximate, a common conversion) |
+
+</details>
+
+<details>
+<summary><strong>🎯 Forecasting externals</strong> — <code>calculateRequiredExternals()</code></summary>
+<br />
+
+Given your internal/lab marks, credits, maximum marks and grading scheme, the forecaster starts every subject at a passing grade point, then raises targets step by step until the total credit-weighted points reach your target SGPA. The result is the **easiest path**: the external marks each subject needs, according to your college's grade boundaries.
+
+</details>
+
+GPA calculations use the configured grading scheme and reviewed data. **Projections are estimates, not official college results.**
+
+<img src="assets/readme/divider.svg" width="100%" alt="" />
+
+## 🏆 Grades you can explore
+
+Keep a course-by-course record, explore a target and understand how each subject contributes to your semester.
+
+<img src="assets/readme/divider.svg" width="100%" alt="" />
+
+## 🤖 Choose where Gemma runs
 
 <img src="assets/readme/gemma-modes.svg" alt="Gemma Cloud via Google API or Gemma Local via Ollama on your Mac" width="100%" />
 
@@ -328,14 +306,9 @@ The current model identifiers are `gemma-4-26b-a4b-it` for Google and `gemma4:e4
 
 Cloud and local replies can stream. Closing AI chat cancels its active transport, and repeated model-output loops are stopped early. Provider processing or quota charges may still occur after cancellation. Cloud rate limits and model availability depend on your provider project.
 
-<br />
+<img src="assets/readme/divider.svg" width="100%" alt="" />
 
-</details>
-
-<details>
-<summary><strong>🚀 Run CampusIQ</strong> — <em>Install, develop and configure AI locally</em></summary>
-
-<br />
+## 🚀 Run CampusIQ
 
 ### Prerequisites
 
@@ -397,14 +370,9 @@ npm run preview:web
 
 A user-entered browser API key stays in page memory and clears on reload. Native user-saved keys use Expo SecureStore. An HTTPS-hosted browser may block an HTTP connection to your local Mac; use a compatible local setup or the native app for that route.
 
-<br />
+<img src="assets/readme/divider.svg" width="100%" alt="" />
 
-</details>
-
-<details>
-<summary><strong>🌐 Put it online with Render</strong> — <em>Deploy the static web app</em></summary>
-
-<br />
+## 🌐 Put it online with Render
 
 Connect this repository in **Render → New → Static Site**, then use:
 
@@ -419,14 +387,9 @@ Connect this repository in **Render → New → Static Site**, then use:
 
 The included [`render.yaml`](render.yaml) also supports Blueprint deployment. After deploying, open the published URL and test navigation, a page refresh, local record persistence and an optional cloud connection. Enter AI credentials in the app's Settings; never embed private keys in the frontend build. See the [full deployment guide](docs/RENDER_DEPLOYMENT.md).
 
-<br />
+<img src="assets/readme/divider.svg" width="100%" alt="" />
 
-</details>
-
-<details>
-<summary><strong>🔒 Privacy, plainly</strong> — <em>What stays on your device and what AI sends</em></summary>
-
-<br />
+## 🔒 Privacy, plainly
 
 | Stays on your device | Leaves your device (only when you use AI) |
 | :--- | :--- |
@@ -440,37 +403,13 @@ Core academic records live in app/browser storage, and ordinary calculations run
 
 Review what you attach, use a trusted endpoint, and keep credentials out of screenshots and commits. Provider policies govern provider-side processing and retention. Exports and backups create independent copies. The full [Privacy Policy](docs/PRIVACY_POLICY.md) (also in the app under *More → Privacy Policy*) documents current storage, permissions, AI routing, key handling and deletion behavior.
 
-<br />
+<img src="assets/readme/divider.svg" width="100%" alt="" />
 
-</details>
-
-<details>
-<summary><strong>🏗️ Architecture</strong> — <em>Diagrams, import pipeline and data boundaries</em></summary>
-
-<br />
+## 🏗️ Architecture
 
 One shared application serves iOS, Android and the browser. Academic calculations and saved records stay local; optional AI requests travel directly to the chosen provider. Render serves the browser build without running a model or an application backend.
 
-```mermaid
-flowchart TD
-    Student[Student on iOS, Android or Web] --> UI[Expo Router screens]
-    UI <--> Stores[Zustand stores]
-    Stores <--> Storage[AsyncStorage on native / localStorage on web]
-    Stores --> Engines[Attendance, grading and GPA engines]
-    Engines --> UI
-    UI --> Chat[AI chat and source attachments]
-    Chat --> Context[Recent conversation and relevant academic context]
-    Context --> Client[Shared AI client]
-    Client --> Google[Google API / Gemma Cloud]
-    Client --> Ollama[Ollama / Gemma on a reachable machine]
-    Google --> Response[Streamed reply or structured proposal]
-    Ollama --> Response
-    Response --> Review[Editable review and validation]
-    Review --> Confirm{User confirms?}
-    Confirm -->|Yes| Apply[Apply reviewed changes]
-    Confirm -->|No| Draft[Keep editing or dismiss]
-    Apply --> Stores
-```
+<img src="assets/readme/architecture.svg" alt="CampusIQ architecture: on-device app with optional AI going straight to Google or your Mac" width="100%" />
 
 ### How an import becomes saved data
 
@@ -485,26 +424,13 @@ flowchart TD
 
 ### Deployment and data boundaries
 
-```mermaid
-flowchart LR
-    Repo[GitHub main branch] --> Build[Render static build]
-    Build --> Site[Public HTTPS website]
-    Site --> Browser[Visitor browser]
-    Browser <--> Local[Visitor-local academic records]
-    Browser -->|User-entered API key| Cloud[Google API / Gemma]
-    Native[Native CampusIQ app] -->|Configured local endpoint| Mac[Mac running Ollama]
-```
+<img src="assets/readme/deployment.svg" alt="Builds, hosting and data boundaries: static builds and visitor-local records" width="100%" />
 
 There is no shared hosted database or bundled public AI key. Each visitor has separate browser records and supplies their own key for cloud AI. A shared-key experience would need an additional backend with private credentials and usage controls. HTTPS browser access to local Ollama depends on browser security and endpoint configuration.
 
-<br />
+<img src="assets/readme/divider.svg" width="100%" alt="" />
 
-</details>
-
-<details>
-<summary><strong>🧰 Tech stack</strong> — <em>Every library and what it does</em></summary>
-
-<br />
+## 🧰 Tech stack
 
 <p align="center">
   <img src="https://skillicons.dev/icons?i=react,ts,nodejs,js,html,css,github&theme=dark" alt="React, TypeScript, Node.js, JavaScript, HTML, CSS, GitHub" />
@@ -527,14 +453,9 @@ There is no shared hosted database or bundled public AI key. Each visitor has se
 | **Web hosting** | React Native Web · Expo export · Render Static Site | A browser build published from `dist`. |
 | **Checks** | TypeScript · Node test runner | Mocked AI tests, academic-engine checks and platform validation. |
 
-<br />
+<img src="assets/readme/divider.svg" width="100%" alt="" />
 
-</details>
-
-<details>
-<summary><strong>🗂️ Repository map</strong> — <em>Where everything lives in the code</em></summary>
-
-<br />
+## 🗂️ Repository map
 
 ```text
 campusiq/
@@ -561,14 +482,9 @@ campusiq/
 └── hacktoberfest-screenshots/  Screens used in this README
 ```
 
-<br />
+<img src="assets/readme/divider.svg" width="100%" alt="" />
 
-</details>
-
-<details>
-<summary><strong>🧪 Quality checks</strong> — <em>Type-check, tests and what they cover</em></summary>
-
-<br />
+## 🧪 Quality checks
 
 ```bash
 npx tsc --noEmit                                  # type-check
@@ -587,14 +503,9 @@ npm run build:web                                 # production web build
 
 AI tests use mocked providers and **do not consume Google quota**. Mocked tests verify application logic; they do not guarantee the accuracy of live model extraction.
 
-<br />
+<img src="assets/readme/divider.svg" width="100%" alt="" />
 
-</details>
-
-<details>
-<summary><strong>❓ FAQ</strong> — <em>Quick answers to common questions</em></summary>
-
-<br />
+## ❓ FAQ
 
 <details>
 <summary><strong>Do I need an API key to use CampusIQ?</strong></summary>
@@ -626,32 +537,22 @@ Your records stay in app or browser storage. Data leaves the device only when yo
 Yes. The grading wizard and grading settings let you configure grade boundaries and internal/external maximum marks, and all GPA math follows that scheme.
 </details>
 
-<br />
+<img src="assets/readme/divider.svg" width="100%" alt="" />
 
-</details>
-
-<details>
-<summary><strong>🤝 Contributing</strong> — <em>How to help improve CampusIQ</em></summary>
-
-<br />
+## 🤝 Contributing
 
 Contributions are welcome!
 
 1. **Fork** the repo and create a branch: `git checkout -b feat/your-idea`
 2. **Keep changes focused** on one fix or feature.
-3. **Run the checks** in [Quality checks](#-explore-campusiq) before opening a PR.
+3. **Run the checks** in [Quality checks](#-quality-checks) before opening a PR.
 4. **Open a pull request** that describes the problem and how you validated the fix.
 
 For document-extraction bugs, include a small **redacted** example and explain the expected interpretation. Found a bug? [Open an issue →](https://github.com/priyanshusharan-cmd/campusiq/issues)
 
-<br />
+<img src="assets/readme/divider.svg" width="100%" alt="" />
 
-</details>
-
-<details>
-<summary><strong>📚 Go deeper</strong> — <em>User manual, privacy policy and guides</em></summary>
-
-<br />
+## 📚 Go deeper
 
 | Guide | What's inside |
 | :--- | :--- |
@@ -661,10 +562,6 @@ For document-extraction bugs, include a small **redacted** example and explain t
 | [Render deployment](docs/RENDER_DEPLOYMENT.md) | Static-site and Blueprint deployment |
 | [Web validation](docs/WEB_VALIDATION.md) | Browser checks before release |
 | [Dependency security](docs/DEPENDENCY_SECURITY.md) | Dependency policy and audit notes |
-
-<br />
-
-</details>
 
 <img src="assets/readme/divider.svg" width="100%" alt="" />
 
